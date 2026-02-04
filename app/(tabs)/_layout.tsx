@@ -1,10 +1,11 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { Platform } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
-import { useSettings } from "../context/SettingsContext";
+import { useSettings } from "@/src/context/SettingsContext";
 
 export default function TabLayout() {
   const { darkMode } = useSettings();
@@ -19,9 +20,26 @@ export default function TabLayout() {
         tabBarButton: HapticTab,
         tabBarActiveTintColor: tintColor,
         tabBarInactiveTintColor: darkMode ? "#9CA3AF" : "#6B7280",
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+        },
+        tabBarItemStyle: {
+          paddingVertical: 6,
+        },
         tabBarStyle: {
-          backgroundColor: darkMode ? "#111827" : "#FFFFFF",
-          borderTopColor: darkMode ? "#1F2937" : "#E5E7EB",
+          backgroundColor: darkMode ? "#0B1220" : "#F1F7FF",
+          borderTopColor: darkMode ? "#1F2937" : "#CFE0FF",
+          borderTopWidth: 1,
+          height: Platform.OS === "ios" ? 84 : 70,
+          paddingBottom: Platform.OS === "ios" ? 22 : 12,
+          paddingTop: 8,
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: darkMode ? 0.2 : 0.08,
+          shadowRadius: 12,
+          elevation: 12,
         },
       }}
     >
@@ -57,6 +75,18 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      {/* About */}
+      <Tabs.Screen
+        name="about"
+        options={{
+          title: "About",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={26} name="info.circle" color={color} />
+          ),
+        }}
+      />
     </Tabs>
   );
 }
+ 
