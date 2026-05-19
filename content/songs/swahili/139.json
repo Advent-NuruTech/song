@@ -1,0 +1,28 @@
+{
+  "id": "SWA_139",
+  "hymnNumber": 139,
+  "title": "Uniimbie Tena",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Uliniimbie tena, Neno la uzima;",
+      "Uzuri wake nione, Neno la uzima;",
+      "Neno hili zuri, lafundisha kweli."
+    ],
+    [
+      "Kristo anatupa sote, neon la uzima:",
+      "Mwenye dhambi asikie, Neno la uzima:",
+      "Latolewa bure, Tupate wokovu:"
+    ],
+    [
+      "Neno tamu la injili, Neno la uzima:",
+      "Lina amani kwa wote, Neno la uzima:",
+      "Linatutakasa, Kwa haki ya Mwana:"
+    ]
+  ],
+  "chorus": [
+    "Maneno ya uzima ni maneno mazuri,",
+    "Maneno ya uzima ni maneno mazuri"
+  ]
+}

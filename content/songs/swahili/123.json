@@ -1,0 +1,23 @@
+{
+  "id": "SWA_123",
+  "hymnNumber": 123,
+  "title": "Yesu Kwa Imani",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Yesu kwa imani, nakutumaini, peke yako Nishike sasa, na kunitakasa, ni wako kabisa Tangu leo."
+    ],
+    [
+      "Nipe nguvu pia za kusaidia moyo wangu;",
+      "Ulikufa wewe, wokovu nipewe, nakupenda wewe,",
+      "Bwana wangu."
+    ],
+    [
+      "Hapa nazunguka katika mashaka, na matata;",
+      "Palipo na giza utaniongoza, hivi nitaweza,",
+      "Kufuata."
+    ]
+  ],
+  "chorus": ""
+}

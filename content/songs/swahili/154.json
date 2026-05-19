@@ -1,0 +1,29 @@
+{
+  "id": "SWA_154",
+  "hymnNumber": 154,
+  "title": "Yanipasa Kuwa Naye",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Yanipasa kuwa naye, Mwokozi Bwana wangu.",
+      "Akiwa karibu nami, napata nguvu kweli."
+    ],
+    [
+      "Yanipasa kuwa naye, kwani nategemea;",
+      "Anaweza kufariji na maneno matamu."
+    ],
+    [
+      "Yanipasa kuwa naye maisha yangu yote;",
+      "Yakiwapo majaribu na mashaka yo yote."
+    ],
+    [
+      "Yanipasa kuwa naye katika njia zangu;",
+      "Macho yake yaongoza hatua zangu zote."
+    ]
+  ],
+  "chorus": [
+    "Moyo hauogopi, wala kutikisika.",
+    "Nitakwenda apendapo, kwa kuwa anilinda."
+  ]
+}

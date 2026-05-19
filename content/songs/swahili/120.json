@@ -1,0 +1,28 @@
+{
+  "id": "SWA_120",
+  "hymnNumber": 120,
+  "title": "Msalaba Wa Yesu",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Msalaba wa Yesu, Nikae karibu; Pale pana chemchemi Yakuponya dhambi."
+    ],
+    [
+      "Karibu msalaba Nalitetemeka,",
+      "Pendo likaniona Likanirehemu."
+    ],
+    [
+      "Unikumbushe, Yesu. Nikuone pale:",
+      "Niupate upendo Na kuvutwa nao."
+    ],
+    [
+      "Karibu msalaba, Kwa kutegemea,",
+      "Kukesha na kungoja, Nitakaa pale."
+    ]
+  ],
+  "chorus": [
+    "Pale msalaba Msalaba wake,",
+    "Huo ni sifa yangu Kwa maisha yote."
+  ]
+}

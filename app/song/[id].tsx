@@ -1,313 +1,736 @@
-import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { Platform, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
-import PagerView from "react-native-pager-view";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  ActivityIndicator,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Platform,
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
+import { ChevronLeft, ChevronRight } from "lucide-react-native";
+
+import { ShareIconButton } from "@/components/share-icon-button";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { runQuery } from "@/src/db/runQuery";
-import { getLanguageColor } from "@/src/services/languageService";
 
-type SongRow = {
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
+
+import { runQuery } from "@/src/db/runQuery";
+
+import {
+  getLanguageColor,
+} from "@/src/services/languageService";
+
+import { shareSong } from "@/src/services/shareService";
+
+type ParsedSong = {
   id: string;
   hymnNumber: number;
   title: string;
   language: string;
   author?: string | null;
-  stanzas: string;
-  chorus: string | null;
+
+  parsedStanzas: string[][];
+  parsedChorus: string[];
 };
 
-function safeStanzas(value: string): string[][] {
+function parseStanzas(
+  value: string
+): string[][] {
   try {
     const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) return parsed as string[][];
+
+    if (Array.isArray(parsed)) {
+      return parsed;
+    }
+
     return [[String(parsed)]];
   } catch {
     return [[String(value)]];
   }
 }
 
-function safeChorus(value: string | null): string[] | null {
-  if (!value) return null;
+function parseChorus(
+  value?: string | null
+): string[] {
+  if (!value) return [];
+
   try {
     const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) return parsed as string[];
-    return [String(parsed)];
+
+    if (Array.isArray(parsed)) {
+      return parsed
+        .flat()
+        .map(String)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    }
+
+    const text = String(parsed).trim();
+
+    return text ? [text] : [];
   } catch {
-    return [String(value)];
+    const text = String(value).trim();
+
+    return text ? [text] : [];
   }
 }
 
-export default function SongDetailsScreen() {
-  const { id } = useLocalSearchParams<{ id?: string }>();
-  const { colors, size, fontFamily, darkMode } = useAppTheme();
+const SongContent = memo(
+  ({
+    song,
+    colors,
+    size,
+    fontFamily,
+    darkMode,
+    primaryColor,
+    onScroll,
+  }: any) => {
+    return (
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={
+          styles.scrollContent
+        }
+        showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        scrollEventThrottle={16}
+        onScroll={onScroll}
+      >
+        {song.parsedStanzas.map(
+          (
+            stanza: string[],
+            stanzaIndex: number
+          ) => (
+            <View
+              key={stanzaIndex}
+              style={styles.stanzaContainer}
+            >
+              <View
+                style={[
+                  styles.stanzaNumberContainer,
+                  {
+                    backgroundColor: `${primaryColor}12`,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.stanzaNumber,
+                    {
+                      color: primaryColor,
+                      fontSize: size(17),
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  {stanzaIndex + 1}
+                </Text>
+              </View>
 
-  const [songs, setSongs] = useState<SongRow[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [currentSong, setCurrentSong] = useState<SongRow | null>(null);
+              <View
+                style={styles.stanzaContent}
+              >
+                {stanza.map(
+                  (
+                    line: string,
+                    lineIndex: number
+                  ) => (
+                    <Text
+                      key={lineIndex}
+                      style={[
+                        styles.line,
+                        {
+                          color: colors.text,
+                          fontSize: size(22),
+                          lineHeight: size(36),
+                          fontFamily,
+                        },
+                      ]}
+                    >
+                      {line}
+                    </Text>
+                  )
+                )}
+              </View>
+
+              {!!song.parsedChorus
+                .length && (
+                <View
+                  style={[
+                    styles.chorusContainer,
+                    {
+                      backgroundColor:
+                        darkMode
+                          ? "rgba(255,255,255,0.05)"
+                          : "rgba(0,0,0,0.04)",
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.chorusLabel,
+                      {
+                        color: primaryColor,
+                        fontSize: size(13),
+                        fontFamily,
+                      },
+                    ]}
+                  >
+                    Chorus
+                  </Text>
+
+                  {song.parsedChorus.map(
+                    (
+                      line: string,
+                      index: number
+                    ) => (
+                      <Text
+                        key={index}
+                        style={[
+                          styles.chorusLine,
+                          {
+                            color:
+                              colors.text,
+                            fontSize:
+                              size(20),
+                            lineHeight:
+                              size(33),
+                            fontFamily,
+                          },
+                        ]}
+                      >
+                        {line}
+                      </Text>
+                    )
+                  )}
+                </View>
+              )}
+            </View>
+          )
+        )}
+      </ScrollView>
+    );
+  }
+);
+
+SongContent.displayName =
+  "SongContent";
+
+export default function SongScreen() {
+  const router = useRouter();
+
+  const { id } =
+    useLocalSearchParams<{
+      id?: string;
+    }>();
+
+  const {
+    colors,
+    size,
+    fontFamily,
+    darkMode,
+  } = useAppTheme();
+
+  const { reportScroll } =
+    useQuickFooter();
+
+  const mountedRef = useRef(true);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [song, setSong] =
+    useState<ParsedSong | null>(null);
+
+  const [prevSongId, setPrevSongId] =
+    useState<string | null>(null);
+
+  const [nextSongId, setNextSongId] =
+    useState<string | null>(null);
 
   useEffect(() => {
-    let isMounted = true;
+    mountedRef.current = true;
 
-    const loadSongSet = async () => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const loadSong = useCallback(
+    async (songId: string) => {
       try {
-        const single = await runQuery(
-          "SELECT id, language FROM songs WHERE id = ? LIMIT 1",
-          [id]
-        );
+        setLoading(true);
 
-        if (single.rows.length === 0) return;
-
-        const language = single.rows.item(0).language;
         const result = await runQuery(
           `
-            SELECT id, hymnNumber, title, language, author, stanzas, chorus
-            FROM songs
-            WHERE language = ?
-            ORDER BY hymnNumber ASC
-          `,
-          [language]
+        SELECT
+          id,
+          hymnNumber,
+          title,
+          language,
+          author,
+          stanzas,
+          chorus
+        FROM songs
+        WHERE id = ?
+        LIMIT 1
+        `,
+          [songId]
         );
 
-        const list = result.rows._array as SongRow[];
-        const index = list.findIndex((s) => s.id === id);
+        if (
+          !mountedRef.current
+        )
+          return;
 
-        if (isMounted) {
-          setSongs(list);
-          setCurrentIndex(index >= 0 ? index : 0);
-          setCurrentSong(list[index >= 0 ? index : 0] || null);
+        if (
+          result.rows.length === 0
+        ) {
+          setSong(null);
+          return;
         }
-      } catch (e) {
-        console.error("Failed to load song:", e);
+
+        const raw =
+          result.rows.item(0);
+
+        const parsedSong: ParsedSong =
+          {
+            id: String(raw.id),
+            hymnNumber:
+              raw.hymnNumber,
+            title: raw.title,
+            language:
+              raw.language,
+            author: raw.author,
+
+            parsedStanzas:
+              parseStanzas(
+                raw.stanzas
+              ),
+
+            parsedChorus:
+              parseChorus(
+                raw.chorus
+              ),
+          };
+
+        setSong(parsedSong);
+
+        const [prevResult, nextResult] = await Promise.all([
+          runQuery(
+            `
+              SELECT id
+              FROM songs
+              WHERE language = ?
+                AND hymnNumber < ?
+              ORDER BY hymnNumber DESC
+              LIMIT 1
+            `,
+            [raw.language, raw.hymnNumber]
+          ),
+          runQuery(
+            `
+              SELECT id
+              FROM songs
+              WHERE language = ?
+                AND hymnNumber > ?
+              ORDER BY hymnNumber ASC
+              LIMIT 1
+            `,
+            [raw.language, raw.hymnNumber]
+          ),
+        ]);
+
+        if (!mountedRef.current) return;
+
+        setPrevSongId(prevResult.rows.length ? String(prevResult.rows.item(0).id) : null);
+        setNextSongId(nextResult.rows.length ? String(nextResult.rows.item(0).id) : null);
+      } catch (error) {
+        console.error(error);
       } finally {
-        if (isMounted) setLoading(false);
+        if (
+          mountedRef.current
+        ) {
+          setLoading(false);
+        }
       }
-    };
+    },
+    []
+  );
 
-    loadSongSet();
-    return () => {
-      isMounted = false;
-    };
-  }, [id]);
+  useEffect(() => {
+    if (!id) return;
 
-  const handlePageSelected = (event: { nativeEvent: { position: number } }) => {
-    const newIndex = event.nativeEvent.position;
-    setCurrentIndex(newIndex);
-    setCurrentSong(songs[newIndex] || null);
-  };
+    loadSong(String(id));
+  }, [id, loadSong]);
 
-  const languageColor = currentSong ? getLanguageColor(currentSong.language) : colors.tint;
-  const primaryColor = currentSong ? languageColor : colors.tint;
+  const primaryColor =
+    useMemo(() => {
+      return song
+        ? getLanguageColor(
+            song.language
+          )
+        : colors.tint;
+    }, [song, colors.tint]);
 
-  if (loading || songs.length === 0) {
+  const handleScroll =
+    useCallback(
+      (
+        event: NativeSyntheticEvent<NativeScrollEvent>
+      ) => {
+        reportScroll(
+          event.nativeEvent
+            .contentOffset.y
+        );
+      },
+      [reportScroll]
+    );
+
+  const navigateSong =
+    useCallback(
+      (targetId: string | null) => {
+        if (!targetId) return;
+
+        router.replace({
+          pathname:
+            "/song/[id]",
+          params: {
+            id: targetId,
+          },
+        });
+      },
+      [router]
+    );
+
+  if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.loadingContainer}>
-          <View style={[styles.loadingCard, { backgroundColor: colors.card }]}>
-            <View style={[styles.loadingNumber, { backgroundColor: `${primaryColor}20` }]}>
-              <Text style={[styles.loadingNumberText, { color: primaryColor }]}>#</Text>
-            </View>
-            <View style={styles.loadingContent}>
-              <View style={[styles.loadingTitle, { backgroundColor: colors.border }]} />
-              <View style={[styles.loadingLine, { backgroundColor: colors.border }]} />
-              <View style={[styles.loadingLineShort, { backgroundColor: colors.border }]} />
-            </View>
-          </View>
-        </View>
+      <View
+        style={[
+          styles.centered,
+          {
+            backgroundColor:
+              colors.background,
+          },
+        ]}
+      >
+        <StatusBar
+          barStyle={
+            darkMode
+              ? "light-content"
+              : "dark-content"
+          }
+          backgroundColor={
+            colors.background
+          }
+        />
+
+        <ActivityIndicator
+          size="large"
+          color={colors.tint}
+        />
+
+        <Text
+          style={[
+            styles.loadingText,
+            {
+              color: colors.text,
+              fontSize: size(16),
+              fontFamily,
+            },
+          ]}
+        >
+          Loading hymn...
+        </Text>
+      </View>
+    );
+  }
+
+  if (!song) {
+    return (
+      <View
+        style={[
+          styles.centered,
+          {
+            backgroundColor:
+              colors.background,
+          },
+        ]}
+      >
+        <Text
+          style={{
+            color: colors.text,
+            fontSize: size(16),
+            fontFamily,
+          }}
+        >
+          Song not found
+        </Text>
       </View>
     );
   }
 
   return (
     <>
-      <Stack.Screen options={{ headerShown: false }} />
-      <StatusBar
-        barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
+      <Stack.Screen
+        options={{
+          headerShown: false,
+        }}
       />
 
-      {/* Song Header */}
-      <View style={[styles.headerContainer, { backgroundColor: colors.card }]}>
-        <View style={styles.headerContent}>
-          {/* Song Number Badge */}
-          <View
-            style={[
-              styles.headerNumberBadge,
-              {
-                backgroundColor: `${primaryColor}15`,
-                borderColor: primaryColor,
-              }
-            ]}
-          >
-            <Text
-              style={[
-                styles.headerNumberText,
-                {
-                  color: primaryColor,
-                  fontSize: size(20),
-                  fontFamily,
-                }
-              ]}
-            >
-              {currentSong?.hymnNumber}
-            </Text>
-          </View>
+      <StatusBar
+        barStyle={
+          darkMode
+            ? "light-content"
+            : "dark-content"
+        }
+        backgroundColor={
+          colors.background
+        }
+      />
 
-          <View style={styles.headerTextContainer}>
-            <Text
+      <View
+        style={[
+          styles.container,
+          {
+            backgroundColor:
+              colors.background,
+          },
+        ]}
+      >
+        {/* HEADER */}
+
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor:
+                colors.card,
+
+              borderBottomColor:
+                colors.border,
+            },
+          ]}
+        >
+          <View
+            style={
+              styles.headerTop
+            }
+          >
+            <View
               style={[
-                styles.headerTitle,
+                styles.badge,
                 {
-                  color: colors.text,
-                  fontSize: size(20),
-                  fontFamily,
-                }
+                  backgroundColor: `${primaryColor}14`,
+                  borderColor:
+                    primaryColor,
+                },
               ]}
-              numberOfLines={2}
             >
-              {currentSong?.title}
-            </Text>
-            {!!currentSong?.author?.trim() && (
               <Text
                 style={[
-                  styles.headerAuthor,
+                  styles.badgeText,
                   {
-                    color: colors.mutedText,
-                    fontSize: size(14),
+                    color:
+                      primaryColor,
+                    fontSize:
+                      size(18),
                     fontFamily,
-                  }
+                  },
                 ]}
-                numberOfLines={1}
               >
-                By {currentSong.author}
+                {song.hymnNumber}
               </Text>
-            )}
+            </View>
+
+            <View
+              style={
+                styles.headerInfo
+              }
+            >
+              <Text
+                numberOfLines={2}
+                style={[
+                  styles.title,
+                  {
+                    color:
+                      colors.text,
+                    fontSize:
+                      size(21),
+                    fontFamily,
+                  },
+                ]}
+              >
+                {song.title}
+              </Text>
+
+              {!!song.author && (
+                <Text
+                  numberOfLines={
+                    1
+                  }
+                  style={[
+                    styles.author,
+                    {
+                      color:
+                        colors.mutedText,
+                      fontSize:
+                        size(13),
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  By {song.author}
+                </Text>
+              )}
+            </View>
+
+            <ShareIconButton
+              color={primaryColor}
+              borderColor={
+                colors.border
+              }
+              backgroundColor={
+                colors.card
+              }
+              onPress={() =>
+                void shareSong({
+                  title:
+                    song.title,
+                  hymnNumber:
+                    song.hymnNumber,
+                  language:
+                    song.language,
+                })
+              }
+              size={38}
+              iconSize={18}
+            />
+          </View>
+
+          {/* NAVIGATION */}
+
+          <View
+            style={
+              styles.navigationRow
+            }
+          >
+            <Pressable
+              disabled={
+                !prevSongId
+              }
+              onPress={() =>
+                navigateSong(
+                  prevSongId
+                )
+              }
+              style={[
+                styles.navButton,
+                {
+                  opacity:
+                    prevSongId
+                      ? 1
+                      : 0.4,
+
+                  borderColor:
+                    colors.border,
+                },
+              ]}
+            >
+              <ChevronLeft
+                size={18}
+                color={
+                  colors.text
+                }
+              />
+
+              <Text
+                style={[
+                  styles.navText,
+                  {
+                    color:
+                      colors.text,
+                    fontFamily,
+                  },
+                ]}
+              >
+                Previous
+              </Text>
+            </Pressable>
+
+            <Pressable
+              disabled={
+                !nextSongId
+              }
+              onPress={() =>
+                navigateSong(
+                  nextSongId
+                )
+              }
+              style={[
+                styles.navButton,
+                {
+                  opacity:
+                    nextSongId
+                      ? 1
+                      : 0.4,
+
+                  borderColor:
+                    colors.border,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.navText,
+                  {
+                    color:
+                      colors.text,
+                    fontFamily,
+                  },
+                ]}
+              >
+                Next
+              </Text>
+
+              <ChevronRight
+                size={18}
+                color={
+                  colors.text
+                }
+              />
+            </Pressable>
           </View>
         </View>
+
+        {/* CONTENT */}
+
+        <SongContent
+          song={song}
+          colors={colors}
+          size={size}
+          fontFamily={fontFamily}
+          darkMode={darkMode}
+          primaryColor={
+            primaryColor
+          }
+          onScroll={handleScroll}
+        />
       </View>
-
-      {/* Song Content */}
-      <PagerView
-        style={[styles.pager, { backgroundColor: colors.background }]}
-        initialPage={currentIndex}
-        onPageSelected={handlePageSelected}
-      >
-        {songs.map((item) => {
-          const stanzas = safeStanzas(item.stanzas);
-          const chorus = safeChorus(item.chorus);
-          const itemLanguageColor = getLanguageColor(item.language) || colors.tint;
-
-          return (
-            <View
-              key={item.id}
-              style={[styles.page, { backgroundColor: colors.background }]}
-            >
-              <ScrollView 
-                style={styles.lyrics} 
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.lyricsContent}
-              >
-                {stanzas.map((stanza, stanzaIndex) => (
-                  <View key={stanzaIndex} style={styles.stanzaContainer}>
-                    <View style={styles.stanzaRow}>
-                      {/* Stanza Number - Reduced size */}
-                      <View style={[
-                        styles.stanzaNumberContainer,
-                        {
-                          backgroundColor: `${itemLanguageColor}15`,
-                        }
-                      ]}>
-                        <Text
-                          style={[
-                            styles.stanzaNumber,
-                            {
-                              color: itemLanguageColor,
-                              fontSize: size(14),
-                              fontFamily,
-                            }
-                          ]}
-                        >
-                          {stanzaIndex + 1}
-                        </Text>
-                      </View>
-
-                      {/* Stanza Content - Side by side */}
-                      <View style={styles.stanzaContent}>
-                        {stanza.map((line, lineIndex) => (
-                          <View key={lineIndex} style={styles.lineContainer}>
-                            {line.trim() && (
-                              <Text
-                                style={[
-                                  styles.line,
-                                  {
-                                    color: colors.text,
-                                    fontSize: size(18),
-                                    fontFamily,
-                                    lineHeight: size(28),
-                                  }
-                                ]}
-                              >
-                                {line}
-                              </Text>
-                            )}
-                          </View>
-                        ))}
-
-                        {/* Chorus after first stanza */}
-                        {stanzaIndex === 0 && chorus && (
-                          <View
-                            style={[
-                              styles.chorusContainer,
-                              {
-                                backgroundColor: `${itemLanguageColor}08`,
-                                borderColor: `${itemLanguageColor}30`,
-                              }
-                            ]}
-                          >
-                            <View style={styles.chorusHeader}>
-                              <Text
-                                style={[
-                                  styles.chorusLabel,
-                                  {
-                                    color: itemLanguageColor,
-                                    fontSize: size(15),
-                                    fontFamily,
-                                    fontWeight: "700",
-                                  }
-                                ]}
-                              >
-                                Chorus
-                              </Text>
-                            </View>
-                            
-                            {chorus.map((line, i) => (
-                              <Text
-                                key={i}
-                                style={[
-                                  styles.chorusLine,
-                                  {
-                                    color: colors.text,
-                                    fontSize: size(18),
-                                    fontFamily,
-                                    lineHeight: size(28),
-                                  }
-                                ]}
-                              >
-                                {line}
-                              </Text>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          );
-        })}
-      </PagerView>
     </>
   );
 }
@@ -316,142 +739,157 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  loadingContainer: {
+
+  centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
-  loadingCard: {
-    width: "100%",
-    maxWidth: 400,
-    padding: 24,
-    borderRadius: 20,
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  loadingNumber: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 16,
-  },
-  loadingNumberText: {
-    fontSize: 24,
-    fontWeight: "800",
-  },
-  loadingContent: {
-    flex: 1,
-  },
-  loadingTitle: {
-    height: 20,
-    width: "70%",
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  loadingLine: {
-    height: 16,
-    width: "100%",
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  loadingLineShort: {
-    height: 16,
-    width: "60%",
-    borderRadius: 8,
-  },
-  headerContainer: {
-    paddingTop: Platform.OS === "ios" ? 90 : 80,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.05)",
-  },
-  headerContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  headerNumberBadge: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 2,
-    marginRight: 16,
-  },
-  headerNumberText: {
-    fontWeight: "800",
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  headerAuthor: {
-    fontWeight: "500",
-  },
-  pager: {
-    flex: 1,
-  },
-  page: {
-    flex: 1,
-  },
-  lyrics: {
-    flex: 1,
-  },
-  lyricsContent: {
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    paddingBottom: 60,
-  },
-  stanzaContainer: {
-    marginBottom: 24,
-  },
-  stanzaRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-  stanzaNumberContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    marginTop: 2,
-  },
-  stanzaNumber: {
-    fontWeight: "700",
-  },
-  stanzaContent: {
-    flex: 1,
-  },
-  lineContainer: {
-    marginBottom: 8,
-  },
-  line: {
-    fontWeight: "500",
-  },
-  chorusContainer: {
+
+  loadingText: {
     marginTop: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  chorusHeader: {
-    marginBottom: 12,
-  },
-  chorusLabel: {
     fontWeight: "700",
   },
-  chorusLine: {
+
+  header: {
+    paddingTop:
+      Platform.OS === "ios"
+        ? 68
+        : 52,
+
+    paddingHorizontal: 20,
+
+    paddingBottom: 18,
+
+    borderBottomWidth: 1,
+  },
+
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  badge: {
+    width: 58,
+    height: 58,
+    borderRadius: 18,
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    borderWidth: 1.5,
+
+    marginRight: 14,
+  },
+
+  badgeText: {
+    fontWeight: "800",
+  },
+
+  headerInfo: {
+    flex: 1,
+    marginRight: 12,
+  },
+
+  title: {
+    fontWeight: "800",
+  },
+
+  author: {
+    marginTop: 4,
     fontWeight: "500",
-    fontStyle: "italic",
+  },
+
+  navigationRow: {
+    flexDirection: "row",
+    justifyContent:
+      "space-between",
+
+    marginTop: 18,
+  },
+
+  navButton: {
+    flexDirection: "row",
+    alignItems: "center",
+
+    borderWidth: 1,
+
+    borderRadius: 14,
+
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  navText: {
+    fontWeight: "700",
+    marginHorizontal: 6,
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
+  scrollContent: {
+    paddingTop: 26,
+    paddingBottom: 120,
+    paddingHorizontal: 24,
+  },
+
+  stanzaContainer: {
+    marginBottom: 34,
+    alignItems: "center",
+  },
+
+  stanzaNumberContainer: {
+    width: 36,
+    height: 36,
+
+    borderRadius: 12,
+
+    justifyContent: "center",
+    alignItems: "center",
+
+    marginBottom: 18,
+  },
+
+  stanzaNumber: {
+    fontWeight: "800",
+  },
+
+  stanzaContent: {
+    width: "100%",
+    alignItems: "center",
+  },
+
+  line: {
+    textAlign: "center",
+    fontWeight: "600",
+    marginBottom: 10,
+  },
+
+  chorusContainer: {
+    marginTop: 18,
+
+    width: "100%",
+
+    borderRadius: 20,
+
+    padding: 20,
+
+    alignItems: "center",
+  },
+
+  chorusLabel: {
+    fontWeight: "800",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+
+    marginBottom: 12,
+  },
+
+  chorusLine: {
+    textAlign: "center",
+    fontWeight: "600",
     marginBottom: 8,
   },
 });

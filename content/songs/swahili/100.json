@@ -1,0 +1,26 @@
+{
+  "id": "SWA_100",
+  "hymnNumber": 100,
+  "title": "Kuwatafuta Wasioweza",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Kuwatafuta wasioweza, Kuomba wamrejee Yesu,",
+      "Kuwaambia maneno yake, \"Njooni kwangu, nawapenda\"."
+    ],
+    [
+      "Kuwatafuta wasioweza, Waonyeshwe Mwokozi wetu;",
+      "Kuwaongoza, wapate wote uzima ule wa milele."
+    ],
+    [
+      "Kazi hiyo nataka kufanya, Leo nimesikia mwito;",
+      "Kuwainua waangukao, waletwe kwake yesu Njia."
+    ]
+  ],
+  "chorus": [
+    "Nitakwenda (Nitakwenda) niwatafute,",
+    "Wapotevu (wapotevu) wageuke, Waingie (Waingie) Katika zizi,",
+    "La Mwokozi (La Mwokozi) Yesu Kristo"
+  ]
+}

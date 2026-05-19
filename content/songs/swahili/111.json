@@ -1,0 +1,27 @@
+{
+  "id": "SWA_111",
+  "hymnNumber": 111,
+  "title": "Tabibu Mkuu",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Tabibu mkuu huyu, Yesu mwenye hurum Atuletaye faraja: Yesu, Mwokozi wetu."
+    ],
+    [
+      "Mwana Kondo-o msifuni Mwokozi; Hatia zote na dhambi, Huziondoa Yesu."
+    ],
+    [
+      "Hakuna jina jingine, Linalofa-a sifa;",
+      "A-u kutufurahisha, Isipokuwa lake."
+    ],
+    [
+      "Naye atakapokuja, Na utukufu wake;",
+      "Tutafurahi milele, Kuka-a kwake Bwana."
+    ]
+  ],
+  "chorus": [
+    "Imbeni, Malaika, SIfa za Bwana wetu:",
+    "Jina la pekee kwetu, ni la Yesu Bwana."
+  ]
+}

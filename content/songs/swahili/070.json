@@ -1,0 +1,30 @@
+{
+  "id": "SWA_070",
+  "hymnNumber": 70,
+  "title": "Wapenzi Wa Bwana",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Wapenzi wa Bwana ije raha yenu!",
+      "Imbeni nyimbo za raha,Imbeni nyimbo za raha;",
+      "Za ibada yenu, za ibada yenu."
+    ],
+    [
+      "Wasiimbe wao wasioamini, Watoto wa Mungu ndio,",
+      "Watoto wa Mungu ndio, Waimbao chini, waimbao chini,"
+    ],
+    [
+      "Twaona rohoni baraka za Mungu, Tusijafika mbinguni,",
+      "Tusijafika mbinguni, Kwenye utukufu, kwenye utukufu."
+    ],
+    [
+      "Tutakapomwona masumbuko basi, Huwa maji ya uzima,",
+      "Huwa maji ya uzima,Anasa halisi, anasa halisi."
+    ]
+  ],
+  "chorus": [
+    "Twenenda Zayuni, mji mzuri Zayuni!",
+    "Twenenda juu Zayuni, Ni maskani ya Mungu."
+  ]
+}

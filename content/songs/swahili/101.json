@@ -1,0 +1,29 @@
+{
+  "id": "SWA_101",
+  "hymnNumber": 101,
+  "title": "Yesu Akwita",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Yesu Akwita, Akwita wewe, Uje leo, uje leo,",
+      "Kwani kusita, akwita wewe, Unatanga upeo."
+    ],
+    [
+      "Waiochoka, na wapumzike, Uje leo, uje leo,",
+      "Wenye mizigo, wenye huzuni, Wapate mapumziko."
+    ],
+    [
+      "Anakungoja uliye yote, Uje leo, uje leo,",
+      "Uliyekosa, usijifiche: Woshwe, uvikwe nguo."
+    ],
+    [
+      "Yesu asihi wakawiao, Waje leo, waje leo,",
+      "Wafurahi waaminio; Amka, upesi, Njoo."
+    ]
+  ],
+  "chorus": [
+    "Msiskie, msikie,",
+    "Yesu akwita, ujitoe moyo sasa."
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "SWA_148",
+  "hymnNumber": 148,
+  "title": "Univute Karibu",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Univute karibu, Baba, Unikumbatie;",
+      "Unisongeze kifuani, Nataka pumziko."
+    ],
+    [
+      "Univute Mwokozi wangu, Na tusiachane;",
+      "Mikono yako juu yangu Leo niione."
+    ],
+    [
+      "Univute kwa Roho yako, Nifanane nawe;",
+      "Unioshe, unihuishe, Niwe safi, huru."
+    ]
+  ],
+  "chorus": [
+    "Univute karibu (Vuta, univute karibu) Kwa kamba za upendo, (Kwa kamba, kamba za upendo)",
+    "Univute (Kwa kamba za upendo, Univute karibu) Karibu nawe. (Univute karibu)"
+  ]
+}

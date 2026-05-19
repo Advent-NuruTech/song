@@ -1,0 +1,39 @@
+{
+  "id": "ENG_205",
+  "hymnNumber": 205,
+  "title": "Gleams of the Golden Morning",
+  "language": "english",
+  "author": "",
+  "stanzas": [
+    [
+      "The golden morning is fast approaching;",
+      "Jesus soon will come",
+      "To take his faithful and happy children",
+      "to their promised home"
+    ],
+    [
+      "The gospel summons will soon be carried",
+      "to the nations round;",
+      "The Bridegroom then will cease to tarry",
+      "and the trumpet sound."
+    ],
+    [
+      "Attended by all the shining angels,",
+      "Down the flaming sky",
+      "the Judge will come, and will take his people",
+      "where they will not die."
+    ],
+    [
+      "The lov'd of earth who have long been parted,",
+      "Meet in that glad day;",
+      "The tears of those who are broken hearted",
+      "shall be wiped away."
+    ]
+  ],
+  "chorus": [
+    "O, we see the gleams of the golden morning",
+    "piercing thro' this night of gloom!",
+    "O, see the gleams of the golden morning",
+    "that will burst the tomb."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "SWA_126",
+  "hymnNumber": 126,
+  "title": "Haja Nawe",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Nina haja nawe kila saa;",
+      "Hawezi mwingine kunifaa."
+    ],
+    [
+      "Nina haja nawe; Kaa name,",
+      "Na maonjo haya, hayaumi."
+    ],
+    [
+      "Nina haja nawe; kila hali,",
+      "Maisha ni bure, uli mbali."
+    ],
+    [
+      "Nina haja nawe; Nifundishe,",
+      "Na ahadi zako, zifikishe."
+    ],
+    [
+      "Nina haja nawe; Mweza yote,",
+      "Ni wako kabisa, siku zote."
+    ]
+  ],
+  "chorus": [
+    "Yesu nakuhitaji vivyo kila saa!",
+    "Niwezeshe mwokozi, nakujia."
+  ]
+}

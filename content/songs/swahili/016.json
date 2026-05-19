@@ -1,0 +1,29 @@
+{
+  "id": "SWA_016",
+  "hymnNumber": 16,
+  "title": "Ninakuhitaji",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Bwana ninakuhitaji! Nimpofu, maskini;",
+      "Unishike mkononi, Kwako napata nguvu."
+    ],
+    [
+      "Univike na mavazi Ya usikivu wako;",
+      "Nguo zangu ni machafu, Nazitamani zako."
+    ],
+    [
+      "Wewe ukiniongoza Nitakwenda salama;",
+      "Nenda nami siku zote, U nuru na uzima."
+    ],
+    [
+      "Na ikiwa m-beleni Sehemu yangu ngumu,",
+      "Au ikiwa furaha, Unilinde kila saa."
+    ]
+  ],
+  "chorus": [
+    "Kila saa, kila saa Bwana ninakuhitaji;",
+    "Kila saa, kila saa, Unilinde kila saa."
+  ]
+}

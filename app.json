@@ -1,15 +1,16 @@
 {
   "expo": {
-    "name": "song",
-    "slug": "song",
+    "name": "Advent Pro",
+    "slug": "advent-pro",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "song",
+    "scheme": "adventpro",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.adventpro"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +20,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.adventpro"
     },
     "web": {
       "output": "static",
@@ -30,20 +32,26 @@
       [
         "expo-splash-screen",
         {
-        "image": "./assets/images/splash-icon.png",
-        "imageWidth": 200,
-        "resizeMode": "contain",
-        "backgroundColor": "#0B4AA6",
-        "dark": {
-          "backgroundColor": "#0B4AA6"
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0B4AA6",
+          "dark": {
+            "backgroundColor": "#0B4AA6"
+          }
         }
-      }
-    ],
+      ],
       "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "1f522eb0-0085-4438-91b2-e7d94f5f117b"
+      }
     }
   }
 }

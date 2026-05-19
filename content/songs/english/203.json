@@ -1,0 +1,31 @@
+{
+  "id": "ENG_203",
+  "hymnNumber": 203,
+  "title": "This Is the Threefold Truth",
+  "language": "english",
+  "author": "",
+  "stanzas": [
+    [
+      "This is the threefold truth",
+      "On which our faith depends;",
+      "And with this joyful cry",
+      "Worship begins and ends."
+    ],
+    [
+      "By this we are upheld",
+      "When doubt and grief assail",
+      "Our Christian fortitude",
+      "And only grace avails"
+    ],
+    [
+      "This is the threefold truth",
+      "Which, if we hold it fast,",
+      "Changes the world and us",
+      "And brings us home at last."
+    ]
+  ],
+  "chorus": [
+    "Christ had died! Christ has risen!",
+    "Christ will come again!"
+  ]
+}

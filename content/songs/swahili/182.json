@@ -1,0 +1,29 @@
+{
+  "id": "SWA_182",
+  "hymnNumber": 182,
+  "title": "Hapana Giza",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Mchana hauishi Mjini mzuri;",
+      "Mji hautapita; Na hapana giza."
+    ],
+    [
+      "Milango ni ya lulu, Mjini mzuri;",
+      "Dhahabu njia zake; Na hapana giza."
+    ],
+    [
+      "Milango haifungwi Mjini mzuri;",
+      "Mto ni wa uzima Na hapana giza."
+    ],
+    [
+      "Hawahitaji jua Mjini mzuri,",
+      "Mwana Kondoo nuru; Na hapana giza."
+    ]
+  ],
+  "chorus": [
+    "Machozi yatafutwa, Kifo hapana pale;",
+    "Hawahesabu siku, Na hapana giza."
+  ]
+}

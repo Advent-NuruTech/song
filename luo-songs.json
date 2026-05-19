@@ -1,0 +1,723 @@
+[
+  {
+    "id": "SWA_221",
+    "hymnNumber": 221,
+    "title": "Raha, Mwana, Roho",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Baba, Mwana, Roho Mungu mwenye enzi, kila tukiamka tunakuabudu Baba, Mwana Roho Mungu wa mapenzi, ewe utatu, tunkusifu."],
+      ["Baba, Mwana, Roho, wakuaminio wanakutolea shukurani zao. Wakusujudia malaika nao; wewe u mwanzo, nawe u mwisho."],
+      ["Baba, Mwana, Roho, sisi tu gizani, utukufu wako hauoni kosa; u mtakatifu, nawe u mapenzi, u pekee yako, mwenzio huna."],
+      ["Baba, Mwana, Roho, Mungu mwenye enzi, ulivyoviumba vyote vyakusifu; Baba, Mwana, Roho. Mungu wa mapenzi, uwe utatu tunakusifu."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_222",
+    "hymnNumber": 222,
+    "title": "Akifa Yesu Nitafa Naye",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Akifa Yesu nikafa naye, uzima upya huishi naye; humtazama mpaka aje nyakati zote niwake yeye:"],
+      ["Vita sipigi visivyo haki, na Bwana wangu hapiganiki; Beramu yake haitwaliki, Napopote halisitaki."],
+      ["Sina mashaka, akawa mbali; Mizigo yote haimili; Ananituliza Imanueli nyakati zote mimi husali."],
+      ["Sina huzuni na mimi sidhii; Simwagi chozi, Wala siguni; Sikuti afa, ila kitini daima hunifikiri mimi."],
+      ["Kila unyonge huusikia; Kila Ugonjwa kwake upoa Yesu ni mwenye kuniokoa, Nyakati zote hunijalia."]
+    ],
+    "chorus": ["Nyakati zote Nimo pendoni, Nyakati zote ni uzimani, humtazama hata atokee, nyakati mimi ni wake."]
+  },
+  {
+    "id": "SWA_223",
+    "hymnNumber": 223,
+    "title": "Roho Yangu Hima",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Roho yangu hima, Na taa yako kaiwashe vyema, Hapa si pako; Nguvu zote pia za duniani hazitakudhuru ukiamini."],
+      ["Adui Shetani, na nguvu zake, Bwana ameshinda kwa kifo chake; Wewe nguvu huna, huna kabisa niwe mpungufu, Mnyonge hasa."],
+      ["Toka na mapema, mbele ya wote, omba, bisha sana, Maisha yote; Vita vikaliko, macho ukae, jivike furaha, nawe usihindwe."],
+      ["Bwana Yesu ndiye kwako mchunga, Neno lake Bwana ndilo upanga; Mbingu zitakwisha na nchi pia, Neno lake Bwana laendelea."]
+    ],
+    "chorus": ["Yesu yuko mbele, Yesu yu nyuma, Yesu yiyoo kando, Walindwa vyema."]
+  },
+  {
+    "id": "SWA_224",
+    "hymnNumber": 224,
+    "title": "Mwokozi Moyoni Mwangu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Tangu siku hiyo alipoijia, akae moyoni mwangu, sina giza tena ila mwanga pia kwa Yesu Mwokozi wangu."],
+      ["Sina haja tena ya kutanga-tanga, ndiye kiongozi wangu, dhambi zangu zote zimeondolewa na Yesu, Mwanawe Mungu."],
+      ["Matumaini yangu ni ya hakika, katika mwokozi yangu. Hofu zangu na hamu zimeondoka, kwa kmya ninaye Yesu."],
+      ["Siogopi tena nikiitwa kufa, Yu name daima, Yesu. Mlango wa mbinguni ni yeye pia, 'Talipa humo kwa damu.'"],
+      ["Nitaketi na yeye huko mililele, nisifu Mwokozi wangu. Nina raha moyoni majira yote kwa Yesu, Mwanawe Mungu."]
+    ],
+    "chorus": ["Amani moyoni mwangu, kwa Yesu, Mwokozi wangu; Sina shaka kamwe, kwa sababu yeye yu nami moyoni mwangu."]
+  },
+  {
+    "id": "SWA_225",
+    "hymnNumber": 225,
+    "title": "Mungu ni Pendo",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mungu ni pendo apenda watu; Mungu ni pendo anipenda"],
+      ["Nipotea katika dhambi, nikawa mtumwa wa shetani."],
+      ["Akaja Yesu kunikomboa, yeye kanipa kuwa huru."],
+      ["Sababu hii namtumikia, namsifu yeye siku zote."]
+    ],
+    "chorus": ["Sikilizeni ji.raha yangu. Mungu ni pendo. anipe11da."]
+  },
+  {
+    "id": "SWA_226",
+    "hymnNumber": 226,
+    "title": "Dhambi ikikulemea",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Dhambi ikikulemea, Kwa Bwana rehema; Hivi sasa tegemea Neno la salama."],
+      ["Yesu amemwaga damu Ya nyingi baraka; Nawe sasa oga mumu Zioshwamo taka."],
+      ["Ni njia yeye hakika Hwongoza rahani; Usikawe kumshika, Uwe barakani."],
+      ["Karibu nawe wingie Mwetu safarini, Twende tukamwamkie, Milele Mbinguni."]
+    ],
+    "chorus": ["Tegemea, tegemea, akwita sasa. Ni Mwokozi, Ni Mwokozi, amini sasa."]
+  },
+  {
+    "id": "SWA_227",
+    "hymnNumber": 227,
+    "title": "Njoni Mwenye dhambi",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Njoni! Njoni! Wenye dhambi njoni, msikawe; Yesu awangojea, ndiye awapendaye; Ayeye awezaye kuwaponya ni yeye."],
+      ["Ewe mhitaji uje; anakukaribisha; Imani, kweli, na toba, Neema kutosha, Jua sana kwake bwana bure utayapata."],
+      ["Njoni, mliolemewa na dhambi ya Adamu; Mkingoja kujiponya mta potea mumu; si wa haki, ni wakosa waoshwao kwa damu."],
+      ["Ikamtohea diki mle Gethisemani; Kisha alipoangikwa akalia mtini; 'Imekwisha.' Alitosa dhabihu ya thamani."],
+      ["Kristo aliye mbinguni hutwombea huko; Basi mlumai yeye; Kamwe niwingine hako. Yesu pweke, Yesu pweke ndiye Mwokozi wako."],
+      ["Wamsifu - sifu sana mbinguni malaika, Wachanganya nyimbo zao na waliookolewa; Aleluya wala imba waliooshwa taka."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_228",
+    "hymnNumber": 228,
+    "title": "Mwenye dhambi Huna Raha",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mwenye dhambi huna raha, sikiza nakusihi, upate msamaha kwa Yesu mwokozi! Njoo hima, naye atafurahi."],
+      ["Yesu anakuita sana naye yuko mbinguni: Hufo ya kifo hapana kwake ukiamini. Njoo hima, njoo hima utapata amani."],
+      ["Hatakwita siku zote; Niya sasa nafasi. Lete na uchafu wote, kukawa haipasi. Njoo hima, njoo hima, Ni wokovu halisi."],
+      ["Uzima kwa Bwana twae uzima hasa! Bure utapatikana, wokovu twae sasa! Njoo hima, njoo hima, twae utakatifu."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_229",
+    "hymnNumber": 229,
+    "title": "Waitwa, Mwovu, na Mbona",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Waitwa, mwovu, na mbona umwende mada hisa, usafiwe dhambi zako, Huoni ni mwema wako?"],
+      ["Alilipa damu yake ilikukwekweza kwake akafa yeye Bwana mimi nawe tuwe wema."],
+      ["Ukifanywa kuwa mwema mwishoni utasimama, utaingia rahani na wapenzi wa zamani."],
+      ["Ni mwanga tu. Nehi ule, uovu hauko kule, kwamba wataka ufike sharti uko uosheke."]
+    ],
+    "chorus": ["Unaitwa! Itika tu! Umwendee Bwana Yesu! Sifiche makosa yako, uungame dhambi zako! Kristo tu uaminifu, ndiyo njia ya mbinguni."]
+  },
+  {
+    "id": "SWA_230",
+    "hymnNumber": 230,
+    "title": "Naweka dhambi Zangu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Naweka dhambi zangu juu ya Bwana kuziondoa, Kwangu hulemea Sana. Na uairi wangu ameundoa; Dawa yangu ni damu kwa hiyo napoa."],
+      ["Na uhitaji wangu nitamjuvisha kwa upungufo wangu yeye anatosha majonzi yangu yote na mizigo yangu, Atachukua vyote Yesu Bwana wangu."],
+      ["Na roho yangu nayo imechoka sana, Mamletea hiyo ilindwe na Bwana; Ni njema jina lake, nalo lapendeza, imanweli na kwake tutalitukuza."],
+      ["Natamani daima niwe kama Bwana. Mpole, tena mwema, Wapenzi sana, Zaidi natamani kwenda kwake juu nikaone mbinguni enzi yake kuu."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_231",
+    "hymnNumber": 231,
+    "title": "Mungu Twatoa shukurani",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mungu twatoa shukurani, kwa kutulinda usikuni, Na kutuongalia mehana. Kutuongoza kila mara."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_232",
+    "hymnNumber": 232,
+    "title": "Peleleza Ndani Yangu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Peleleza ndani yangu, iwe safi niya. kwangu kama kwako Mungu. Idhihiri pia."],
+      ["Peleleza moyo wangu unifunulie, yaliyomo ndani yangu nami niyajue."],
+      ["Kwanza washe zako tambi, Kumefunga giza; Nijue ambavyo dhambi ni la kuchukiza."],
+      ["Peleleza na mawazo. Ni mbegu za mambo, Asili ya machukizo, maumbuoumbo."],
+      ["Zidi kuyapeleleza kati kati yangu hata wishe nifundisha udhaifu wangu."],
+      ["Hapo nikikwinamia. Mbele zako, Mungu hakika nitakujua u mpenzi wangu."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_233",
+    "hymnNumber": 233,
+    "title": "Ujaribiwapo, Sifanye dhambi",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ujaribiwapo, sifanye dhambi. Bali uzishinde; kwa Yesu kutii, fuliza kiume ushinde tama: Yesu ni mwokozi, hukuokoa."],
+      ["Wepeshe waovu, matusi dharau; Heshima ya Mungu kamwe sisahau; Fanya uhodari, Uwe mpole, atakuokoa hata milele."],
+      ["Avumiliaye hupewa taji, ujaposumbuka, tu wahitaji na mwokozi wetu hutuwezesha, tusiwe kushindwa kama twakesha."]
+    ],
+    "chorus": ["Umwombapo yu papo, akuongeze nguvu. Atakusaidia; Yesu atakufaa."]
+  },
+  {
+    "id": "SWA_234",
+    "hymnNumber": 234,
+    "title": "Safari",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Katika safari yetu kwenda Mbunguni, Tusiishe siku zetu usingizi. Ng'oani!"],
+      ["Atwekwe badala yetu Mwenyewe Bwana; Yesu Kiongozi wetu Atapokea."],
+      ["Kisimani, maji tele, maji mazima! Maji hayo ya milele yana neema."],
+      ["Njiani miiba mingi, yatuumiza; Hofu na hatari nyingi, sana zakaza."],
+      ["Kweli njiani ya Mbinguni ni ya mashaka; Tuwe na Yesu njiani, mara hufika."]
+    ],
+    "chorus": ["Tujifungeni twenda zetu juu! Kristo ndiye iongozi, Tusihofu tu."]
+  },
+  {
+    "id": "SWA_235",
+    "hymnNumber": 235,
+    "title": "Bwana Mungu, Nashangaa Kabisa",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Bwana mungu twashangaa kabisa nikitazama kama vilivyo nyota, ngurumo, vitu vingi vyote viumbavyokwa uwezo wako."],
+      ["Nikitembea popote duniani. Ndege huimba, nawasikia, milima hupendeza macho sana upendo nao nafurahia."],
+      ["Nikimkumka kama wewe mungu ulivyompeleka mwanao afe azichukue dhambi zetu kuyatambua ni ni vigumu muno."],
+      ["Yesu mwokozi utakaporudi kunichukua kwenda mbinguni nitashukuru na kwimba milele wote wajue jinsi ulivyo."]
+    ],
+    "chorus": ["Roho yangu na ikumbiejinsi wewe ulivyo mkuu, roho yangu na ikumbie jinsi wewe ulivyo mkuu."]
+  },
+  {
+    "id": "SWA_236",
+    "hymnNumber": 236,
+    "title": "Yesu Atachunga",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Yesu atachunga, Mchunga wetu, Naye atufuta, machozi yetu; Mkononi mwake hatuna hofu. Daima twapata kwake wokovu."],
+      ["Yesu atachunga tumemjua, Na sauti yake twaitambua; Naye akituonya ni kwa upole, Tu kondoo zake hata milele."],
+      ["Yesu atachunga, Aliwafia kondoo wakubwa na wana pia; Kwamba awajua, Kondoo zake, Hutiwa alama ya damu yake."],
+      ["Yesu atachunga, Mikono yake imewaambata kondoo zake, Hatapati wadhuru adui yule. Yesu awalinda hata milele."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_237",
+    "hymnNumber": 237,
+    "title": "Wachunga walipolinda",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Wachunga walipolinda kucha nyama zao, Malaika mtukufu alishuka kwao."],
+      ["Wakacha sana wachunga, Akawatukliza, \"Nawaletea habari ya kuwapendeza.\""],
+      ["\"Mji ule wa Daudi leo amezawa Mwokozi, Ni Kristo Bwana, ilivyoandikwa.\""],
+      ["\"Huyo mwana wa mbinguni ataonekana, amelazwa kihoroni malazi hapana.\""],
+      ["Alipokwisha yanena Malaika hao, Waliimba wimbo huu usio na mwisho."],
+      ["\"Enzi ni yake Mungu juu, Na inchi salama, Kwa watu nao radhi kuu, Sasa na Daima.\""]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_238",
+    "hymnNumber": 238,
+    "title": "Waimba, Sikizeni",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Waimba, Sikizeni, Malaika mbinguni; Wimbo wa tamu sana wa pendo zake Bwana; \"Duniani salama, Kwa wakosa rehema.\" Sisi sote na twimbe, nao wale wajumbe;"],
+      ["Ndiye Bwana wa mbingu, Tangu milele Mungu, Amezaliwa mwili, Mwana wa mwanamwali, Ametoka enzini kuja ulimwenguni mwokozi atufie, Ili tusipotee."],
+      ["Mtukufu wa amani ametoka mbinguni, Jua la haki ndiye atumulikiae; Amejivua enzi, Alivyo na mapenzi, Ataka kutuponya, Kutuzalisha upya,"],
+      ["Njoo upesi, Bwana, Twakutamani sana; Kaa nasi, Mwokozi vita hatuviwezi; Vunja kichwa cha nyoka, Sura zako andika, tufanane na wewe, kwetu sifa upewe,"]
+    ],
+    "chorus": ["waimba, Sikizeni Malaika mbinguni."]
+  },
+  {
+    "id": "SWA_239",
+    "hymnNumber": 239,
+    "title": "Sioni Haya Kwa Bwana",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Sioni haya kwa Bwana, Kwake nitang'ara! Mti wake sitakana, Ni neno imara! Msalaba ndiyo asili ya mema, Nikatua mzigo hapo; Nina uzima, Furaha daima."],
+      ["Kama kiti chake vivyo, Ni yake ahadi. Alivyowekewa navyo kamwe, havirudi."],
+      ["Bwana wangu, tena Mungu ndilo lake jina! Hataacha roho yangu wala kunikana."],
+      ["Atakiri langu jina mbele za Babaye anipe pahali tena mbinguni nikae."]
+    ],
+    "chorus": ["Njooni tufahimi papo."]
+  },
+  {
+    "id": "SWA_240",
+    "hymnNumber": 240,
+    "title": "Ni \"Mtu wa Simanzi\"",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ni \"Mtu wa Simanzi\", Mwana wa mwenye enzi, Mwenye mengi mapenzi, Asifiwe Bwana Yesu!"],
+      ["Akawa matesoni, \"Mungu Mwana\" ndiye Yakini akatoka Mbinguni; Asifiwe Bwana Yesu."],
+      ["Akapata dhihaka, Mzoea-mashaka yetu sadaka: Asifiwe Bwana Yesu."],
+      ["Tu wenye dhambi sana: dhambi hamna. Na Mungu twapatana, Kwake Asifiwe Bwana Yesu!"],
+      ["Alikufa Mtini, Akalia dhikini, Sasa yuko mbinguni: Asifiwe Bwana Yesu."],
+      ["Punde atayejea, kutunyakua, Ndipo utamwimbi: Asifiwe Bwana Yesu!"]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_241",
+    "hymnNumber": 241,
+    "title": "Kwa Kalvari",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Muda mwingi nilipotea, Sikufahamu msalaba, Wala aliyenifilia, Kwa kalvari."],
+      ["Kwa neno lake Bwana Mungu, Nilijona mimi mwovu, Nikageuka na kutubu. Kwa Kalvari."],
+      ["Yote kwa Yesu namtolea, Ndiye Mfalme wa pekee sasa, Kwa furaha nitamwimbia, Wa Kalvari."],
+      ["Jinsi pendo lilivyokuu, Neema ilishushwa toka juu, Alitufanyia wokovu, Kwa Kalvari."]
+    ],
+    "chorus": ["Rehema bure na neema, Samaha nalo nilipewa, Ndipo aliponifungua kwa Kalvari."]
+  },
+  {
+    "id": "SWA_242",
+    "hymnNumber": 242,
+    "title": "Mapenzi Yako Yafanyike, Bwana.",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mapenzi Yako Yafanyike, Wewe mfinyanzi, Nami towe, Unifinyange upendavyo, Mimi tayari, Naja kwako."],
+      ["Mapenzi yako yafanyike, Unihojie dhambi zote, Unisafishe vya kimwili, Niinamapo Msalabani."],
+      ["Mapenzi Yako Yafanyike, Mimi dhaifu, Mimi mnyonge. Uwezo wote, Kwako kweli, Sasa niponye, Ee, Mwokozi."],
+      ["Mapenzi Yako Yafanyike, Natoa kwako vitu vyote, Maisha, Mali, Moyo, Mwili, Vyote ni vyako, Kweli, Kweli."],
+      ["Mapenzi Yako Yafanyike, Mapenzi yangu yavunjike, Ninakubali uwe Bwana, Ni mali yako, Twaa kabisa."],
+      ["Mapenzi Yako Yafanyike, Unitawale siku zote, sura ya Yesu umba kwangu, Nijaze roho nayo nguvu."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_243",
+    "hymnNumber": 243,
+    "title": "Bwana Amefufuka",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Bwana amefufuka, Aleluya. Twimbe na Malaika, Aleluya. Sifa zetu na shangwe, Aleluya. Na zao zisitengwe, Aleluya."],
+      ["Ukombozi timamu, Aleluya. Umetimu kwa damu, Aleluya. Mshindi asifiwe, Aleluya. Yu hai kwa milele, Aleluya."],
+      ["Jiwe, Lindo, Muhuri, Aleluya. Vi wapi? Na kaburi? Aleluya. Kifo hakimuweki, Aleluya. Ametoka peponi, Aleluya."],
+      ["Yu hai Mtukufu, Aleluya. Cha kifo hatuhofu! Aleluya. Alitufia sisi, Aleluya. Tuwe mahuru nasi, Aleluya."],
+      ["Kichwa chatangulia, Aleluya. Tupae, Nasi, Pia! Aleluya. Kwa kuwa tunafungu, Aleluya. Mti, Kaburi, Mbingu, Aleluya."],
+      ["Ndiwe Mwokozi wetu, Aleluya. Sifa ni yako Yesu, Aleluya. Utukuzwe pekoe. Aleluya. Ni wewe ufufuo, Aleluya."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_244",
+    "hymnNumber": 244,
+    "title": "Siku Ya Mbungu Kujawa Na Sifa.",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Siku ya mbingu kujawa na sifa, Dhambi zilizidi duniani; Yesu akaja azaliwe mtu, Awe na watu ulimwenguni."],
+      ["Na siku moja walikwenda naye, wakamkaza Msalabani Aliumia, Aliaibishwa, Ili atuokoe dhambini."],
+      ["Siku hiyo wakamlaza chini, Kaburini alipumzika, Matumaini yetu wenye dhambi, Ni Mwokozi, Kwake twaokoka."],
+      ["Kaburi likashindwa kumshika; Jiwe likatoka mlangoni, Alifufuka kwa kushinda kwake, Naye yuko milele Mbinguni."],
+      ["Siku moja atatujia tena; Utukufu wake tutaona; Atawaleta na wapenzi wetu; Mwokozi wangu, Tutaonana."]
+    ],
+    "chorus": ["Alinipenda, Alinifia, Ameondoa na dhambi zangu; Alikufa nipewe haki, yuaja tena Mwokozi wangu."]
+  },
+  {
+    "id": "SWA_245",
+    "hymnNumber": 245,
+    "title": "Hivi Vita Vitakoma",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Hivi vita vimekoma, Vimeshindwa na uzima, Na asifiwe daima, Bwana Yesu."],
+      ["Nguvu za kifo ni hizo. Ila hazina uwezo, Ndizo sasa avunjazo, Bwana Yesu."],
+      ["Siku tatu za huzuni kisha atoka ufuni, Asifiwe duniani, Bwana Yesu."],
+      ["Mapingu ameyavunja, Mbingu amezifunga, nasi sasa twamwimbia, Bwana Yesu."],
+      ["Na ulivyopigwa wewe, Ni kwamba tufunguliwe, Milele na usifiwe, Bwana Yesu."]
+    ],
+    "chorus": ["Aleluya! Aleluya! Aleluya!"]
+  },
+  {
+    "id": "SWA_246",
+    "hymnNumber": 246,
+    "title": "Mle Kaburini, Yesu Mwokozi",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mie kaburini, Yesu Mwokozi! Alilazwa chini, Bwana wangu!"],
+      ["Aungoja huo, Yesu mwokozi! Mchana ujao, Bwana Wangu!"],
+      ["Walinda kaburi, Yesu mwokozi! Bure ni Muhuri, Bwana wangu!"],
+      ["Kifo kimeshindwa, Yesu Mwokozi! Pingu zimevunjwa, Bwana wangu!"]
+    ],
+    "chorus": ["Bwana! Amefufuka, Kifo kimeshindwa kabisa! Gizani mle alitoka chini, Sasa atawala huko Mbinguni! Yu hai! Yu hai! Bwana Yesu yu hai!"]
+  },
+  {
+    "id": "SWA_247",
+    "hymnNumber": 247,
+    "title": "Tazameni Huyo Ndiye",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Tazameni huyo ndiye, mwenye kushinda vita; Haya, Tumsujudie: Nyara anazileta,"],
+      ["Msifuni Malaika, Mtukuzeni wote waliookoka, watamsifu Bwana;"],
+      ["Walimfanya dhihaka, zamani wenye shari, kwao waliookoka, Ni Bwana wa fahari,"],
+      ["Nyimbo nzuri, sikizeni, Ni Nyimbo za sifa kuu. Za Bwana Yesu Kitini, Kutawazwa, Yeye tu;"]
+    ],
+    "chorus": ["Watu wote msifuni, Sasa yumo Kitini."]
+  },
+  {
+    "id": "SWA_248",
+    "hymnNumber": 248,
+    "title": "Huyo Ndiye! Anashuka",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Huto ndiye! Anashuka, Alitufilia, Wengi waliookoka, Wakimfurahia."],
+      ["Sote tutamtazama, Amekaa Kitini, Nao waliomchoma, Kumkaza mtini,"],
+      ["Alama za kifo chake, Hata sasa anazo, Na waaminifu wake, wapendezewa nazo,"],
+      ["Wokovu utakiwao, Sasa wapatikana. Na watakatifu hao, Mbinguni wakutana"],
+      ["Wakusujudie wote, mbele ya kiti chako, zako, Bwana, Nguvu zote itwae miliki yako, Njoo Bwana."]
+    ],
+    "chorus": ["Aleluya! Yesu atarudi."]
+  },
+  {
+    "id": "SWA_249",
+    "hymnNumber": 249,
+    "title": "Maelfu Na Maelfu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Maelfu na maelfu, Wenye nguvu bora! Masafu ya waongofu, Wenye na bendera! Amekwisha kamili, Vita vya Shetani, Fungueni lango hili, Njooni, Ingieni!"],
+      ["Imbeni Aleluya, Zipae Mbinguni! Pigeni sana sauti, kwa kutumaini! Kwa hiyo viliumbwa, nchi hata mbingu, Dhiki za muda zikisha, Asifiwe Yesu."],
+      ["Loo! Tukionana pwani ya ng amboni! Loo! Tukishirikiana milele Mbinguni! Midomo yote pia, Huko itaimba, Wajane kufufukiwa na kila yatima!"],
+      ["Himiza enzi yako, Uliyefutia, Utimize watu wako, Wakosaji pia, Mpendwa wa taifa. Twakutumaini! Uzifunue ishara urudi enzini!"]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_251",
+    "hymnNumber": 251,
+    "title": "Ewe, Baba wa Mbinguni",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ewe, Baba wa Mbinguni, Usikie uombalo Hapo chini duniani, Na uwe radhi nalo."],
+      ["Watu awa mbele zako na mbele ya kanisa, Watimize neno lako, Wanakutana."],
+      ["Kama Yesu na Kanisa ni moja, Na hivyo watu hawa wape sasa wawe mmoja vivyo."],
+      ["Walinde, Bwana daima, Wabariki, Nyumbani, Uwape nyingi salama Humu ulimwenguni."],
+      ["Wabiriki, Ewe Bwana watu hawa wawili, Wape ufungu wa wana, Wafurahishwe kweli."],
+      ["Siku zao duniani zikataopungua, Wape kurithi Mbinguni mema ya keundelea."]
+    ],
+    "chorus": ["Ee Mungu, Bariki, Ndugu hawa wawili! Ee Mungu, Bariki, Ndugu hawa wawili!"]
+  },
+  {
+    "id": "SWA_252",
+    "hymnNumber": 252,
+    "title": "Nitaimba ya Yesu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Nitaimba ya Yesu, Kwa rehema zake, Baraka nyingi sana nimepata kwake; Nitaimba ya Yesu sadaka ya Mungu: alimwaga damu ukombozi wangu."],
+      ["Nitaimba ya Yesu, Hapa siku zote, Nitakapokumbuka, vyema vyake vyote; Nitaimba ya Yesu, hata mashakani, Yeye atanilinda mwake ubavuni."],
+      ["Nitaimba ya Yesu, Niwapo njiani; Takaza mwendo, hata nifike Mbinguni; Nikiisha ingia mlangoni mle, Yesu nitamwimbia Mbinguni milele."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_253",
+    "hymnNumber": 253,
+    "title": "Neno Lako, Bwana",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Neno Lako, Bwana, Ni imara sana; Lilo latwongoza, Lilo latufunza."],
+      ["Adui wabaya wakikaribia, Neno Lako, Bwana, niulinza sana."],
+      ["Siku za dhoruba soma ukiomba; Neno Lake, Bwana msaada sana."],
+      ["Ukiliamini, Huenda na amani; Una furaha neno ni silaha."],
+      ["Ni furaha kweli, Ni wingi wa mali, Neno Lako, Bwana, kwa wasiokana."],
+      ["Neno la rehema, Tukali wazima faraja I papo, Tufarikanapo"],
+      ["Tulijue sana, Neno Lako, Bwana, Hapo tukupende kisha kwako twende."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_254",
+    "hymnNumber": 254,
+    "title": "Ni Mfalme Wa Mapenzi",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ni Mfalme wa mapenzi Ndiye anichungaye, Sipungukiwi, Hawezi Kunipoteza Yeye."],
+      ["Kando ya maji mazima Yeye huniongoza Katika malisho mema, Daima hunilaza."],
+      ["Mara nyingi hupotea, Kwa ukaidi wangu, Naye huniandamia, Hunirudisha kwangu."],
+      ["Uvumilivu mwa mauti, Sisi hatari kamwe, Wewe Bwana huniachi, Mwokozi wangu wewe."],
+      ["Waniandikia meza neema kwako tele. Kwa wewe, Yote naweza. Na msalaba mbele."],
+      ["Kamwe hautapungua uule wema wako; Mwisho, Atanichukua juu niimbe kwake."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_255",
+    "hymnNumber": 255,
+    "title": "Kilima Kando Ya Mji",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Kilima kando ya mji alikufa Bwana, Kuokoa wakosaji akatesa sana."],
+      ["Kabisa hayasemeki mateso dhaifu; Alikufa Mwemezi haki tupate wokovu."],
+      ["Alimwaga damu yake ili tuwe wema, Tufae tukae kwake mbinguni kwake daima."],
+      ["Hatuna mwenye imani aliye na haki, Wa kutosha yetu deni, Rafiki Yesu tu."],
+      ["Alijua pekee yake kufungua mbingu ufunguo damu yake, kondoo ya Mungu."],
+      ["Aliyetupenda hivyo nasi tumpende, tukamtumai hivyo nasi tumpende."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_256",
+    "hymnNumber": 256,
+    "title": "Tufani inapovuma",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Tufani unapovuma sana moyoni mwangu, Huona pa kujificha mkononi mwa Mungu. Hunificha, hunificha, Adui hatanipata, Hunificha, hunificha, mkononi mwake."],
+      ["Pengine kuna taabu yanisongeza kwake, Najua si hasira, Ni ya mapenzi yake."],
+      ["Adui yakiniudhi nami nikikumbuka, Mungu atavigeuza vyote viwe Baraka."],
+      ["Niishipo duniani ni tufani daima, anilindapo rohoni nitakaa salama."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_257",
+    "hymnNumber": 257,
+    "title": "Ni Ujumbe wa Bwana",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ni ujumbe wa Bwana, Aleluya! Wa maisha ya daima. Amenena mwenyewe, Aleluya! Utaishi ukitazama."],
+      ["Ni ujumbe wa wema, Aleluya! Nawe shika, rafiki yangu! Ni habari ya raha. Aleluya! Mwenye kuinena ni Mungu."],
+      ["Uzima wa daima, Aleluya! Kwake Yesu utaona, Ukitazama tu, Aleluya! Wokovu u pweke wa Bwana."]
+    ],
+    "chorus": ["Tazama! Ishi sasa! Kutazama Yesu. Amenena mwenyewe, Aleluya! Utaishi ukitazama."]
+  },
+  {
+    "id": "SWA_258",
+    "hymnNumber": 258,
+    "title": "Piga Sana Vita Vyema",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Piga sana vita vyema kwa ushujaa daima, Yesu ndiye nguvu zako, Yesu ndiye kweli yako."],
+      ["Kaza mwendo, ushindane angaza macho, umwone; Yesu ndiye njia yako, Naye tuzo lako."],
+      ["Tupe kizito simama, Tazama mbele si nyuma, Ni yeye uzima wako. Naye ni kipendo chako."],
+      ["Tangamka, uamini, Akashika mikononi, Hageuki, Akupenda, Kuwa naye una pia."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_259",
+    "hymnNumber": 259,
+    "title": "Juu Yake Langu Shaka",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Juu yake langu shaka, Yesu namuwekea, Nami sitafedheheka, nikimtegemea."],
+      ["Juu yake dhambi zangu; aniosha kwa damu; Nionekane kwa Mungu, Nisiye na Jaumu."],
+      ["Juu yake yangu hofu; Kwake nimetulia; Sipotei kwa upofu, Njia aning'azia."],
+      ["Juu yake raha yangu; Humuangalia tu; Mwenye ulimwengu, Aniruzuku na huu."],
+      ["Jun yake, Moyo wangu; Hali yangu na mali; Mimi wake, Yeye wangu, Twapasana kamili."]
+    ],
+    "chorus": ["Natumai, Natumai, Natumai kwake tu; Natumai, Natumai, Natumai kwake tu."]
+  },
+  {
+    "id": "SWA_260",
+    "hymnNumber": 260,
+    "title": "Ninapo Imba Nakaa Nafikiri",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ninapo imba nakaa nafikiri matatizo yanayo nizunguka maumivu yameuwa ni ngazi ninayo panda kuelekea juu."],
+      ["Mambo ya dunia yantoweka, yanapita ni ya kitambo tu, taabu zote tuzipatazo hapa zitagueka kuwa ni furaha."]
+    ],
+    "chorus": ["Sitaacha kuimba sifa zake, ingawa matatizo ni mengi, siku moja nitauona mji, nitamwaona Mkombozi."]
+  },
+  {
+    "id": "SWA_261",
+    "hymnNumber": 261,
+    "title": "Giza na Dhoruba Zinapovuma",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Giza na dhoruba zinapovuma, Kimbilio langu ni kwa Yesu (kweli) namwamini yeye ana uwezo tanikomboa, mimi ni wake."],
+      ["Kuna raha na amani ya kweli; Chini ya mabawa za Yesu Kristo; Namwamini yeye ana uwezo takukomboa wewe ni wake."]
+    ],
+    "chorus": ["Chini ya mbawa za Yesu, Moyo wangu salama, Nitapumzika siku zote, Chini ya mbawa za Yesu."]
+  },
+  {
+    "id": "SWA_262",
+    "hymnNumber": 262,
+    "title": "Nuru Ya Mbingu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Ninapotembea kwenye mwanga, kwenye milima na mabonde, yesu yu hapa pamoja nami, ahadi yake ni ya kweli."],
+      ["Nikitembea kwenye kivuli mwokozi wangu hunilinda, yeye ni nuru katika giza nami nitatembea naye."],
+      ["Nitafurahi kwenye mwangaza nitakaza mwendo kwenda juu nitamsifu nitembeapo kwenye mwangaza ya upendo."]
+    ],
+    "chorus": ["Nuru ya mbingu, nuru ya Mbingu nimeonyezwa; utukufu aleluya nafurahia kuimba sifa zake Yesu."]
+  },
+  {
+    "id": "SWA_263",
+    "hymnNumber": 263,
+    "title": "Bwana Upepo Wavuma",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Bwana upepo wavuma, wimbi lina ghadhabu; Wimbi hili linanguruma, bandari si karibu. Hali yetu hufikiri? Kwani kulala, Bwana? Twafa, maji yawe ni kaburi? Wokovu, la! Hapana?"],
+      ["Bwana nimezima moyo humu yanidizi tu, Huniauni na upesi? Nafa na udhia huu Dhambi nyingi na uovu zitanizamisha, Bwana wangu upesi, ni Wewe Utakayenitosha."],
+      ["Sasa hofu inesha kwisha; Ni shwari baharini, ng'ara tena jua letu, Rohoni kuna shwari. Kae nami, Ewe Bwana, isiwe mimi tu! nitafika bandarini, ng'ambo ndiko na nafuu."]
+    ],
+    "chorus": ["Pepo na mawimbi vyasikiza, Tulia, tulia, kama ukali wa bahari, Wanadamu, apepo, na shetani, Mawimbi yapeteje kuuzima chombo kilicho na Yesu Bwana? Mambo pia vyamsikiza, \"Tolia, tulia.\" Mambo pia vyamsikiza, Tulia."]
+  },
+  {
+    "id": "SWA_264",
+    "hymnNumber": 264,
+    "title": "Hata Ndimi Elfu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Hata ndimi elfu elfu, Hazitoshi kweli, Bwana Yesu kumsifu, Kwa zake fadhili."],
+      ["Yesu, Jina liwezalo, Kufukuza hofu; Lanifurahisha hilo, Lanipa wokovu."],
+      ["Jina hilo ni uzima; Ni afya; amani; Laleta habari njema; Twalipiwa deni."],
+      ["Yesu huvunja mikufu, Ya dhambi moyoni; Msamaha, tena nguvu, Twapata rohoni."],
+      ["Kwa sauti yake vile, Wafu hufufuka, Wakafurahi milele, pasipo mashaka."],
+      ["Ewe Yesu wangu Bwana, Uwezo nipewe, Kuhubiri kote sana, Wote wakujue."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_265",
+    "hymnNumber": 265,
+    "title": "Sijui Sababu Ya Neema",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Sujui sababu ya neema, Niliyopewa na Mungu, Sikulistahili pendo Lake, wala wokovu wa Yesu.."],
+      ["Sijui jinsi nilivyopewa, Imani ya kumwamini, Neno lake Yesu lilileta, Amani yake moyoni."],
+      ["Sijui jinsi Roho wa Mungu, Awaonyeshavyo watu, Wapate kuzitambua dhambi, Na kumfuata Yesu."],
+      ["Sijui kama mambo yajayo, Yatakuwa ya salamu, Lakini nitamwamini Yesu, Mpaka tutaonana."],
+      ["Sijui siku gani ya Bwana, Hapa atakaporudi, Nitamngojea na imani, Hata kumalaki hewani."]
+    ],
+    "chorus": ["Namjua niliyemwamini, Nakusadiki kwamba aweza Kulinda Kilichowekwa, Amana lake Bwana."]
+  },
+  {
+    "id": "SWA_266",
+    "hymnNumber": 266,
+    "title": "Baraka Zake Ni Nyingi",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Baraka zake ni nyingi, Asema Bwana Mungu, Siku zake za furaha, Zakaribia kwetu."],
+      ["Baraka zake ni nyingi, Zafurahisha myoyo, Mungu azitume kwetu, Baraka ndiye Roho"],
+      ["Baraka zake ni nyingi, Ndizo tunangojea, Mpaka litangazwe pote, Neno la Mungu wetu."],
+      ["Baraka zako ni nyingi, Utume kwetu leo, Tungali tunakuomba, Utubariki Bwana."]
+    ],
+    "chorus": ["Utubariki, Roho M-takatifu, Tusipokee kiasi, bali tujazwe kweli."]
+  },
+  {
+    "id": "SWA_267",
+    "hymnNumber": 267,
+    "title": "Mungu Baba Yangu, U Mwaminifu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Mungu Baba Yangu, U mwaminifu, Hakuna geuzo ndani yako; Hubadiliki, wewe ndiwe sawa, Jana, leo na siku sijazo."],
+      ["Na viumbe vyote hulingamana, Kuonyesha utukufu wako; Jua, na mvua, mwezi tena nyota Hulishuhudia pendo lako."],
+      ["Samaha la dhambi, tena amani. Hivi vyote ni baraka zako; Nguvu zako zitadumu milele, Nimebarikiwa sasa kwako."]
+    ],
+    "chorus": ["Wewe Mwaminifu, Wewe Mwaminifu, Kila sikudafhili napewa, Vitu vyote ninavyo umenipa, Wewe Mwaminifu kwangu Bwana."]
+  },
+  {
+    "id": "SWA_268",
+    "hymnNumber": 268,
+    "title": "Bwana U Sehemu Yangu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Bwana, U sehemu yangu, Rafiki yangu, wewe: Katika safari yangu Tatembea na Wewe;"],
+      ["Mali hapa sikutaka Ili niheshimiwe, Na yanikute mashaka Sawasawa na wewe"],
+      ["Niongoze safarini, Mbele unichukue, Miangoni mwa rnbinguni Niingie na Wewe."]
+    ],
+    "chorus": ["Pamoja na Wewe, Pamoja na Wewe Katika safari yangu Tatembea na Wewe."]
+  },
+  {
+    "id": "SWA_269",
+    "hymnNumber": 269,
+    "title": "Katika Neema Ya Yesu",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Katika neema ya Yesu Nimeokolewa, potea dhambini, Kipofu rohooni."],
+      ["Bali neema ya Yesu Yanitosha sana. Manifumbua macho, Ikanifungua."],
+      ["Nilikuwa mwenye hofu Nilifungwa azo, Nimefunguliwa sasa Kwa neema ya Yesu."],
+      ["Nitamsifu Bwana wangu Maishani wote, Kwani nina ushirika Msalabani mwake."],
+      ["Takapofika wote Mbinguni kwa Mungu, Tahukuru neema Ya Yesu milele."]
+    ],
+    "chorus": ""
+  },
+  {
+    "id": "SWA_270",
+    "hymnNumber": 270,
+    "title": "Lo, Ajabu, Kupata Uzima!",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Lo, Ajabu, kupata uzima, Katika damu Mwokozi wangu! Alinifilia pendoni mini niliyemsulibisha!"],
+      ["Mungu wangu alitoa damu! Siwezi kuelewa neno hili; Viumbe vyote vya mbinguni Navyo haviwezi kufahamu. Najua tu ni kwa rehema zake Mungu."],
+      ["Aliondoka kule mbinguni Kwa nyumba yake Mungu, Baba yake, Na utukufu aliacha, Afe kwa ajili ya waovu, Rehema zake ni nyingi, na ukarimu Kwani Mungu wangu aliniokoa mimi."],
+      ["Roho yangu ilifungwa sana Dhambi na giza vilinilemea Ukaniangaza rohoni. Gereza yangu ikang'aa mno, Ikafunguka minyororo yangu yote, Nikaondoka nikaanza kukufuata, Siku hue nikapata, Uhuru kweli kwako Mungu."],
+      ["Hukumuni mimi simo sasa, Mimi ni wake Yesu, ndiye wangu, Yeye ni kichwa changu kweli, Na amenivika haki yake. Mimi hodari sasa kwa kiti cha enzi Napewa taji ya milele katika Yesu, Sina hofu kusogea, Katika Bwana wangu Kristo."]
+    ],
+    "chorus": ["Upendo huu wa Kashangaza kabisa, Wewe Mungu wangu kunifilia pendoni. Upendo huu hanga-a, Mungu wangu kunifihia. Malaika, watu wote, wam-sujudu Ni rehema, tumwabudu. Tumwamini ndiye Mwokozi. Sistahili neema yake, Lakini aliniokoa."]
+  },
+  {
+    "id": "SWA_271",
+    "hymnNumber": 271,
+    "title": "Imbeni Juu Ya Pendo",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Imbeni juu ya pendo la Yesu, Na imbeni juu ya rehema; Makao atufanyia, Tumepewa neema."],
+      ["Tukisafiri njiani mwetu, Tutazikuta shaka nyingi, Bali tukifika mwisho, Hapo tutafurahi."],
+      ["Tuwe waaminifu na wanyofu Na tumhudumu kila siku, Tutamwona kwake mbingu, Hiyo ni utukufu"],
+      ["Twende mbele kupata zawadi, Ni karibu kumwona Yesu: Milango itafunguka Tuingiapo mbingu."]
+    ],
+    "chorus": ["Tuendapo mbinguni, itakuwa siku ya salama! Tumwonapo Yesu, Tutashangilia Bwana."]
+  }
+]
+
+

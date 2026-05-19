@@ -1,0 +1,33 @@
+{
+  "id": "ENG_121",
+  "hymnNumber": 121,
+  "title": "Go, Tell It On the Mountain",
+  "language": "english",
+  "author": "",
+  "stanzas": [
+    [
+      "While shepherds kept their watching",
+      "O'er silent flocks by night,",
+      "Behold throughout the heavens",
+      "There shone a holy light."
+    ],
+    [
+      "The shepherds feared and trembled",
+      "When lo! Above the earth",
+      "Rang out the angel chorus",
+      "That hailed our Savior's birth."
+    ],
+    [
+      "Down in a lowly manger",
+      "The humble Christ was born,",
+      "And brought us God's salvation",
+      "That blessed Christmas morn."
+    ]
+  ],
+  "chorus": [
+    "Go, tell it on the mountain,",
+    "Over the hills and everywhere:",
+    "Go, tell it on the mountain",
+    "That Jesus Christ is born!"
+  ]
+}

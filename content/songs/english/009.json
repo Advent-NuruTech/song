@@ -1,0 +1,30 @@
+{
+  "id": "ENG_009",
+  "hymnNumber": 9,
+  "title": "Let All the World in Every Corner Sing",
+  "language": "english",
+  "author": "",
+  "stanzas": [
+    [
+      "Let all the world in every corner sing,",
+      "My God and King!",
+      "The heavens are not too high",
+      "His praise may thither fly;",
+      "The earth is not too low,",
+      "His praises there may grow,",
+      "Let all the world in every corner sing",
+      "My God and King!"
+    ],
+    [
+      "Let all the world in every corner sing",
+      "My God and King!",
+      "The church with psalms must shout",
+      "No door can keep them out;",
+      "But, above all, the heart",
+      "Must bear the longest part",
+      "Let all the world in every corner sing",
+      "My God and King!"
+    ]
+  ],
+  "chorus": ""
+}

@@ -1,11 +1,15 @@
+import QuickFooter from "@/components/ui/QuickFooter";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
+import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
+import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
 import { initDb } from "@/src/db/initDb";
 
@@ -16,17 +20,20 @@ function AppLayout() {
   const { darkMode } = useSettings();
 
   return (
-    <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="modal"
-          options={{ presentation: "modal", title: "Modal" }}
-        />
-      </Stack>
+    <QuickFooterProvider>
+      <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal", title: "Modal" }}
+          />
+        </Stack>
 
-      <StatusBar style={darkMode ? "light" : "dark"} />
-    </ThemeProvider>
+        <QuickFooter />
+        <StatusBar style={darkMode ? "light" : "dark"} />
+      </ThemeProvider>
+    </QuickFooterProvider>
   );
 }
 
@@ -58,37 +65,44 @@ export default function RootLayout() {
     return (
       <View style={styles.splash}>
         <StatusBar style="light" />
-        <Text style={styles.splashTitle}>Advent Pro</Text>
-        <Text style={styles.splashSubtitle}>Powered by Advent Nurutech</Text>
+        <Svg style={styles.splashGradient} width="100%" height="100%">
+          <Defs>
+            <RadialGradient id="splashBg" cx="50%" cy="50%" r="75%">
+              <Stop offset="0%" stopColor="#001b4d" />
+              <Stop offset="35%" stopColor="#000d2e" />
+              <Stop offset="70%" stopColor="#00061c" />
+              <Stop offset="100%" stopColor="#00030f" />
+            </RadialGradient>
+          </Defs>
+          <Rect x="0" y="0" width="100%" height="100%" fill="url(#splashBg)" />
+        </Svg>
+        <Image source={require("@/assets/images/icon.png")} style={styles.splashLogo} />
       </View>
     );
   }
 
   return (
-    <SettingsProvider>
-      <AppLayout />
-    </SettingsProvider>
+    <SafeAreaProvider>
+      <SettingsProvider>
+        <AppLayout />
+      </SettingsProvider>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
   splash: {
     flex: 1,
-    backgroundColor: "#0B4AA6",
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
   },
-  splashTitle: {
-    color: "#FFFFFF",
-    fontSize: 30,
-    fontWeight: "800",
-    letterSpacing: 0.6,
+  splashGradient: {
+    ...StyleSheet.absoluteFillObject,
   },
-  splashSubtitle: {
-    color: "rgba(219,234,254,0.95)",
-    fontSize: 13,
-    fontWeight: "600",
-    marginTop: 10,
-    letterSpacing: 0.4,
+  splashLogo: {
+    width: 120,
+    height: 120,
+    borderRadius: 32,
   },
 });

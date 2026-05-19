@@ -1,0 +1,25 @@
+{
+  "id": "LUO_280",
+  "hymnNumber": 280,
+  "title": "Wamor Kwaromo Kod Osiepe",
+  "language": "luo",
+  "author": "With Friends On Earth",
+  "stanzas": [
+    [
+      "Wamor kwaromo kod osiepe; E piny ma mwalo ni;",
+      "To chunywa kuyo ka waparo; Wabiro pogore."
+    ],
+    [
+      "E pinyni tho opogowa kod; Osiepe mwahero;",
+      "Wamor kwageno wananegi, E piny maber manyien."
+    ],
+    [
+      "Kucha ok wanawachi chutho; Wach moro mar pogruok;",
+      "To mor gi kuwe nobed e chunywa, Pile ma nyaka chieng."
+    ]
+  ],
+  "chorus": [
+    "Ok wanapogre e polo, Ok wanapogre ngang`;",
+    "E piny maberno wanamor, wanapogre ngang`."
+  ]
+}

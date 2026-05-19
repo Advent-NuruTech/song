@@ -1,0 +1,30 @@
+{
+  "id": "SWA_013",
+  "hymnNumber": 13,
+  "title": "Yesu Uje Kwetu",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Umetuahidi kwamba wawili watatu ,",
+      "Kwajina lako wakija, Utabariki;",
+      "Kwa hivi leo twapiga magoti nyumbani pako."
+    ],
+    [
+      "Umekuwa nasi siku nyingine,",
+      "Tunakuhitaji mpaka mwisho.",
+      "Uje Mwokozi, tupe neema;",
+      "‘Tusikie Yesu, utubariki."
+    ],
+    [
+      "Uje utawale sauti zetu:",
+      "Nyimbo, nazo sala uziagize;",
+      "Imani izidi, ikamilike;",
+      "Pendo liwe safi, na njia nuru."
+    ]
+  ],
+  "chorus": [
+    "Yesu uje kwetu Utubariki;",
+    "Yesu uje kwetu Uwe karibu."
+  ]
+}

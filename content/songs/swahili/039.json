@@ -1,0 +1,28 @@
+{
+  "id": "SWA_039",
+  "hymnNumber": 39,
+  "title": "Ati, Kuna Mvua Njema",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Ati, kuna mvua njema yenye neema;",
+      "Watu wanaona vyema Bwana, huninyeshei?"
+    ],
+    [
+      "Sinipite, Baba mwema; dhambini nimezama:",
+      "Rehema ni za daima; Bwana hunionyeshi?"
+    ],
+    [
+      "Sinipite, Yesu mwema; niwe nawe daima,",
+      "Natamani kukwandama: Bwana, hunichukui?"
+    ],
+    [
+      "Sinipite, Roho mwema, Mpaji wa uzima,",
+      "Nawe shahidi wa wema, Bwana wema hunipi?"
+    ]
+  ],
+  "chorus": [
+    "Na mimi? Na mimi? Bwana, huninyeshei?"
+  ]
+}

@@ -1,34 +1,38 @@
-import { Link } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { Search, X } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  FlatList,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  Platform,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
+    ActivityIndicator,
+    Animated,
+    FlatList,
+    NativeScrollEvent,
+    NativeSyntheticEvent,
+    Platform,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    View,
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
-  StudySummary,
-  getCategoriesWithCounts,
-  getCategoryColor,
-  getStudySummaries,
-  searchStudies,
+    StudySummary,
+    getCategoriesWithCounts,
+    getCategoryColor,
+    getStudySummaries,
+    searchStudies,
 } from "@/src/services/studiesService";
+import { ShareIconButton } from "@/components/share-icon-button";
+import { shareStudy } from "@/src/services/shareService";
 
 export default function StudiesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const { reportScroll } = useQuickFooter();
   const [studies, setStudies] = useState<StudySummary[]>([]);
-  const [categories, setCategories] = useState<Array<{category: string, count: number}>>([]);
+  const [categories, setCategories] = useState<{ category: string; count: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -111,6 +115,7 @@ export default function StudiesScreen() {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    reportScroll(offsetY);
     setShowHeader(offsetY < 100);
     scrollY.setValue(offsetY);
   };
@@ -181,125 +186,141 @@ export default function StudiesScreen() {
       : '';
 
     return (
-       <Link
-        href={{
-          pathname: "/studies/[id]",
-          params: { id: item.id },
-        }}
-        asChild
-      >
-        <Pressable
-          style={[
-            styles.studyCard,
-            {
-              borderColor: colors.border,
-              backgroundColor: colors.card,
-              shadowColor: darkMode ? "#000" : "#0f172a",
-            }
-          ]}
+      <View style={styles.studyCardContainer}>
+        <Link
+          href={{
+            pathname: "/studies/[id]",
+            params: { id: item.id },
+          }}
+          asChild
         >
-          <View style={styles.studyContent}>
-            {/* Category Indicator */}
-            <View style={styles.categoryIndicator}>
-              <View style={[styles.categoryDot, { backgroundColor: color }]} />
-              <Text
-                style={[
-                  styles.categoryLabel,
-                  {
-                    color: colors.mutedText,
-                    fontSize: size(13),
-                    fontFamily,
-                  }
-                ]}
-              >
-                {item.category}
-              </Text>
-            </View>
-
-            {/* Study Title */}
-            <Text
-              style={[
-                styles.studyTitle,
-                {
-                  color: colors.text,
-                  fontSize: size(18),
-                  fontFamily,
-                }
-              ]}
-              numberOfLines={2}
-            >
-              {item.title}
-            </Text>
-            
-            {/* Subtitle */}
-            {item.subtitle && (
-              <Text
-                style={[
-                  styles.studySubtitle,
-                  {
-                    color: colors.mutedText,
-                    fontSize: size(15),
-                    fontFamily,
-                  }
-                ]}
-                numberOfLines={1}
-              >
-                {item.subtitle}
-              </Text>
-            )}
-
-            {/* Excerpt */}
-            {item.excerpt && (
-              <Text
-                style={[
-                  styles.excerpt,
-                  {
-                    color: colors.mutedText,
-                    fontSize: size(14),
-                    fontFamily,
-                  }
-                ]}
-                numberOfLines={3}
-              >
-                {item.excerpt}
-              </Text>
-            )}
-
-            {/* Metadata */}
-            <View style={styles.metadata}>
-              {item.author && (
+          <Pressable
+            style={[
+              styles.studyCard,
+              {
+                borderColor: colors.border,
+                backgroundColor: colors.card,
+                shadowColor: darkMode ? "#000" : "#0f172a",
+              }
+            ]}
+          >
+            <View style={styles.studyContent}>
+              {/* Category Indicator */}
+              <View style={styles.categoryIndicator}>
+                <View style={[styles.categoryDot, { backgroundColor: color }]} />
                 <Text
                   style={[
-                    styles.author,
+                    styles.categoryLabel,
                     {
-                      color: colors.text,
+                      color: colors.mutedText,
                       fontSize: size(13),
                       fontFamily,
                     }
                   ]}
                 >
-                  By {item.author}
+                  {item.category}
                 </Text>
-              )}
-              
-              {wordCountText && (
+              </View>
+
+              {/* Study Title */}
+              <Text
+                style={[
+                  styles.studyTitle,
+                  {
+                    color: colors.text,
+                    fontSize: size(18),
+                    fontFamily,
+                  }
+                ]}
+                numberOfLines={2}
+              >
+                {item.title}
+              </Text>
+
+              {/* Subtitle */}
+              {item.subtitle && (
                 <Text
                   style={[
-                    styles.wordCount,
+                    styles.studySubtitle,
                     {
-                      color: colors.subtleText,
-                      fontSize: size(12),
+                      color: colors.mutedText,
+                      fontSize: size(15),
                       fontFamily,
                     }
                   ]}
+                  numberOfLines={1}
                 >
-                  {wordCountText}
+                  {item.subtitle}
                 </Text>
               )}
+
+              {/* Excerpt */}
+              {item.excerpt && (
+                <Text
+                  style={[
+                    styles.excerpt,
+                    {
+                      color: colors.mutedText,
+                      fontSize: size(14),
+                      fontFamily,
+                    }
+                  ]}
+                  numberOfLines={3}
+                >
+                  {item.excerpt}
+                </Text>
+              )}
+
+              {/* Metadata */}
+              <View style={styles.metadata}>
+                {item.author && (
+                  <Text
+                    style={[
+                      styles.author,
+                      {
+                        color: colors.text,
+                        fontSize: size(13),
+                        fontFamily,
+                      }
+                    ]}
+                  >
+                    By {item.author}
+                  </Text>
+                )}
+
+                {wordCountText && (
+                  <Text
+                    style={[
+                      styles.wordCount,
+                      {
+                        color: colors.subtleText,
+                        fontSize: size(12),
+                        fontFamily,
+                      }
+                    ]}
+                  >
+                    {wordCountText}
+                  </Text>
+                )}
+              </View>
             </View>
-          </View>
-        </Pressable>
-      </Link>
+          </Pressable>
+        </Link>
+
+        <ShareIconButton
+          color={colors.tint}
+          borderColor={colors.border}
+          backgroundColor={colors.card}
+          onPress={() =>
+            void shareStudy({
+              title: item.title,
+              category: item.category,
+              author: item.author,
+            })
+          }
+          style={styles.shareButton}
+        />
+      </View>
     );
   };
 
@@ -330,6 +351,7 @@ export default function StudiesScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <Stack.Screen options={{ title: "Studies", headerShown: false }} />
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
         backgroundColor={colors.background}
@@ -358,7 +380,7 @@ export default function StudiesScreen() {
               }
             ]}
           >
-            Study Library
+            Studies
           </Text>
           <Text
             style={[
@@ -767,9 +789,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
+  studyCardContainer: {
+    marginBottom: 12,
+    position: "relative",
+  },
   studyCard: {
     borderRadius: 16,
-    marginBottom: 12,
     borderWidth: 1,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
@@ -816,6 +841,11 @@ const styles = StyleSheet.create({
   },
   wordCount: {
     fontWeight: "500",
+  },
+  shareButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   emptyContainer: {
     paddingTop: 40,

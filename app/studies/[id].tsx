@@ -1,5 +1,5 @@
 import { Link, Stack, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, ExternalLink } from "lucide-react-native";
+import { ChevronLeft } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   Animated,
@@ -15,238 +15,281 @@ import {
   View,
 } from "react-native";
 
+import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import {
-  Study,
-  getCategoryColor,
-  getStudyById
-} from "@/src/services/studiesService";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
+import { shareStudy } from "@/src/services/shareService";
+import { Study, getCategoryColor, getStudyById } from "@/src/services/studiesService";
 
-// Enhanced Markdown parser with proper formatting
-const renderMarkdownContent = (text: string, colors: any, size: (num: number) => number, fontFamily: string) => {
+type InlineToken = {
+  text: string;
+  bold?: boolean;
+  color?: string;
+  link?: string;
+};
+
+function normalizeUrl(rawValue: string) {
+  const raw = rawValue.trim();
+  const trimmed = raw.replace(/[),.;!?]+$/g, "");
+  const trailing = raw.slice(trimmed.length);
+  const url = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  return {
+    display: trimmed,
+    url,
+    trailing,
+  };
+}
+
+function tokenizeWithLinks(text: string, bold?: boolean, color?: string): InlineToken[] {
+  const tokens: InlineToken[] = [];
+  const linkRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = linkRegex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      tokens.push({ text: text.slice(lastIndex, match.index), bold, color });
+    }
+
+    const linkValue = normalizeUrl(match[0]);
+    tokens.push({
+      text: linkValue.display,
+      bold,
+      color,
+      link: linkValue.url,
+    });
+
+    if (linkValue.trailing) {
+      tokens.push({ text: linkValue.trailing, bold, color });
+    }
+
+    lastIndex = match.index + match[0].length;
+  }
+
+  if (lastIndex < text.length) {
+    tokens.push({ text: text.slice(lastIndex), bold, color });
+  }
+
+  return tokens;
+}
+
+function tokenizeInlineContent(input: string): InlineToken[] {
+  const colorRegex = /\[color=(#[0-9a-fA-F]{3,8}|[a-zA-Z]+)\]([\s\S]*?)\[\/color\]/g;
+  const tokens: InlineToken[] = [];
+  let lastColorIndex = 0;
+  let colorMatch: RegExpExecArray | null;
+
+  const pushBoldAware = (text: string, color?: string) => {
+    const boldRegex = /\*\*(.+?)\*\*/g;
+    let lastBoldIndex = 0;
+    let boldMatch: RegExpExecArray | null;
+
+    while ((boldMatch = boldRegex.exec(text)) !== null) {
+      if (boldMatch.index > lastBoldIndex) {
+        tokens.push(...tokenizeWithLinks(text.slice(lastBoldIndex, boldMatch.index), false, color));
+      }
+
+      tokens.push(...tokenizeWithLinks(boldMatch[1], true, color));
+      lastBoldIndex = boldMatch.index + boldMatch[0].length;
+    }
+
+    if (lastBoldIndex < text.length) {
+      tokens.push(...tokenizeWithLinks(text.slice(lastBoldIndex), false, color));
+    }
+  };
+
+  while ((colorMatch = colorRegex.exec(input)) !== null) {
+    if (colorMatch.index > lastColorIndex) {
+      pushBoldAware(input.slice(lastColorIndex, colorMatch.index));
+    }
+
+    pushBoldAware(colorMatch[2], colorMatch[1]);
+    lastColorIndex = colorMatch.index + colorMatch[0].length;
+  }
+
+  if (lastColorIndex < input.length) {
+    pushBoldAware(input.slice(lastColorIndex));
+  }
+
+  return tokens.filter((token) => token.text.length > 0);
+}
+
+function renderInlineText({
+  text,
+  baseStyle,
+  tintColor,
+  keyPrefix,
+}: {
+  text: string;
+  baseStyle: object;
+  tintColor: string;
+  keyPrefix: string;
+}) {
+  const tokens = tokenizeInlineContent(text);
+
+  return (
+    <Text style={baseStyle}>
+      {tokens.map((token, index) => {
+        const tokenStyle: object[] = [];
+        if (token.bold) tokenStyle.push(styles.boldText);
+        if (token.color) tokenStyle.push({ color: token.color });
+        if (token.link) tokenStyle.push(styles.inlineLink, { color: tintColor });
+
+        return (
+          <Text
+            key={`${keyPrefix}-${index}`}
+            style={tokenStyle}
+            onPress={
+              token.link
+                ? () => {
+                    void Linking.openURL(token.link as string);
+                  }
+                : undefined
+            }
+          >
+            {token.text}
+          </Text>
+        );
+      })}
+    </Text>
+  );
+}
+
+function renderStudyContent(
+  text: string,
+  colors: any,
+  size: (value: number) => number,
+  fontFamily: string
+) {
   if (!text) return null;
-  
-  const lines = text.split('\n');
+
+  const lines = text.split("\n");
   const elements: React.JSX.Element[] = [];
-  let inList = false;
   let listItems: string[] = [];
 
   const flushList = () => {
-    if (listItems.length > 0) {
-      elements.push(
-        <View key={`list-${elements.length}`} style={styles.listContainer}>
-          {listItems.map((item, index) => (
-            <View key={index} style={styles.listItem}>
-              <Text style={styles.listBullet}>•</Text>
-              <Text style={[
-                styles.listText,
-                {
-                  color: colors.text,
-                  fontSize: size(16),
-                  fontFamily,
-                  lineHeight: size(28),
-                }
-              ]}>
-                {item.trim()}
-              </Text>
-            </View>
-          ))}
-        </View>
-      );
-      listItems = [];
-    }
-    inList = false;
+    if (!listItems.length) return;
+
+    elements.push(
+      <View key={`list-${elements.length}`} style={styles.listContainer}>
+        {listItems.map((item, index) => (
+          <View key={`list-${index}`} style={styles.listItem}>
+            <Text style={[styles.listBullet, { color: colors.mutedText }]}>•</Text>
+            {renderInlineText({
+              text: item,
+              tintColor: colors.tint,
+              keyPrefix: `list-inline-${index}`,
+              baseStyle: {
+                ...styles.listText,
+                color: colors.text,
+                fontSize: size(16),
+                fontFamily,
+                lineHeight: size(28),
+              },
+            })}
+          </View>
+        ))}
+      </View>
+    );
+
+    listItems = [];
   };
 
-  for (let i = 0; i < lines.length; i++) {
+  for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i].trim();
-    
-    // Skip empty lines
+
     if (!line) {
       flushList();
       elements.push(<View key={`space-${i}`} style={styles.paragraphSpacing} />);
       continue;
     }
 
-    // Check for headings
-    if (line.startsWith('## ')) {
+    if (line.startsWith("## ")) {
       flushList();
       elements.push(
-        <Text
-          key={`h2-${i}`}
-          style={[
-            styles.heading2,
-            {
+        <View key={`h2-${i}`}>
+          {renderInlineText({
+            text: line.slice(3),
+            tintColor: colors.tint,
+            keyPrefix: `h2-inline-${i}`,
+            baseStyle: {
+              ...styles.heading2,
               color: colors.text,
               fontSize: size(24),
               fontFamily,
-            }
-          ]}
-        >
-          {line.substring(3)}
-        </Text>
+            },
+          })}
+        </View>
       );
-    } 
-    else if (line.startsWith('### ')) {
+      continue;
+    }
+
+    if (line.startsWith("### ")) {
       flushList();
       elements.push(
-        <Text
-          key={`h3-${i}`}
-          style={[
-            styles.heading3,
-            {
+        <View key={`h3-${i}`}>
+          {renderInlineText({
+            text: line.slice(4),
+            tintColor: colors.tint,
+            keyPrefix: `h3-inline-${i}`,
+            baseStyle: {
+              ...styles.heading3,
               color: colors.text,
               fontSize: size(20),
               fontFamily,
-            }
-          ]}
-        >
-          {line.substring(4)}
-        </Text>
-      );
-    }
-    // Check for numbered list
-    else if (/^\d+\.\s/.test(line)) {
-      if (!inList) inList = true;
-      listItems.push(line.replace(/^\d+\.\s/, ''));
-    }
-    // Check for bullet points
-    else if (line.startsWith('- ') || line.startsWith('* ')) {
-      if (!inList) inList = true;
-      listItems.push(line.substring(2));
-    }
-    // Check for bold text
-    else if (line.includes('**')) {
-      flushList();
-      const parts = line.split('**');
-      const boldParts = parts.map((part, index) => {
-        if (index % 2 === 1) {
-          return (
-            <Text key={index} style={[
-              styles.boldText,
-              {
-                color: colors.text,
-                fontSize: size(16),
-                fontFamily,
-              }
-            ]}>
-              {part}
-            </Text>
-          );
-        }
-        return (
-          <Text key={index} style={[
-            styles.paragraph,
-            {
-              color: colors.text,
-              fontSize: size(16),
-              fontFamily,
-              lineHeight: size(28),
-            }
-          ]}>
-            {part}
-          </Text>
-        );
-      });
-      elements.push(
-        <Text key={`bold-${i}`} style={styles.boldContainer}>
-          {boldParts}
-        </Text>
-      );
-    }
-    // Check for URLs
-    else if (/(https?:\/\/[^\s]+)/g.test(line)) {
-      flushList();
-      const urlRegex = /(https?:\/\/[^\s]+)/g;
-      const parts = line.split(urlRegex);
-      
-      const urlElements = parts.map((part, index) => {
-        if (urlRegex.test(part)) {
-          return (
-            <Pressable
-              key={index}
-              onPress={() => Linking.openURL(part)}
-              style={[
-                styles.linkContainer,
-                {
-                  backgroundColor: colors.tint + '20',
-                  borderColor: colors.tint + '40',
-                }
-              ]}
-            >
-              <Text style={[
-                styles.linkText,
-                {
-                  color: colors.tint || '#4285F4',
-                  fontSize: size(16),
-                  fontFamily,
-                }
-              ]}>
-                {part}
-              </Text>
-              <ExternalLink size={size(14)} color={colors.tint || '#4285F4'} />
-            </Pressable>
-          );
-        }
-        return (
-          <Text key={index} style={[
-            styles.paragraph,
-            {
-              color: colors.text,
-              fontSize: size(16),
-              fontFamily,
-              lineHeight: size(28),
-            }
-          ]}>
-            {part}
-          </Text>
-        );
-      });
-      
-      elements.push(
-        <View key={`link-${i}`} style={styles.lineContainer}>
-          {urlElements}
+            },
+          })}
         </View>
       );
+      continue;
     }
-    // Regular paragraph
-    else {
-      if (inList) {
-        listItems[listItems.length - 1] += ' ' + line;
-      } else {
-        flushList();
-        elements.push(
-          <Text
-            key={`para-${i}`}
-            style={[
-              styles.paragraph,
-              {
-                color: colors.text,
-                fontSize: size(16),
-                fontFamily,
-                lineHeight: size(28),
-              }
-            ]}
-          >
-            {line}
-          </Text>
-        );
-      }
+
+    if (/^\d+\.\s/.test(line)) {
+      listItems.push(line.replace(/^\d+\.\s/, ""));
+      continue;
     }
+
+    if (line.startsWith("- ") || line.startsWith("* ")) {
+      listItems.push(line.slice(2));
+      continue;
+    }
+
+    if (listItems.length) {
+      listItems[listItems.length - 1] = `${listItems[listItems.length - 1]} ${line}`;
+      continue;
+    }
+
+    elements.push(
+      <View key={`p-${i}`}>
+        {renderInlineText({
+          text: line,
+          tintColor: colors.tint,
+          keyPrefix: `para-inline-${i}`,
+          baseStyle: {
+            ...styles.paragraph,
+            color: colors.text,
+            fontSize: size(16),
+            fontFamily,
+            lineHeight: size(28),
+          },
+        })}
+      </View>
+    );
   }
-  
-  flushList(); // Flush any remaining list items
+
+  flushList();
   return elements;
-};
+}
 
 export default function StudyDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const { reportScroll } = useQuickFooter();
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHeader, setShowHeader] = useState(true);
   const scrollY = useRef(new Animated.Value(0)).current;
-  const scrollViewRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -254,7 +297,7 @@ export default function StudyDetailScreen() {
     const loadStudy = async () => {
       try {
         if (!id) return;
-        
+
         const data = await getStudyById(id);
         if (isMounted) {
           setStudy(data);
@@ -266,7 +309,7 @@ export default function StudyDetailScreen() {
       }
     };
 
-    loadStudy();
+    void loadStudy();
     return () => {
       isMounted = false;
     };
@@ -274,49 +317,67 @@ export default function StudyDetailScreen() {
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
+    reportScroll(offsetY);
     setShowHeader(offsetY < 100);
     scrollY.setValue(offsetY);
   };
 
   if (loading) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <StatusBar
-          barStyle={darkMode ? "light-content" : "dark-content"}
-          backgroundColor={colors.background}
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            title: "",
+            headerTransparent: true,
+          }}
         />
-        <View style={styles.loadingContainer}>
-          <Text
-            style={[
-              styles.loadingText,
-              { color: colors.mutedText, fontSize: size(16), fontFamily },
-            ]}
-          >
-            Loading study...
-          </Text>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <StatusBar
+            barStyle={darkMode ? "light-content" : "dark-content"}
+            backgroundColor={colors.background}
+          />
+          <View style={styles.loadingContainer}>
+            <Text
+              style={[
+                styles.loadingText,
+                { color: colors.mutedText, fontSize: size(16), fontFamily },
+              ]}
+            >
+              Loading study...
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
 
   if (!study) {
     return (
-      <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <StatusBar
-          barStyle={darkMode ? "light-content" : "dark-content"}
-          backgroundColor={colors.background}
+      <>
+        <Stack.Screen
+          options={{
+            headerShown: false,
+            title: "",
+          }}
         />
-        <View style={styles.errorContainer}>
-          <Text
-            style={[
-              styles.errorText,
-              { color: colors.mutedText, fontSize: size(16), fontFamily },
-            ]}
-          >
-            Study not found
-          </Text>
+        <View style={[styles.container, { backgroundColor: colors.background }]}>
+          <StatusBar
+            barStyle={darkMode ? "light-content" : "dark-content"}
+            backgroundColor={colors.background}
+          />
+          <View style={styles.errorContainer}>
+            <Text
+              style={[
+                styles.errorText,
+                { color: colors.mutedText, fontSize: size(16), fontFamily },
+              ]}
+            >
+              Study not found
+            </Text>
+          </View>
         </View>
-      </View>
+      </>
     );
   }
 
@@ -327,38 +388,38 @@ export default function StudyDetailScreen() {
   const headerTranslateY = scrollY.interpolate({
     inputRange: [0, 100],
     outputRange: [0, -200],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   const headerOpacity = scrollY.interpolate({
     inputRange: [0, 80, 100],
     outputRange: [1, 0.5, 0],
-    extrapolate: 'clamp',
+    extrapolate: "clamp",
   });
 
   return (
     <>
-      <Stack.Screen 
-        options={{ 
+      <Stack.Screen
+        options={{
           headerShown: false,
-          title: study.title 
-        }} 
+          title: "",
+          headerTransparent: true,
+        }}
       />
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
         backgroundColor={colors.background}
       />
 
-      {/* Animated Header - Disappears on scroll */}
-      <Animated.View 
+      <Animated.View
         style={[
-          styles.headerContainer, 
-          { 
+          styles.headerContainer,
+          {
             backgroundColor: colors.card,
             transform: [{ translateY: headerTranslateY }],
             opacity: headerOpacity,
             borderBottomColor: colors.border,
-          }
+          },
         ]}
       >
         <Link href="/studies" asChild>
@@ -366,9 +427,24 @@ export default function StudyDetailScreen() {
             <ChevronLeft size={size(24)} color={colors.text} />
           </Pressable>
         </Link>
-        
+
+        <ShareIconButton
+          color={colors.tint}
+          borderColor={colors.border}
+          backgroundColor={colors.card}
+          onPress={() =>
+            void shareStudy({
+              title: study.title,
+              category: study.category,
+              author: study.author,
+            })
+          }
+          style={styles.shareButton}
+          size={36}
+          iconSize={17}
+        />
+
         <View style={styles.headerContent}>
-          {/* Category */}
           <View style={styles.categoryRow}>
             <View style={[styles.categoryDot, { backgroundColor: color }]} />
             <Text
@@ -378,14 +454,13 @@ export default function StudyDetailScreen() {
                   color: colors.mutedText,
                   fontSize: size(14),
                   fontFamily,
-                }
+                },
               ]}
             >
               {study.category}
             </Text>
           </View>
 
-          {/* Title */}
           <Text
             style={[
               styles.studyTitle,
@@ -393,15 +468,14 @@ export default function StudyDetailScreen() {
                 color: colors.text,
                 fontSize: size(24),
                 fontFamily,
-              }
+              },
             ]}
             numberOfLines={2}
           >
             {study.title}
           </Text>
 
-          {/* Subtitle */}
-          {study.subtitle && (
+          {study.subtitle ? (
             <Text
               style={[
                 styles.studySubtitle,
@@ -409,35 +483,28 @@ export default function StudyDetailScreen() {
                   color: colors.mutedText,
                   fontSize: size(16),
                   fontFamily,
-                }
+                },
               ]}
               numberOfLines={2}
             >
               {study.subtitle}
             </Text>
-          )}
+          ) : null}
         </View>
       </Animated.View>
 
-      {/* Content with scroll handling */}
-      <ScrollView 
-        ref={scrollViewRef}
+      <ScrollView
         style={[styles.scrollContainer, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        {/* Study Content with proper Markdown rendering */}
         <View style={styles.content}>
-          {renderMarkdownContent(study.content, colors, size, fontFamily)}
-          
-          {/* Metadata at the end */}
-          <View style={[
-            styles.footerMetadata,
-            { borderTopColor: colors.border }
-          ]}>
-            {study.author && (
+          {renderStudyContent(study.content, colors, size, fontFamily)}
+
+          <View style={[styles.footerMetadata, { borderTopColor: colors.border }]}> 
+            {study.author ? (
               <Text
                 style={[
                   styles.author,
@@ -445,13 +512,13 @@ export default function StudyDetailScreen() {
                     color: colors.text,
                     fontSize: size(14),
                     fontFamily,
-                  }
+                  },
                 ]}
               >
                 By {study.author}
               </Text>
-            )}
-            
+            ) : null}
+
             {(wordCount > 0 || readingTime > 0) && (
               <Text
                 style={[
@@ -460,17 +527,16 @@ export default function StudyDetailScreen() {
                     color: colors.subtleText,
                     fontSize: size(13),
                     fontFamily,
-                  }
+                  },
                 ]}
               >
                 {readingTime > 0 && `${readingTime} min read`}
-                {wordCount > 0 && readingTime > 0 && ' • '}
+                {wordCount > 0 && readingTime > 0 && " • "}
                 {wordCount > 0 && `${wordCount.toLocaleString()} words`}
               </Text>
             )}
           </View>
 
-          {/* Last Updated */}
           <View style={styles.footer}>
             <Text
               style={[
@@ -479,7 +545,7 @@ export default function StudyDetailScreen() {
                   color: colors.mutedText,
                   fontSize: size(12),
                   fontFamily,
-                }
+                },
               ]}
             >
               Last updated: {new Date(study.updatedAt || study.createdAt).toLocaleDateString()}
@@ -488,22 +554,25 @@ export default function StudyDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Floating back button when header is hidden */}
       {!showHeader && (
         <Link href="/studies" asChild>
-          <Pressable style={[
-            styles.floatingBackButton,
-            { 
-              backgroundColor: colors.card, 
-              borderColor: colors.border,
-              shadowColor: darkMode ? '#000' : '#000',
-            }
-          ]}>
+          <Pressable
+            style={[
+              styles.floatingBackButton,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.border,
+                shadowColor: darkMode ? "#000" : "#000",
+              },
+            ]}
+          >
             <ChevronLeft size={size(20)} color={colors.text} />
-            <Text style={[
-              styles.floatingBackText,
-              { color: colors.text, fontSize: size(14), fontFamily }
-            ]}>
+            <Text
+              style={[
+                styles.floatingBackText,
+                { color: colors.text, fontSize: size(14), fontFamily },
+              ]}
+            >
               Back
             </Text>
           </Pressable>
@@ -553,6 +622,12 @@ const styles = StyleSheet.create({
     zIndex: 1,
     padding: 8,
   },
+  shareButton: {
+    position: "absolute",
+    right: 20,
+    top: Platform.OS === "ios" ? 90 : 70,
+    zIndex: 1,
+  },
   headerContent: {
     alignItems: "center",
     marginTop: 8,
@@ -583,23 +658,13 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 16,
   },
-  metadata: {
-    alignItems: "center",
-    gap: 6,
-  },
-  author: {
-    fontWeight: "500",
-  },
-  stats: {
-    fontWeight: "500",
-  },
   scrollContainer: {
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === "ios" ? 200 : 250, // Space for header
+    paddingTop: Platform.OS === "ios" ? 200 : 250,
     paddingHorizontal: 20,
-    paddingBottom: 60,
+    paddingBottom: 120,
   },
   content: {
     maxWidth: 800,
@@ -625,15 +690,6 @@ const styles = StyleSheet.create({
   paragraphSpacing: {
     height: 16,
   },
-  boldContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    marginBottom: 20,
-  },
-  boldText: {
-    fontWeight: "700",
-    textAlign: "justify",
-  },
   listContainer: {
     marginBottom: 20,
     marginLeft: 8,
@@ -647,35 +703,17 @@ const styles = StyleSheet.create({
     width: 24,
     fontSize: 16,
     fontWeight: "600",
-    color: "#666",
   },
   listText: {
     flex: 1,
     textAlign: "justify",
   },
-  lineContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    marginBottom: 20,
+  boldText: {
+    fontWeight: "700",
   },
-  linkContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 6,
-    marginVertical: 4,
-    borderWidth: 1,
-  },
-  linkText: {
+  inlineLink: {
     textDecorationLine: "underline",
-    fontWeight: "500",
-    flex: 1,
-    marginRight: 8,
-  },
-  linkIcon: {
-    marginLeft: 8,
+    fontWeight: "700",
   },
   footerMetadata: {
     marginTop: 40,
@@ -683,6 +721,12 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     alignItems: "center",
     gap: 8,
+  },
+  author: {
+    fontWeight: "500",
+  },
+  stats: {
+    fontWeight: "500",
   },
   footer: {
     marginTop: 20,
@@ -716,3 +760,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
+
+
+

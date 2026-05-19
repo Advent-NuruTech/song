@@ -1,160 +1,142 @@
-import { Link, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Search } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import React, {
+  memo,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
 import {
-  FlatList,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 
+import { FlashList } from "@shopify/flash-list";
+
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { runQuery } from "@/src/db/runQuery";
-import { formatLanguageName, getLanguageColor } from "@/src/services/languageService";
+
+import {
+  formatLanguageName,
+  getLanguageColor,
+} from "@/src/services/languageService";
 
 type Song = {
   id: string;
   hymnNumber: number;
   title: string;
   language: string;
-  stanzas: string;
+  searchableLyrics: string;
+  stanzaCount: number;
 };
 
-function safeLyricsText(stanzas: string) {
+const CARD_HEIGHT = 92;
+
+function preprocessLyrics(stanzas: string) {
   try {
     const parsed = JSON.parse(stanzas) as string[][];
-    return parsed.flat().join(" ");
+    return parsed.flat().join(" ").toLowerCase();
   } catch {
-    return String(stanzas);
+    return String(stanzas).toLowerCase();
   }
 }
 
-export default function SongsScreen() {
-  const { lang } = useLocalSearchParams<{ lang?: string }>();
-  const language = typeof lang === "string" ? lang : undefined;
+function getStanzaCount(stanzas: string) {
+  try {
+    return (JSON.parse(stanzas) as string[][]).length;
+  } catch {
+    return 0;
+  }
+}
 
-  const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const [query, setQuery] = useState("");
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [loading, setLoading] = useState(true);
+type SongCardProps = {
+  item: Song;
+  onPress: () => void;
+  colors: any;
+  size: any;
+  fontFamily: string;
+  darkMode: boolean;
+  languageColor: string;
+};
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadSongs = async () => {
-      try {
-        const result = await runQuery(
-          `
-            SELECT id, hymnNumber, title, language, stanzas
-            FROM songs
-            ${language ? "WHERE language = ?" : ""}
-            ORDER BY hymnNumber ASC
-          `,
-          language ? [language] : []
-        );
-
-        if (isMounted) {
-          setSongs(result.rows._array as Song[]);
-        }
-      } catch (err) {
-        console.error("Failed to load songs:", err);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadSongs();
-    return () => {
-      isMounted = false;
-    };
-  }, [language]);
-
-  const filteredSongs = useMemo(() => {
-    if (!query.trim()) return songs;
-    const searchTerm = query.toLowerCase();
-
-    return songs.filter((song) => {
-      const lyrics = safeLyricsText(song.stanzas).toLowerCase();
-      return (
-        song.title.toLowerCase().includes(searchTerm) ||
-        song.hymnNumber.toString().includes(searchTerm) ||
-        lyrics.includes(searchTerm)
-      );
-    });
-  }, [songs, query]);
-
-  const placeholder = language
-    ? `Search songs in ${formatLanguageName(language)}...`
-    : "Search by number, title, or lyrics...";
-
-  const languageColor = language ? getLanguageColor(language) : colors.tint;
-
-  const renderSongItem = ({ item }: { item: Song }) => (
-    <Link
-      href={{
-        pathname: "/song/[id]",
-        params: { id: item.id },
-      }}
-      asChild
-    >
-      <Pressable
-        style={[
-          styles.songCard,
-          {
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-            shadowColor: darkMode ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.05)",
-          }
-        ]}
-      >
-        <View style={styles.songContent}>
-          {/* Song Number Badge - Removed Hash icon */}
-          <View
-            style={[
-              styles.numberBadge,
-              {
-                backgroundColor: `${languageColor}15`,
-                borderColor: languageColor,
-              }
-            ]}
-          >
-            <Text
+const SongCard = memo(
+  ({
+    item,
+    onPress,
+    colors,
+    size,
+    fontFamily,
+    darkMode,
+    languageColor,
+  }: SongCardProps) => {
+    return (
+      <View style={styles.songCardContainer}>
+        <Pressable
+          onPress={onPress}
+          android_ripple={{
+            color: `${languageColor}20`,
+          }}
+          style={[
+            styles.songCard,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+              shadowColor: darkMode
+                ? "rgba(0,0,0,0.25)"
+                : "rgba(0,0,0,0.05)",
+            },
+          ]}
+        >
+          <View style={styles.songContent}>
+            <View
               style={[
-                styles.numberText,
+                styles.numberBadge,
                 {
-                  color: languageColor,
-                  fontSize: size(18),
-                  fontFamily,
-                }
+                  backgroundColor: `${languageColor}15`,
+                  borderColor: languageColor,
+                },
               ]}
             >
-              {item.hymnNumber}
-            </Text>
-          </View>
+              <Text
+                style={[
+                  styles.numberText,
+                  {
+                    color: languageColor,
+                    fontSize: size(18),
+                    fontFamily,
+                  },
+                ]}
+              >
+                {item.hymnNumber}
+              </Text>
+            </View>
 
-          {/* Song Info */}
-          <View style={styles.songInfo}>
-            <Text
-              style={[
-                styles.songTitle,
-                {
-                  color: colors.text,
-                  fontSize: size(17),
-                  fontFamily,
-                }
-              ]}
-              numberOfLines={2}
-            >
-              {item.title}
-            </Text>
-            
-            <View style={styles.songMeta}>
-            
-              
-              {/* Optional: Show stanza count */}
+            <View style={styles.songInfo}>
+              <Text
+                numberOfLines={2}
+                style={[
+                  styles.songTitle,
+                  {
+                    color: colors.text,
+                    fontSize: size(17),
+                    fontFamily,
+                  },
+                ]}
+              >
+                {item.title}
+              </Text>
+
               <Text
                 style={[
                   styles.stanzaCount,
@@ -162,63 +144,226 @@ export default function SongsScreen() {
                     color: colors.subtleText,
                     fontSize: size(13),
                     fontFamily,
-                  }
+                  },
                 ]}
               >
-                {(() => {
-                  try {
-                    const stanzas = JSON.parse(item.stanzas) as string[][];
-                    return `${stanzas.length} stanza${stanzas.length !== 1 ? 's' : ''}`;
-                  } catch {
-                    return "Multiple stanzas";
-                  }
-                })()}
+                {item.stanzaCount}{" "}
+                {item.stanzaCount === 1 ? "stanza" : "stanzas"}
               </Text>
             </View>
           </View>
+        </Pressable>
+      </View>
+    );
+  }
+);
 
-          {/* Arrow Indicator */}
-          <View
-            style={[
-              styles.arrowContainer,
-              {
-                backgroundColor: darkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
-              }
-            ]}
-          >
-            <Text
-              style={[
-                styles.arrowText,
-                {
-                  color: colors.tint || colors.text,
-                  fontSize: size(20),
-                  fontFamily,
-                }
-              ]}
-            >
-              →
-            </Text>
-          </View>
-        </View>
-      </Pressable>
-    </Link>
+SongCard.displayName = "SongCard";
+
+export default function SongsScreen() {
+  const router = useRouter();
+
+  const { lang } = useLocalSearchParams<{
+    lang?: string;
+  }>();
+
+  const language =
+    typeof lang === "string"
+      ? lang
+      : undefined;
+
+  const {
+    colors,
+    size,
+    fontFamily,
+    darkMode,
+  } = useAppTheme();
+
+  const { reportScroll } = useQuickFooter();
+
+  const [query, setQuery] = useState("");
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const deferredQuery = useDeferredValue(query);
+
+  const languageColor = useMemo(() => {
+    return language
+      ? getLanguageColor(language)
+      : colors.tint;
+  }, [language, colors.tint]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadSongs = async () => {
+      try {
+        const result = await runQuery(
+          `
+          SELECT id, hymnNumber, title, language, stanzas
+          FROM songs
+          ${language ? "WHERE language = ?" : ""}
+          ORDER BY hymnNumber ASC
+          `,
+          language ? [language] : []
+        );
+
+        if (!mounted) return;
+
+        const processedSongs: Song[] =
+          result.rows._array.map((song: any) => ({
+            id: String(song.id),
+            hymnNumber: song.hymnNumber,
+            title: song.title,
+            language: song.language,
+            searchableLyrics: preprocessLyrics(song.stanzas),
+            stanzaCount: getStanzaCount(song.stanzas),
+          }));
+
+        setSongs(processedSongs);
+      } catch (error) {
+        console.error("Failed loading songs:", error);
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadSongs();
+
+    return () => {
+      mounted = false;
+    };
+  }, [language]);
+
+  const filteredSongs = useMemo(() => {
+    const trimmed =
+      deferredQuery.trim().toLowerCase();
+
+    if (!trimmed) {
+      return songs;
+    }
+
+    return songs.filter((song) => {
+      return (
+        song.title
+          .toLowerCase()
+          .includes(trimmed) ||
+        song.hymnNumber
+          .toString()
+          .includes(trimmed) ||
+        song.searchableLyrics.includes(trimmed)
+      );
+    });
+  }, [songs, deferredQuery]);
+
+  const placeholder = useMemo(() => {
+    return language
+      ? `Search songs in ${formatLanguageName(language)}...`
+      : "Search by number, title, or lyrics...";
+  }, [language]);
+
+  const handleSongPress = useCallback(
+    (id: string) => {
+      router.push({
+        pathname: "/song/[id]",
+        params: { id },
+      });
+    },
+    [router]
+  );
+
+  const keyExtractor = useCallback(
+    (item: Song) => item.id,
+    []
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: Song }) => (
+      <SongCard
+        item={item}
+        onPress={() => handleSongPress(item.id)}
+        colors={colors}
+        size={size}
+        fontFamily={fontFamily}
+        darkMode={darkMode}
+        languageColor={languageColor}
+      />
+    ),
+    [
+      handleSongPress,
+      colors,
+      size,
+      fontFamily,
+      darkMode,
+      languageColor,
+    ]
+  );
+
+  const handleScroll = useCallback(
+    (
+      event: NativeSyntheticEvent<NativeScrollEvent>
+    ) => {
+      reportScroll(
+        event.nativeEvent.contentOffset.y
+      );
+    },
+    [reportScroll]
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Search Header */}
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor:
+            colors.background,
+        },
+      ]}
+    >
+      <Stack.Screen
+        options={{
+          headerShown: false,
+        }}
+      />
+
+      <StatusBar
+        barStyle={
+          darkMode
+            ? "light-content"
+            : "dark-content"
+        }
+        backgroundColor={colors.background}
+      />
+
       <View style={styles.searchContainer}>
-        <View style={styles.searchWrapper}>
-          <Search 
-            size={size(20)} 
-            color={colors.mutedText} 
+        <View
+          style={[
+            styles.searchWrapper,
+            {
+              borderColor: colors.border,
+              backgroundColor: colors.card,
+            },
+          ]}
+        >
+          <Search
+            size={size(20)}
+            color={colors.mutedText}
             style={styles.searchIcon}
           />
+
           <TextInput
-            placeholder={placeholder}
-            placeholderTextColor={colors.subtleText}
             value={query}
             onChangeText={setQuery}
+            placeholder={placeholder}
+            placeholderTextColor={
+              colors.subtleText
+            }
+            autoCorrect={false}
+            autoCapitalize="none"
+            returnKeyType="search"
+            clearButtonMode="while-editing"
             style={[
               styles.searchInput,
               {
@@ -228,243 +373,191 @@ export default function SongsScreen() {
               },
             ]}
           />
-          {query.length > 0 && (
-            <Pressable
-              onPress={() => setQuery("")}
-              style={styles.clearButton}
-            >
-              <Text
-                style={[
-                  styles.clearText,
-                  {
-                    color: colors.mutedText,
-                    fontSize: size(14),
-                    fontFamily,
-                  }
-                ]}
-              >
-                Clear
-              </Text>
-            </Pressable>
-          )}
         </View>
-        
-        {/* Results Count */}
+
         <View style={styles.resultsContainer}>
           <Text
             style={[
               styles.resultsText,
               {
-                color: colors.mutedText,
+                color:
+                  colors.mutedText,
                 fontSize: size(14),
                 fontFamily,
-              }
+              },
             ]}
           >
-            {filteredSongs.length} {filteredSongs.length === 1 ? 'song' : 'songs'} found
+            {filteredSongs.length} songs
           </Text>
         </View>
       </View>
 
-      {/* Songs List */}
-      <FlatList
+      <FlashList
         data={filteredSongs}
-        keyExtractor={(item) => item.id}
-        renderItem={renderSongItem}
-        contentContainerStyle={styles.listContent}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={styles.listContent}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
+        drawDistance={400}
+        getItemType={() => "song"}
+        overrideItemLayout={(layout) => {
+          (layout as any).size = CARD_HEIGHT;
+        }}
         ListEmptyComponent={
-          !loading ? (
-            <View style={styles.emptyContainer}>
-              <View
+          loading ? (
+            <View style={styles.loadingContainer}>
+              <Text
                 style={[
-                  styles.emptyCard,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor: colors.card,
-                  }
-                ]}
-              >
-                <Search size={size(48)} color={colors.mutedText} />
-                <Text
-                  style={[
-                    styles.emptyTitle,
-                    {
-                      color: colors.text,
-                      fontSize: size(20),
-                      fontFamily,
-                      marginTop: 16,
-                    }
-                  ]}
-                >
-                  No songs found
-                </Text>
-                <Text
-                  style={[
-                    styles.emptySubtitle,
+                  styles.loadingText,
                   {
                     color: colors.mutedText,
-                    fontSize: size(15),
-                    fontFamily,
-                    marginTop: 8,
-                    textAlign: "center",
-                  }
+                  },
                 ]}
               >
-                {query 
-                  ? "Try different search terms"
-                  : "No songs available in this language"
-                }
+                Loading songs...
               </Text>
             </View>
-          </View>
-        ) : (
-          <View style={styles.loadingContainer}>
-            <Text
-              style={[
-                styles.loadingText,
-                {
-                  color: colors.mutedText,
-                  fontSize: size(16),
-                  fontFamily,
-                }
-              ]}
-            >
-              Loading songs...
-            </Text>
-          </View>
-        )
-      }
-    />
-  </View>
-);
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Text
+                style={[
+                  styles.emptyTitle,
+                  {
+                    color: colors.text,
+                  },
+                ]}
+              >
+                No songs found
+              </Text>
+            </View>
+          )
+        }
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1,
-},
-searchContainer: {
-  paddingHorizontal: 20,
-  paddingTop: Platform.OS === "ios" ? 60 : 40,
-  paddingBottom: 16,
-  backgroundColor: "transparent",
-},
-searchWrapper: {
-  flexDirection: "row",
-  alignItems: "center",
-  borderWidth: 1,
-  borderRadius: 16,
-  paddingHorizontal: 16,
-  paddingVertical: 12,
-  backgroundColor: "transparent",
-  position: "relative",
-},
-searchIcon: {
-  marginRight: 12,
-},
-searchInput: {
-  flex: 1,
-  padding: 0,
-  fontWeight: "500",
-},
-clearButton: {
-  paddingHorizontal: 10,
-  paddingVertical: 6,
-  borderRadius: 12,
-},
-clearText: {
-  fontWeight: "600",
-},
-resultsContainer: {
-  marginTop: 12,
-  paddingHorizontal: 4,
-},
-resultsText: {
-  fontWeight: "500",
-},
-listContent: {
-  paddingHorizontal: 20,
-  paddingBottom: 40,
-  paddingTop: 8,
-},
-songCard: {
-  borderRadius: 18,
-  marginBottom: 12,
-  borderWidth: 1,
-  shadowOffset: { width: 0, height: 2 },
-  shadowOpacity: 1,
-  shadowRadius: 8,
-  elevation: 3,
-  overflow: "hidden",
-},
-songContent: {
-  flexDirection: "row",
-  alignItems: "center",
-  padding: 18,
-},
-numberBadge: {
-  width: 56,
-  height: 56,
-  borderRadius: 14,
-  justifyContent: "center",
-  alignItems: "center",
-  marginRight: 16,
-  borderWidth: 2,
-},
-numberText: {
-  fontWeight: "800",
-},
-songInfo: {
-  flex: 1,
-},
-songTitle: {
-  fontWeight: "700",
-  lineHeight: 22,
-  marginBottom: 6,
-},
-songMeta: {
-  flexDirection: "row",
-  alignItems: "center",
-  flexWrap: "wrap",
-},
+  container: {
+    flex: 1,
+  },
 
-stanzaCount: {
-  fontWeight: "500",
-},
-arrowContainer: {
-  width: 40,
-  height: 40,
-  borderRadius: 20,
-  justifyContent: "center",
-  alignItems: "center",
-  marginLeft: 12,
-},
-arrowText: {
-  fontWeight: "700",
-},
-emptyContainer: {
-  paddingHorizontal: 20,
-  paddingTop: 60,
-},
-emptyCard: {
-  padding: 40,
-  borderRadius: 20,
-  borderWidth: 1,
-  alignItems: "center",
-  justifyContent: "center",
-},
-emptyTitle: {
-  fontWeight: "700",
-},
-emptySubtitle: {
-  lineHeight: 22,
-},
-loadingContainer: {
-  paddingTop: 60,
-  alignItems: "center",
-},
-loadingText: {
-  fontWeight: "500",
-},
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingTop:
+      Platform.OS === "ios" ? 60 : 40,
+    paddingBottom: 16,
+  },
+
+  searchWrapper: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+
+  searchIcon: {
+    marginRight: 12,
+  },
+
+  searchInput: {
+    flex: 1,
+    padding: 0,
+    fontWeight: "500",
+  },
+
+  resultsContainer: {
+    marginTop: 12,
+    paddingHorizontal: 2,
+  },
+
+  resultsText: {
+    fontWeight: "500",
+  },
+
+  listContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+    paddingTop: 4,
+  },
+
+  songCardContainer: {
+    marginBottom: 12,
+  },
+
+  songCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: "hidden",
+
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+
+    shadowOpacity: 1,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+
+  songContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 18,
+    minHeight: CARD_HEIGHT,
+  },
+
+  numberBadge: {
+    width: 58,
+    height: 58,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+    borderWidth: 2,
+  },
+
+  numberText: {
+    fontWeight: "800",
+  },
+
+  songInfo: {
+    flex: 1,
+    justifyContent: "center",
+  },
+
+  songTitle: {
+    fontWeight: "700",
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+
+  stanzaCount: {
+    fontWeight: "500",
+  },
+
+  emptyContainer: {
+    paddingTop: 80,
+    alignItems: "center",
+  },
+
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+  },
+
+  loadingContainer: {
+    paddingTop: 60,
+    alignItems: "center",
+  },
+
+  loadingText: {
+    fontWeight: "500",
+  },
 });

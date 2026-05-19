@@ -1,0 +1,26 @@
+{
+  "id": "SWA_072",
+  "hymnNumber": 72,
+  "title": "Jenga Juu Ya Mwamba",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Tuta jenga juu ya Mwamba Wa Yesu, Mwaba wa kale;",
+      "Tutavumilia kishindo Tufani ivumapo."
+    ],
+    [
+      "Wengine hujenga katika Mchanga wa ulimwengu;",
+      "Wengine katika mawimbi Ya anasa za dhambi."
+    ],
+    [
+      "Jenga nawe juu ya mwamba, Msingi pekee wa kweli:",
+      "Tumai lake litadumu, Tumai la wokovu."
+    ]
+  ],
+  "chorus": [
+    "Tuta jenga juu, (tutajenga juu ya Mwamba mkuu)",
+    "Tuta jenga juu, (tutajenga juu ya Mwamba mkuu)",
+    "Tutajenga juu ya Mwamba mkuu, Juu yake yesu."
+  ]
+}

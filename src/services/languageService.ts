@@ -39,8 +39,7 @@ export function formatLanguageName(value: string) {
   const knownNames: Record<string, string> = {
     en: "English",
     eng: "English",
-    sw: "Swahili",
-    swa: "Swahili",
+    swahili: "Swahili",
     luo: "Luo",
     ki: "Kikuyu",
   };

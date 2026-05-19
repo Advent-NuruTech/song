@@ -1,0 +1,31 @@
+{
+  "id": "ENG_024",
+  "hymnNumber": 24,
+  "title": "Every Star Shall Sing a Carol",
+  "language": "english",
+  "author": "",
+  "stanzas": [
+    [
+      "Every star shall sing a carol;",
+      "Every creatures, high or low,",
+      "Come and praise the King of heaven",
+      "By whatever name you know."
+    ],
+    [
+      "When the King of all creation",
+      "Had a cradle on the earth,",
+      "Holy was the human body,",
+      "Holy was the human birth."
+    ],
+    [
+      "Every star and every planet,",
+      "Every creature, high or low,",
+      "Come and praise the King of heaven",
+      "By whatever name you know."
+    ]
+  ],
+  "chorus": [
+    "God above, Man below,",
+    "Holy is the name I know."
+  ]
+}

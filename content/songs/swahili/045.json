@@ -1,0 +1,31 @@
+{
+  "id": "SWA_045",
+  "hymnNumber": 45,
+  "title": "Mwanga Umo Moyoni",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Mlimani pana mwanga, Mwanga wa jua zuri",
+      "Shambani na baharini Jua tukufu liko;",
+      "Mwanga uliyo mkubwa Umo moyoni mwangu,",
+      "Kwa kuwa Yesu alipo Hapa pana mwangaza."
+    ],
+    [
+      "Kama mavazi kikuu, Ninavua huzuni:",
+      "Nguo nzuri za kuvaa, Umenipa za kuvaa.",
+      "Nakuandama rohoni Hatanyumba ya juu",
+      "Iliyopambwa vizuri Katika pendo lako."
+    ],
+    [
+      "Ulinikomboa Yesu; Maisha yangu, mali,",
+      "Vyote nivyako, Mwokozi Daima nikusifu.",
+      "Nakuandama rohoni Hatanyumba ya juu",
+      "Iliyopambwa vizuri Katika pendo lako."
+    ]
+  ],
+  "chorus": [
+    "Mwangaza ulio mzuri. Mwanga umo moyoni;",
+    "Akiwapo Bwana Yesu Pana mwanga moyoni."
+  ]
+}

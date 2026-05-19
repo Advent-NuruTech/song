@@ -1,0 +1,15 @@
+  {
+    "id": "SWA_250",
+    "hymnNumber": 250,
+    "title": "TUONANE MILELE",
+    "language": "swahili",
+    "author": "",
+    "stanzas": [
+      ["Nyimbo na tuziimbe tena, Za alivytupenda mbele. Kwa damu ya thamani sana! Mbinguni huonana milele."],
+      ["Hupozwa kila aoshwaye, kwa damu ya Kondoo Yule; Ataishi afurahiye. Vya Yesu Mbinguni milele."],
+      ["Hata sasa hufurahia, Tamu yake mapenzi yale. Je, kwake tukifikiria. Kutofarakana milele?"],
+      ["Twende mbele kwa jina lake, Hata aje Mwokozi Yule, Atatukaribisha kwake, tutawale naye milele."],
+      ["Sauti zetu tuinue, kumsifu Mwokozi Yule. Ili watu wote wajue, Wokovu u kwake milele"]
+    ],
+    "chorus": ["Twonane milele, Twonane bandari kule; Twonane milele, Twonane bandari kule."]
+  }

@@ -1,25 +1,27 @@
-import { Link } from "expo-router";
+import { Link, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-  FlatList,
-  Platform,
-  Pressable,
-  StatusBar,
-  StyleSheet,
-  Text,
-  View,
+    FlatList,
+    Platform,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
-  formatLanguageLabel,
-  getLanguageColor,
-  getLanguagesWithCounts,
-  type LanguageSummary,
+    formatLanguageLabel,
+    getLanguageColor,
+    getLanguagesWithCounts,
+    type LanguageSummary,
 } from "@/src/services/languageService";
 
 export default function CategoriesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const { reportScroll } = useQuickFooter();
   const [languages, setLanguages] = useState<LanguageSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,32 +33,7 @@ export default function CategoriesScreen() {
         const items = await getLanguagesWithCounts();
         
         if (!isMounted) return;
-
-        // Sort languages with priority order
-        const sortedItems = [...items].sort((a, b) => {
-          const aName = (a.name || a.value || "").toLowerCase();
-          const bName = (b.name || b.value || "").toLowerCase();
-          
-          // Define priority order
-          const priorityOrder = ["total", "english", "swahili"];
-          
-          const aPriorityIndex = priorityOrder.findIndex(lang => aName.includes(lang));
-          const bPriorityIndex = priorityOrder.findIndex(lang => bName.includes(lang));
-          
-          // If both are in priority list, sort by priority order
-          if (aPriorityIndex !== -1 && bPriorityIndex !== -1) {
-            return aPriorityIndex - bPriorityIndex;
-          }
-          
-          // If only one is in priority list, it comes first
-          if (aPriorityIndex !== -1) return -1;
-          if (bPriorityIndex !== -1) return 1;
-          
-          // Alphabetical for non-priority languages
-          return aName.localeCompare(bName);
-        });
-        
-        setLanguages(sortedItems);
+        setLanguages(items);
       } catch (error) {
         console.error("Failed to load language counts:", error);
       } finally {
@@ -74,44 +51,22 @@ export default function CategoriesScreen() {
   }, []);
 
   const getDescription = (item: LanguageSummary) => {
-    const itemName = (item.name || item.value || "").toLowerCase();
     const { total } = item;
-
-    if (itemName.includes("total")) {
-      return "All songs across all languages";
-    }
-    
-    if (itemName.includes("english")) {
-      return total > 0 ? `Explore ${total} English songs` : "No English songs yet";
-    }
-    
-    if (itemName.includes("swahili")) {
-      return total > 0 ? `Explore ${total} Swahili songs` : "No Swahili songs yet";
-    }
-    
-    return total > 0 ? `Explore ${total} songs in ${item.name}` : "No songs yet";
+    return total > 0
+      ? `Explore ${total} songs in ${item.name}`
+      : `No songs yet in ${item.name}`;
   };
 
   const renderLanguageItem = ({ item }: { item: LanguageSummary }) => {
     const color = getLanguageColor(item.code || item.value);
     const label = formatLanguageLabel(item.code || item.value);
-    const itemName = (item.name || item.value || "").toLowerCase();
-    const isTotal = itemName.includes("total");
     const description = getDescription(item);
 
-    // Use tint color as primary color (available in your theme)
-    const primaryColor = colors.tint || color;
-    
     // Calculate background colors based on dark mode
     const circleBgOpacity = darkMode ? "30" : "20";
     const badgeBgOpacity = darkMode ? "40" : "15";
-    const circleBgColor = isTotal 
-      ? `${primaryColor}${circleBgOpacity}`
-      : `${color}${circleBgOpacity}`;
-    
-    const badgeBgColor = isTotal 
-      ? `${primaryColor}${badgeBgOpacity}`
-      : `${color}${badgeBgOpacity}`;
+    const circleBgColor = `${color}${circleBgOpacity}`;
+    const badgeBgColor = `${color}${badgeBgOpacity}`;
 
     return (
       <Link
@@ -138,7 +93,7 @@ export default function CategoriesScreen() {
                 styles.labelCircle,
                 { 
                   backgroundColor: circleBgColor,
-                  borderColor: isTotal ? primaryColor : color,
+                  borderColor: color,
                 }
               ]}
             >
@@ -146,13 +101,13 @@ export default function CategoriesScreen() {
                 style={[
                   styles.labelText,
                   { 
-                    color: isTotal ? primaryColor : color, 
-                    fontSize: size(isTotal ? 20 : 16), 
+                    color: color, 
+                    fontSize: size(16), 
                     fontFamily,
                   }
                 ]}
               >
-                {isTotal ? "🎵" : label}
+                {label}
               </Text>
             </View>
 
@@ -183,7 +138,7 @@ export default function CategoriesScreen() {
                     style={[
                       styles.countText,
                       { 
-                        color: isTotal ? primaryColor : color, 
+                        color: color, 
                         fontSize: size(14), 
                         fontFamily,
                       }
@@ -218,7 +173,9 @@ export default function CategoriesScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}> 
+      <Stack.Screen options={{ headerShown: false, title: "" }} />
+
       <StatusBar
         barStyle={darkMode ? "light-content" : "dark-content"}
         backgroundColor={colors.background}
@@ -266,6 +223,8 @@ export default function CategoriesScreen() {
         data={languages}
         keyExtractor={(item) => item.value}
         renderItem={renderLanguageItem}
+        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

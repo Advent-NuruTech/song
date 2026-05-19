@@ -4,18 +4,22 @@ import {
   ActivityIndicator,
   Pressable,
   SectionList,
+  StatusBar,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
 
+import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { runQuery } from "@/src/db/runQuery";
 import {
   formatLanguageName,
   getLanguageMap,
 } from "@/src/services/languageService";
+import { shareSong, shareStudy } from "@/src/services/shareService";
 import { SearchResult, searchStudies } from "@/src/services/studiesService";
 
 type SongRow = {
@@ -72,9 +76,11 @@ function stripTags(input: string) {
 }
 
 export default function SearchScreen() {
-  const { colors, size, fontFamily } = useAppTheme();
+  const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const { reportScroll } = useQuickFooter();
   const [query, setQuery] = useState("");
-  const [songs, setSongs] = useState<SongRow[]>([]);
+  const [songResults, setSongResults] = useState<SongRow[]>([]);
+  const [songLoading, setSongLoading] = useState(false);
   const [studyResults, setStudyResults] = useState<SearchResult[]>([]);
   const [studyLoading, setStudyLoading] = useState(false);
   const [languageMap, setLanguageMap] = useState<
@@ -86,19 +92,9 @@ export default function SearchScreen() {
 
     async function loadData() {
       try {
-        const [songResult, map] = await Promise.all([
-          runQuery(
-            `
-              SELECT id, hymnNumber, title, language, stanzas, chorus
-              FROM songs
-              ORDER BY hymnNumber ASC
-            `
-          ),
-          getLanguageMap(),
-        ]);
+        const map = await getLanguageMap();
 
         if (mounted) {
-          setSongs(songResult.rows._array as SongRow[]);
           setLanguageMap(map);
         }
       } catch (e) {
@@ -112,51 +108,83 @@ export default function SearchScreen() {
     };
   }, []);
 
-  const results = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-
-    return songs.filter((song) => {
-      const stanzasText = safeLines(song.stanzas).join(" ").toLowerCase();
-      const chorusText = song.chorus
-        ? safeLines(song.chorus).join(" ").toLowerCase()
-        : "";
-
-      return (
-        song.title.toLowerCase().includes(q) ||
-        song.hymnNumber.toString().includes(q) ||
-        stanzasText.includes(q) ||
-        chorusText.includes(q)
-      );
-    });
-  }, [query, songs]);
-
   useEffect(() => {
     let mounted = true;
     const trimmed = query.trim();
 
     if (!trimmed) {
+      setSongResults([]);
       setStudyResults([]);
+      setSongLoading(false);
       setStudyLoading(false);
       return () => {
         mounted = false;
       };
     }
 
+    setSongLoading(true);
     setStudyLoading(true);
     const timer = setTimeout(async () => {
       try {
+        const tokens = trimmed
+          .replace(/"/g, " ")
+          .split(/\s+/)
+          .map((token) => token.trim())
+          .filter(Boolean)
+          .map((token) => `${token}*`)
+          .join(" ");
+
+        let songMatches: SongRow[] = [];
+
+        if (tokens.length > 0) {
+          try {
+            const songResult = await runQuery(
+              `
+                SELECT id, hymnNumber, title, language, stanzas, chorus
+                FROM songs
+                WHERE rowid IN (
+                  SELECT rowid
+                  FROM songs_fts
+                  WHERE songs_fts MATCH ?
+                  LIMIT 100
+                )
+                ORDER BY hymnNumber ASC
+                LIMIT 100
+              `,
+              [tokens]
+            );
+            songMatches = songResult.rows._array as SongRow[];
+          } catch {
+            const likeQuery = `%${trimmed}%`;
+            const fallback = await runQuery(
+              `
+                SELECT id, hymnNumber, title, language, stanzas, chorus
+                FROM songs
+                WHERE title LIKE ?
+                   OR CAST(hymnNumber AS TEXT) LIKE ?
+                ORDER BY hymnNumber ASC
+                LIMIT 100
+              `,
+              [likeQuery, likeQuery]
+            );
+            songMatches = fallback.rows._array as SongRow[];
+          }
+        }
+
         const matches = await searchStudies(trimmed);
         if (mounted) {
+          setSongResults(songMatches);
           setStudyResults(matches);
         }
       } catch (error) {
-        console.error("Study search failed", error);
+        console.error("Search failed", error);
         if (mounted) {
+          setSongResults([]);
           setStudyResults([]);
         }
       } finally {
         if (mounted) {
+          setSongLoading(false);
           setStudyLoading(false);
         }
       }
@@ -169,17 +197,17 @@ export default function SearchScreen() {
   }, [query]);
 
   const hasQuery = query.trim().length > 0;
-  const hasResults = results.length + studyResults.length > 0;
+  const hasResults = songResults.length + studyResults.length > 0;
 
   const sections = useMemo(
     () => {
       if (!hasQuery) return [];
-      const data: Array<{ title: string; data: SearchItem[] }> = [];
+      const data: { title: string; data: SearchItem[] }[] = [];
 
-      if (results.length > 0) {
+      if (songResults.length > 0) {
         data.push({
-          title: `Songs (${results.length})`,
-          data: results.map((song) => ({ type: "song", song })),
+          title: `Songs (${songResults.length})`,
+          data: songResults.map((song) => ({ type: "song", song })),
         });
       }
 
@@ -192,7 +220,7 @@ export default function SearchScreen() {
 
       return data;
     },
-    [hasQuery, results, studyResults]
+    [hasQuery, songResults, studyResults]
   );
 
   const highlightStyle = {
@@ -201,8 +229,10 @@ export default function SearchScreen() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <TextInput
+    <View style={[styles.container, { backgroundColor: colors.background }]}>      <StatusBar
+        barStyle={darkMode ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />      <TextInput
         value={query}
         onChangeText={setQuery}
         placeholder="Search songs and studies..."
@@ -221,6 +251,8 @@ export default function SearchScreen() {
 
       <SectionList
         sections={sections}
+        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
+        scrollEventThrottle={16}
         keyExtractor={(item, index) =>
           item.type === "song"
             ? `${item.song.id}-${index}`
@@ -251,10 +283,84 @@ export default function SearchScreen() {
             const name = meta?.name ?? formatLanguageName(song.language);
 
             return (
+              <View style={styles.cardContainer}>
+                <Link
+                  href={{
+                    pathname: "/song/[id]",
+                    params: { id: song.id },
+                  }}
+                  asChild
+                >
+                  <Pressable
+                    style={[
+                      styles.card,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.card,
+                        shadowColor: colors.text,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.title,
+                        { color: colors.text, fontSize: size(18), fontFamily },
+                      ]}
+                    >
+                      {highlight(song.title, query, highlightStyle)}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.meta,
+                        {
+                          color: colors.mutedText,
+                          fontSize: size(14),
+                          fontFamily,
+                        },
+                      ]}
+                    >
+                      #{highlight(song.hymnNumber.toString(), query, highlightStyle)} -{" "}
+                      {name}
+                    </Text>
+
+                    <Text
+                      style={[
+                        styles.lyrics,
+                        { color: colors.text, fontSize: size(15), fontFamily },
+                      ]}
+                    >
+                      {highlight(lyricsPreview, query, highlightStyle)}
+                    </Text>
+                  </Pressable>
+                </Link>
+
+                <ShareIconButton
+                  color={colors.tint}
+                  borderColor={colors.border}
+                  backgroundColor={colors.card}
+                  onPress={() =>
+                    void shareSong({
+                      title: song.title,
+                      hymnNumber: song.hymnNumber,
+                      language: name,
+                    })
+                  }
+                  style={styles.shareButton}
+                />
+              </View>
+            );
+          }
+
+          const study = item.study;
+          const excerpt = stripTags(study.excerpt ?? "").slice(0, 160);
+
+          return (
+            <View style={styles.cardContainer}>
               <Link
                 href={{
-                  pathname: "/song/[id]",
-                  params: { id: song.id },
+                  pathname: "/studies/[id]",
+                  params: { id: study.id },
                 }}
                 asChild
               >
@@ -270,93 +376,51 @@ export default function SearchScreen() {
                 >
                   <Text
                     style={[
-                      styles.title,
-                      { color: colors.text, fontSize: size(18), fontFamily },
+                      styles.studyTitle,
+                      { color: colors.text, fontSize: size(17), fontFamily },
                     ]}
                   >
-                    {highlight(song.title, query, highlightStyle)}
+                    {highlight(study.title, query, highlightStyle)}
                   </Text>
-
                   <Text
                     style={[
-                      styles.meta,
-                      {
-                        color: colors.mutedText,
-                        fontSize: size(14),
-                        fontFamily,
-                      },
+                      styles.studyMeta,
+                      { color: colors.mutedText, fontSize: size(13), fontFamily },
                     ]}
                   >
-                    #{highlight(song.hymnNumber.toString(), query, highlightStyle)} -{" "}
-                    {name}
+                    {study.category} {study.author ? `- ${study.author}` : ""}
                   </Text>
-
-                  <Text
-                    style={[
-                      styles.lyrics,
-                      { color: colors.text, fontSize: size(15), fontFamily },
-                    ]}
-                  >
-                    {highlight(lyricsPreview, query, highlightStyle)}
-                  </Text>
+                  {!!excerpt && (
+                    <Text
+                      style={[
+                        styles.studyExcerpt,
+                        { color: colors.text, fontSize: size(14), fontFamily },
+                      ]}
+                    >
+                      {highlight(excerpt, query, highlightStyle)}
+                    </Text>
+                  )}
                 </Pressable>
               </Link>
-            );
-          }
 
-          const study = item.study;
-          const excerpt = stripTags(study.excerpt ?? "").slice(0, 160);
-
-          return (
-            <Link
-              href={{
-                pathname: "/studies/[id]",
-                params: { id: study.id },
-              }}
-              asChild
-            >
-              <Pressable
-                style={[
-                  styles.card,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor: colors.card,
-                    shadowColor: colors.text,
-                  },
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.studyTitle,
-                    { color: colors.text, fontSize: size(17), fontFamily },
-                  ]}
-                >
-                  {highlight(study.title, query, highlightStyle)}
-                </Text>
-                <Text
-                  style={[
-                    styles.studyMeta,
-                    { color: colors.mutedText, fontSize: size(13), fontFamily },
-                  ]}
-                >
-                  {study.category} {study.author ? `- ${study.author}` : ""}
-                </Text>
-                {!!excerpt && (
-                  <Text
-                    style={[
-                      styles.studyExcerpt,
-                      { color: colors.text, fontSize: size(14), fontFamily },
-                    ]}
-                  >
-                    {highlight(excerpt, query, highlightStyle)}
-                  </Text>
-                )}
-              </Pressable>
-            </Link>
+              <ShareIconButton
+                color={colors.tint}
+                borderColor={colors.border}
+                backgroundColor={colors.card}
+                onPress={() =>
+                  void shareStudy({
+                    title: study.title,
+                    category: study.category,
+                    author: study.author,
+                  })
+                }
+                style={styles.shareButton}
+              />
+            </View>
           );
         }}
         ListHeaderComponent={
-          studyLoading && hasQuery ? (
+          (studyLoading || songLoading) && hasQuery ? (
             <View style={styles.loadingRow}>
               <ActivityIndicator size="small" color={colors.tint} />
               <Text
@@ -365,7 +429,7 @@ export default function SearchScreen() {
                   { color: colors.mutedText, fontSize: size(13), fontFamily },
                 ]}
               >
-                Searching studies...
+                Searching songs and studies...
               </Text>
             </View>
           ) : null
@@ -390,7 +454,7 @@ export default function SearchScreen() {
                 Type a title, number, lyric, or study topic to begin.
               </Text>
             </View>
-          ) : !hasResults && !studyLoading ? (
+          ) : !hasResults && !studyLoading && !songLoading ? (
             <View style={styles.emptyState}>
               <Text
                 style={[
@@ -443,11 +507,19 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 12,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.08,
     shadowRadius: 14,
     elevation: 3,
+  },
+  cardContainer: {
+    marginBottom: 12,
+    position: "relative",
+  },
+  shareButton: {
+    position: "absolute",
+    top: 10,
+    right: 10,
   },
   title: {
     fontWeight: "700",

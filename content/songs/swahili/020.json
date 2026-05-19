@@ -1,0 +1,29 @@
+{
+  "id": "SWA_020",
+  "hymnNumber": 20,
+  "title": "Mungu Wetu Yeye Mwamba",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Mungu wetu yeye mwamba, Kimbilio taabuni;",
+      "Msaada penye shida ulio karibu sana."
+    ],
+    [
+      "Mchana usiku, yule kimbilio taabuni,",
+      "Hivyo hatutaogopa, kwani yu karibu sana."
+    ],
+    [
+      "Iwayo yote, Yeye tu kimbilio taabuni,",
+      "Twamjua Yeye Mlinzi aliye karibu sana."
+    ],
+    [
+      "Mungu wetu Ficho kwetu, kimbilio taabuni,",
+      "Siku zote uwe Boma lililo karibu sana."
+    ]
+  ],
+  "chorus": [
+    "Mwambna wetu kutupumzisha, yu kivuli kuburudisha",
+    "Yu Mwongozi katika njia, kimbilio taabuni."
+  ]
+}

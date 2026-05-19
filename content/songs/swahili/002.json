@@ -1,0 +1,33 @@
+{
+  "id": "SWA_002",
+  "hymnNumber": 2,
+  "title": "Twamsifu Mungu",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Twamsifu Mungu, Mwana wa upendo",
+      "Aliyetufia na kupaa juu."
+    ],
+    [
+      "Twamsifu Mungu, Roho mtakatifu,",
+      "Akatufunulia Mwokozi wetu."
+    ],
+    [
+      "Twamsifu Mwana, aliyetufia",
+      "Ametukomboa na kutuongoza."
+    ],
+    [
+      "Twamsifu Mungu wa neema yote",
+      "Aliyetwaa dhambi, akazifuta."
+    ],
+    [
+      "Twamshe tena, tujaze na pendo.",
+      "Moyoni uwashe moto wa Roho."
+    ]
+  ],
+  "chorus": [
+    "Aleluya! Usifiwe, Aleluya! Amin;",
+    "Aleluya! Usifiwe, utabariki."
+  ]
+}

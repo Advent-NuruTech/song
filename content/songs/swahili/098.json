@@ -1,0 +1,29 @@
+{
+  "id": "SWA_098",
+  "hymnNumber": 98,
+  "title": "Nilikupa Wewe",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Nilikupa wewe, damu ya moyoni,",
+      "Ili wokolewe, winuke ufuni."
+    ],
+    [
+      "Nilikupa miaka yangu duniani;",
+      "Upate inuka, kuishi mbinguni."
+    ],
+    [
+      "Nimekuiletea, huku duniani;",
+      "Pendo na wokovu, zatoka mbinguni."
+    ],
+    [
+      "Nipe siku zako, udumu mwangani;",
+      "Na taabu yako, wingie rahani."
+    ]
+  ],
+  "chorus": [
+    "Nimekunyima ni wewe? Umenipa nini?",
+    "Nimekunyima ni wewe? Umenipa nini?"
+  ]
+}

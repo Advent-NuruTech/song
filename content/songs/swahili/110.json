@@ -1,0 +1,29 @@
+{
+  "id": "SWA_110",
+  "hymnNumber": 110,
+  "title": "Mlango Wazi",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Mlango uko wa wema, Mlango wazi huo:",
+      "Yesu ameufungua Na hakuna kufunga"
+    ],
+    [
+      "Mlango hukaa wazi Watu waokolewe:",
+      "Maskini na matajiri Wa mataifa yote."
+    ],
+    [
+      "Maadam mlango wazi, Rafiki kaza mwendo;",
+      "Msalaba ukubali - Amana ya upendo."
+    ],
+    [
+      "Msalaba tutabeba Daima, na furaha!",
+      "`Pendo wa Yesu hushinda. Tunainama kwake!"
+    ]
+  ],
+  "chorus": [
+    "Mlango wazi, ajabu, Uliachwa wazi kwangu?",
+    "Kwangu, Kwangu? Wazi, wazi kwangu?"
+  ]
+}

@@ -1,50 +1,80 @@
-# Welcome to your Expo app 👋
+# Advent Pro
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A cross-platform hymn and Bible study app built with Expo Router, SQLite, and React Native.
 
-## Get started
+## Overview
 
-1. Install dependencies
+This app delivers:
 
-   ```bash
-   npm install
-   ```
+- offline hymn/song access by language
+- searchable hymn lyrics and Bible study topics
+- custom bottom navigation with a floating footer
+- local SQLite persistence for songs and studies
+- dark mode and font size settings
 
-2. Start the app
+## Project structure
 
-   ```bash
-   npx expo start
-   ```
+- `app/` — Expo Router entry points and screen layouts
+- `app/(tabs)/` — main tab screens, including home, search, settings, and about
+- `app/song/[id].tsx` — song detail and pager experience
+- `app/studies/` — study listing and detail screens
+- `components/` — reusable UI and navigation components
+- `src/` — application services, database helpers, context providers, and models
+- `content/` — static song and study JSON data used to seed the local database
 
-In the output, you'll find options to open the app in a
+## Setup
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Install dependencies:
 
 ```bash
-npm run reset-project
+npm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Start the Expo development server:
 
-## Learn more
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Then choose one of the available targets:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Android emulator or device
+- iOS simulator or device
+- Web preview
 
-## Join the community
+## Useful scripts
 
-Join our community of developers creating universal apps.
+- `npm start` — launch Expo dev tools
+- `npm run android` — build and run on Android
+- `npm run ios` — build and run on iOS
+- `npm run web` — run in web browser
+- `npm run lint` — run Expo linting
+- `npm run reset-project` — reinitialize the project structure
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## App-specific notes
+
+- The app uses `expo-router` file-based routing with a custom footer navigation component.
+- `app/_layout.tsx` initializes the SQLite database and wraps the app in settings and footer providers.
+- Default Expo Router headers are hidden in content screens and replaced with custom UI.
+- `react-native-reanimated` is configured via `babel.config.js`.
+
+## Android release preparation
+
+Ensure the following are configured before publishing:
+
+- `app.json` contains a unique Android package id
+- app icon and adaptive icon assets are set
+- splash screen settings are configured
+- Reanimated plugin is enabled in `babel.config.js`
+
+## Contributing
+
+1. Fork the repo
+2. Install dependencies
+3. Create a feature branch
+4. Open a pull request with a clear description
+
+## License
+
+This repository does not include a license file. Add one if you intend to publish or share this codebase publicly.
+

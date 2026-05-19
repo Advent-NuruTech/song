@@ -56,19 +56,19 @@ export function getCategoryColor(category: string): string {
 export async function getAllCategories(): Promise<string[]> {
   const result = await db.getAllAsync(
     `SELECT DISTINCT category FROM studies ORDER BY category COLLATE NOCASE ASC`
-  ) as Array<{ category: string }>;
+  ) as { category: string }[];
   return result.map(row => row.category);
 }
 
 // Get categories with study counts
-export async function getCategoriesWithCounts(): Promise<Array<{category: string, count: number}>> {
+export async function getCategoriesWithCounts(): Promise<{ category: string; count: number }[]> {
   const result = await db.getAllAsync(
     `SELECT category, COUNT(*) as count 
      FROM studies 
      GROUP BY category 
      ORDER BY count DESC, category COLLATE NOCASE ASC`
   );
-  return result as Array<{category: string, count: number}>;
+  return result as { category: string; count: number }[];
 }
 
 // Get all studies with filtering

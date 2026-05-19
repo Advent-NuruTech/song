@@ -8,6 +8,9 @@ export async function initDb() {
     PRAGMA journal_mode = WAL;
     PRAGMA foreign_keys = ON;
     PRAGMA synchronous = NORMAL;
+    PRAGMA temp_store = MEMORY;
+    PRAGMA cache_size = -20000;
+    PRAGMA busy_timeout = 5000;
   `);
 
   await db.execAsync(`
@@ -19,6 +22,7 @@ export async function initDb() {
       author TEXT,
       stanzas TEXT,
       chorus TEXT,
+      contentHash TEXT,
       createdAt INTEGER,
       updatedAt INTEGER
     );
@@ -32,6 +36,7 @@ export async function initDb() {
       author TEXT,
       wordCount INTEGER DEFAULT 0,
       isFeatured BOOLEAN DEFAULT 0,
+      contentHash TEXT,
       createdAt INTEGER,
       updatedAt INTEGER
     );
@@ -51,10 +56,17 @@ export async function initDb() {
       code TEXT UNIQUE,
       name TEXT
     );
+
+    CREATE TABLE IF NOT EXISTS content_sync (
+      key TEXT PRIMARY KEY,
+      hash TEXT,
+      updatedAt INTEGER
+    );
   `);
 
   await ensureSongsSchema();
   await ensureStudiesSchema();
+  await ensureSongsFts();
   await ensureStudiesFts();
 
   // Create indexes for performance
@@ -65,22 +77,13 @@ export async function initDb() {
     
     CREATE INDEX IF NOT EXISTS idx_songs_language ON songs(language);
     CREATE INDEX IF NOT EXISTS idx_songs_hymnNumber ON songs(hymnNumber);
+    CREATE INDEX IF NOT EXISTS idx_songs_language_hymn ON songs(language, hymnNumber);
+    CREATE INDEX IF NOT EXISTS idx_songs_title_nocase ON songs(title COLLATE NOCASE);
   `);
 
   // Check and seed data
-  const songCount = await db.getFirstAsync<{ count: number }>(
-    "SELECT COUNT(*) as count FROM songs"
-  );
-  if (!songCount || songCount.count === 0) {
-    await seedSongs();
-  }
-
-  const studyCount = await db.getFirstAsync<{ count: number }>(
-    "SELECT COUNT(*) as count FROM studies"
-  );
-  if (!studyCount || studyCount.count === 0) {
-    await seedStudies();
-  }
+  await seedSongs({ prune: true });
+  await seedStudies({ prune: true });
 
   await syncLanguagesFromSongs();
 }
@@ -97,6 +100,10 @@ async function ensureSongsSchema() {
   if (!columnNames.has("author")) {
     await db.execAsync(`ALTER TABLE songs ADD COLUMN author TEXT`);
   }
+
+  if (!columnNames.has("contentHash")) {
+    await db.execAsync(`ALTER TABLE songs ADD COLUMN contentHash TEXT`);
+  }
 }
 
 async function ensureStudiesSchema() {
@@ -111,9 +118,15 @@ async function ensureStudiesSchema() {
   const hasAuthor = columnNames.has("author");
   const hasWordCount = columnNames.has("wordCount");
   const hasIsFeatured = columnNames.has("isFeatured");
+  const hasContentHash = columnNames.has("contentHash");
 
   if (hasConclusion) {
-    await rebuildStudiesTable({ hasAuthor, hasWordCount, hasIsFeatured });
+    await rebuildStudiesTable({
+      hasAuthor,
+      hasWordCount,
+      hasIsFeatured,
+      hasContentHash,
+    });
     return;
   }
 
@@ -132,18 +145,24 @@ async function ensureStudiesSchema() {
       `ALTER TABLE studies ADD COLUMN isFeatured BOOLEAN DEFAULT 0`
     );
   }
+
+  if (!hasContentHash) {
+    await db.execAsync(`ALTER TABLE studies ADD COLUMN contentHash TEXT`);
+  }
 }
 
 async function rebuildStudiesTable(options: {
   hasAuthor: boolean;
   hasWordCount: boolean;
   hasIsFeatured: boolean;
+  hasContentHash: boolean;
 }) {
   const authorExpr = options.hasAuthor ? "author" : "''";
   const wordCountExpr = options.hasWordCount
     ? "wordCount"
     : "LENGTH(COALESCE(content, '')) + LENGTH(COALESCE(conclusion, ''))";
   const isFeaturedExpr = options.hasIsFeatured ? "isFeatured" : "0";
+  const contentHashExpr = options.hasContentHash ? "contentHash" : "NULL";
 
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS studies_new (
@@ -155,6 +174,7 @@ async function rebuildStudiesTable(options: {
       author TEXT,
       wordCount INTEGER DEFAULT 0,
       isFeatured BOOLEAN DEFAULT 0,
+      contentHash TEXT,
       createdAt INTEGER,
       updatedAt INTEGER
     )
@@ -162,7 +182,7 @@ async function rebuildStudiesTable(options: {
 
   await db.execAsync(`
     INSERT OR REPLACE INTO studies_new
-    (id, category, title, subtitle, content, author, wordCount, isFeatured, createdAt, updatedAt)
+    (id, category, title, subtitle, content, author, wordCount, isFeatured, contentHash, createdAt, updatedAt)
     SELECT
       id,
       category,
@@ -176,6 +196,7 @@ async function rebuildStudiesTable(options: {
       ${authorExpr} as author,
       ${wordCountExpr} as wordCount,
       ${isFeaturedExpr} as isFeatured,
+      ${contentHashExpr} as contentHash,
       createdAt,
       updatedAt
     FROM studies
@@ -197,7 +218,7 @@ async function ensureStudiesFts() {
     );
   `);
 
-  await createFtsTriggers();
+  await createStudiesFtsTriggers();
 
   try {
     await db.execAsync(`INSERT INTO studies_fts(studies_fts) VALUES('rebuild')`);
@@ -206,7 +227,7 @@ async function ensureStudiesFts() {
   }
 }
 
-async function createFtsTriggers() {
+async function createStudiesFtsTriggers() {
   // Check if triggers already exist
   const triggers = await db.getAllAsync<{ name: string }>(
     "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'studies_%'"
@@ -242,6 +263,64 @@ async function createFtsTriggers() {
         VALUES('delete', old.rowid, old.title, old.subtitle, old.content, old.category);
         INSERT INTO studies_fts(rowid, title, subtitle, content, category)
         VALUES (new.rowid, new.title, new.subtitle, new.content, new.category);
+      END;
+    `);
+  }
+}
+
+async function ensureSongsFts() {
+  await db.execAsync(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS songs_fts USING fts5(
+      title,
+      stanzas,
+      chorus,
+      language,
+      content=songs,
+      content_rowid=rowid
+    );
+  `);
+
+  await createSongsFtsTriggers();
+
+  try {
+    await db.execAsync(`INSERT INTO songs_fts(songs_fts) VALUES('rebuild')`);
+  } catch (error) {
+    console.warn("Failed to rebuild songs FTS table:", error);
+  }
+}
+
+async function createSongsFtsTriggers() {
+  const triggers = await db.getAllAsync<{ name: string }>(
+    "SELECT name FROM sqlite_master WHERE type='trigger' AND name LIKE 'songs_%'"
+  );
+
+  const existingTriggers = new Set(triggers.map((t) => t.name));
+
+  if (!existingTriggers.has("songs_ai")) {
+    await db.execAsync(`
+      CREATE TRIGGER songs_ai AFTER INSERT ON songs BEGIN
+        INSERT INTO songs_fts(rowid, title, stanzas, chorus, language)
+        VALUES (new.rowid, new.title, new.stanzas, new.chorus, new.language);
+      END;
+    `);
+  }
+
+  if (!existingTriggers.has("songs_ad")) {
+    await db.execAsync(`
+      CREATE TRIGGER songs_ad AFTER DELETE ON songs BEGIN
+        INSERT INTO songs_fts(songs_fts, rowid, title, stanzas, chorus, language)
+        VALUES('delete', old.rowid, old.title, old.stanzas, old.chorus, old.language);
+      END;
+    `);
+  }
+
+  if (!existingTriggers.has("songs_au")) {
+    await db.execAsync(`
+      CREATE TRIGGER songs_au AFTER UPDATE ON songs BEGIN
+        INSERT INTO songs_fts(songs_fts, rowid, title, stanzas, chorus, language)
+        VALUES('delete', old.rowid, old.title, old.stanzas, old.chorus, old.language);
+        INSERT INTO songs_fts(rowid, title, stanzas, chorus, language)
+        VALUES (new.rowid, new.title, new.stanzas, new.chorus, new.language);
       END;
     `);
   }

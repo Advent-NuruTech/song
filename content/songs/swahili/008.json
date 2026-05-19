@@ -1,0 +1,29 @@
+{
+  "id": "SWA_008",
+  "hymnNumber": 8,
+  "title": "Uje Ukombozi",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Unisikie ninapolia, Uje. M-kombozi;",
+      "Moyo wangu hukutazamia, Uje. M-kombozi."
+    ],
+    [
+      "Sina pahali pa kupumzika, Uje M-kombozi",
+      "Unipe raha, nuru, uzima, Uje M-kombozi."
+    ],
+    [
+      "Nimechoka, njia ni ndefu Uje, M-kombozi",
+      "Macho yako kuona nataka, Uje M-kombozi."
+    ],
+    [
+      "Bwana daima hutanidharau, Uje, M-kombozi",
+      "Kilio changu utanijibu, Uje, M-kombozi."
+    ]
+  ],
+  "chorus": [
+    "Nimepotea mbali na kwangu, Nimetanga peke yangu;",
+    "Unichukulie sasa kwako: Uje M-kombozi."
+  ]
+}

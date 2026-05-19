@@ -1,0 +1,25 @@
+{
+  "id": "SWA_201",
+  "hymnNumber": 201,
+  "title": "Hunipenda Pia",
+  "language": "swahili",
+  "author": "",
+  "stanzas": [
+    [
+      "Mungu huona videge wanaoanguka;",
+      "Akiwapenda videge, vile hunipenda."
+    ],
+    [
+      "Rangi ya namna nzuri hupamba maua;",
+      "Akiyapenda maua, vile hunipenda."
+    ],
+    [
+      "Mungu aliyeviumba videge, maua,",
+      "Hatasahau watoto, kweli huwapenda."
+    ]
+  ],
+  "chorus": [
+    "Hunipenda, hunipenda, hunipenda pia;",
+    "Najua ananipenda niliye mdogo."
+  ]
+}

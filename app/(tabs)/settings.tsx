@@ -1,5 +1,6 @@
 import { MaterialIcons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import { router } from "expo-router";
 import {
   Alert,
   Pressable,
@@ -11,9 +12,11 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { useSettings } from "@/src/context/SettingsContext";
 
 export default function SettingsScreen() {
+  const { reportScroll } = useQuickFooter();
   const { darkMode, fontSize, setDarkMode, setFontSize, resetSettings } =
     useSettings();
 
@@ -33,6 +36,8 @@ export default function SettingsScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingBottom: 40 }}
+      onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
+      scrollEventThrottle={16}
     >
       <Text
         style={[
@@ -130,6 +135,60 @@ export default function SettingsScreen() {
           </Text>
         </Pressable>
       </View>
+{/* About App */}
+<View
+  style={[
+    styles.card,
+    {
+      backgroundColor: colors.card,
+      borderColor: colors.border,
+    },
+  ]}
+>
+  <Pressable
+  style={styles.row}
+  onPress={() => router.push("/about")}
+>
+    <MaterialIcons
+      name="info-outline"
+      size={24}
+      color={colors.tint}
+    />
+
+    <View style={{ flex: 1 }}>
+      <Text
+        style={[
+          styles.label,
+          {
+            fontSize: size(16),
+            color: colors.text,
+            fontFamily,
+            marginBottom: 2,
+          },
+        ]}
+      >
+        About This App
+      </Text>
+
+      <Text
+        style={{
+          color: colors.text,
+          opacity: 0.6,
+          fontSize: size(12),
+          fontFamily,
+        }}
+      >
+        Learn more about Advent Pro
+      </Text>
+    </View>
+
+    <MaterialIcons
+      name="chevron-right"
+      size={24}
+      color={colors.text}
+    />
+  </Pressable>
+</View>
 
       {/* App Version */}
       <View style={styles.footer}>
