@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Link } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -11,17 +11,16 @@ import {
 } from "react-native";
 
 import Animated, {
-  FadeInDown,
   interpolate,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
 } from "react-native-reanimated";
 
+import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
-import { ShareIconButton } from "@/components/share-icon-button";
-import { shareStudy } from "@/src/services/shareService";
+import { shareStudyLink } from "@/src/services/shareService";
 
 import {
   StudySummary,
@@ -37,24 +36,43 @@ const QUOTES = [
 ];
 
 export default function HomeScreen() {
-  const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
+  const { colors, size, fontFamily } = useAppTheme();
+
+  // keep context active without heavy realtime updates
+  useQuickFooter();
 
   const [studies, setStudies] = useState<StudySummary[]>([]);
   const [quoteIndex, setQuoteIndex] = useState(0);
 
   const scrollY = useSharedValue(0);
 
+  const currentQuote = useMemo(
+    () => QUOTES[quoteIndex],
+    [quoteIndex]
+  );
+
   useEffect(() => {
-    getStudySummaries({ limit: 5 })
-      .then(setStudies)
-      .catch(console.error);
+    let mounted = true;
+
+    getStudySummaries({ limit: 8 })
+      .then((data) => {
+        if (mounted) {
+          setStudies(Array.isArray(data) ? data : []);
+        }
+      })
+      .catch((error) => {
+        console.log("Study loading error:", error);
+      });
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setQuoteIndex((prev) => (prev + 1) % QUOTES.length);
-    }, 4000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -62,7 +80,6 @@ export default function HomeScreen() {
   const handleScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
-      reportScroll(event.contentOffset.y);
     },
   });
 
@@ -71,7 +88,7 @@ export default function HomeScreen() {
       opacity: interpolate(scrollY.value, [0, 120], [1, 0]),
       transform: [
         {
-          translateY: interpolate(scrollY.value, [0, 120], [0, -40]),
+          translateY: interpolate(scrollY.value, [0, 120], [0, -30]),
         },
       ],
     };
@@ -86,11 +103,16 @@ export default function HomeScreen() {
         },
       ]}
     >
-      <StatusBar barStyle="light-content" backgroundColor="#0B4AA6" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="#0B4AA6"
+      />
+
       <Animated.ScrollView
         onScroll={handleScroll}
-        scrollEventThrottle={16}
+        scrollEventThrottle={32}
         showsVerticalScrollIndicator={false}
+        removeClippedSubviews
         contentContainerStyle={styles.contentContainer}
       >
         {/* HERO */}
@@ -108,6 +130,8 @@ export default function HomeScreen() {
           <Image
             source={require("@/assets/images/icon.png")}
             style={styles.logo}
+            resizeMode="contain"
+            fadeDuration={0}
           />
 
           <Text
@@ -136,20 +160,18 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* QUOTE */}
-        <Animated.View
-          entering={FadeInDown.delay(100).springify()}
+        <View
           style={[
             styles.quoteCard,
             {
               backgroundColor: colors.card,
               borderColor: colors.border,
-              shadowColor: darkMode ? "#000" : "#111827",
             },
           ]}
         >
           <Ionicons
             name="book-outline"
-            size={24}
+            size={22}
             color={colors.tint}
           />
 
@@ -163,9 +185,9 @@ export default function HomeScreen() {
               },
             ]}
           >
-            {QUOTES[quoteIndex]}
+            {currentQuote}
           </Text>
-        </Animated.View>
+        </View>
 
         {/* QUICK ACTIONS */}
         <View style={styles.section}>
@@ -183,111 +205,161 @@ export default function HomeScreen() {
           </Text>
 
           <View style={styles.grid}>
-            <Animated.View entering={FadeInDown.delay(200).springify()}>
-              <Link href="/categories" asChild>
-                <Pressable
+            <Link href="/categories" asChild>
+              <Pressable
+                android_ripple={{ color: "#d1d5db" }}
+                style={[
+                  styles.actionCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <View
                   style={[
-                    styles.actionCard,
+                    styles.iconWrap,
                     {
-                      backgroundColor: colors.card,
-                      borderColor: colors.border,
+                      backgroundColor: "rgba(56,189,248,0.12)",
                     },
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.iconWrap,
-                      {
-                        backgroundColor: "rgba(56,189,248,0.12)",
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name="musical-notes"
-                      size={28}
-                      color="#38BDF8"
-                    />
-                  </View>
+                  <Ionicons
+                    name="musical-notes"
+                    size={28}
+                    color="#38BDF8"
+                  />
+                </View>
 
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      {
-                        color: colors.text,
-                        fontFamily,
-                      },
-                    ]}
-                  >
-                    Songs
-                  </Text>
-
-                  <Text
-                    style={[
-                      styles.cardSub,
-                      {
-                        color: colors.mutedText,
-                        fontFamily,
-                      },
-                    ]}
-                  >
-                    Hymns & Worship
-                  </Text>
-                </Pressable>
-              </Link>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.delay(300).springify()}>
-              <Link href="/studies" asChild>
-                <Pressable
+                <Text
                   style={[
-                    styles.actionCard,
+                    styles.cardTitle,
                     {
-                      backgroundColor: colors.card,
-                      borderColor: colors.border,
+                      color: colors.text,
+                      fontFamily,
                     },
                   ]}
                 >
-                  <View
-                    style={[
-                      styles.iconWrap,
-                      {
-                        backgroundColor: "rgba(139,92,246,0.12)",
-                      },
-                    ]}
-                  >
-                    <Ionicons
-                      name="library"
-                      size={28}
-                      color="#8B5CF6"
-                    />
-                  </View>
+                  Songs
+                </Text>
 
-                  <Text
-                    style={[
-                      styles.cardTitle,
-                      {
-                        color: colors.text,
-                        fontFamily,
-                      },
-                    ]}
-                  >
-                    Studies
-                  </Text>
+                <Text
+                  style={[
+                    styles.cardSub,
+                    {
+                      color: colors.mutedText,
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  Hymns & Worship
+                </Text>
+              </Pressable>
+            </Link>
 
-                  <Text
-                    style={[
-                      styles.cardSub,
-                      {
-                        color: colors.mutedText,
-                        fontFamily,
-                      },
-                    ]}
-                  >
-                    Bible Research
-                  </Text>
-                </Pressable>
-              </Link>
-            </Animated.View>
+            <Link href="/studies" asChild>
+              <Pressable
+                android_ripple={{ color: "#d1d5db" }}
+                style={[
+                  styles.actionCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconWrap,
+                    {
+                      backgroundColor: "rgba(139,92,246,0.12)",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="library"
+                    size={28}
+                    color="#8B5CF6"
+                  />
+                </View>
+
+                <Text
+                  style={[
+                    styles.cardTitle,
+                    {
+                      color: colors.text,
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  Studies
+                </Text>
+
+                <Text
+                  style={[
+                    styles.cardSub,
+                    {
+                      color: colors.mutedText,
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  Bible Research
+                </Text>
+              </Pressable>
+            </Link>
+
+            <Link href="/bible" asChild>
+              <Pressable
+                android_ripple={{ color: "#d1d5db" }}
+                style={[
+                  styles.actionCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.iconWrap,
+                    {
+                      backgroundColor: "rgba(16,185,129,0.12)",
+                    },
+                  ]}
+                >
+                  <Ionicons
+                    name="book"
+                    size={28}
+                    color="#10B981"
+                  />
+                </View>
+
+                <Text
+                  style={[
+                    styles.cardTitle,
+                    {
+                      color: colors.text,
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  Bible
+                </Text>
+
+                <Text
+                  style={[
+                    styles.cardSub,
+                    {
+                      color: colors.mutedText,
+                      fontFamily,
+                    },
+                  ]}
+                >
+                  Read Scripture
+                </Text>
+              </Pressable>
+            </Link>
           </View>
         </View>
 
@@ -324,108 +396,107 @@ export default function HomeScreen() {
             </Link>
           </View>
 
-          {studies.map((study, index) => {
+          {studies.map((study) => {
             const categoryColor = study.category
               ? getStudyCategoryColor(study.category)
               : colors.tint;
 
             return (
-              <Animated.View
+              <View
                 key={study.id}
-                entering={FadeInDown.delay(400 + index * 100).springify()}
+                style={styles.studyCardContainer}
               >
-                <View style={styles.studyCardContainer}>
-                  <Link
-                    href={{
-                      pathname: "/studies/[id]",
-                      params: { id: study.id },
-                    }}
-                    asChild
+                <Link
+                  href={{
+                    pathname: "/studies/[id]",
+                    params: { id: study.id },
+                  }}
+                  asChild
+                >
+                  <Pressable
+                    android_ripple={{ color: "#d1d5db" }}
+                    style={[
+                      styles.studyCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.border,
+                      },
+                    ]}
                   >
-                    <Pressable
-                      style={[
-                        styles.studyCard,
-                        {
-                          backgroundColor: colors.card,
-                          borderColor: colors.border,
-                        },
-                      ]}
-                    >
-                      <View style={styles.studyTop}>
-                        <View
-                          style={[
-                            styles.categoryDot,
-                            {
-                              backgroundColor: categoryColor,
-                            },
-                          ]}
-                        />
-
-                        <Text
-                          style={[
-                            styles.studyCategory,
-                            {
-                              color: colors.mutedText,
-                              fontFamily,
-                            },
-                          ]}
-                        >
-                          {study.category || "Study"}
-                        </Text>
-                      </View>
+                    <View style={styles.studyTop}>
+                      <View
+                        style={[
+                          styles.categoryDot,
+                          {
+                            backgroundColor: categoryColor,
+                          },
+                        ]}
+                      />
 
                       <Text
-                        numberOfLines={2}
                         style={[
-                          styles.studyTitle,
+                          styles.studyCategory,
                           {
-                            color: colors.text,
+                            color: colors.mutedText,
                             fontFamily,
                           },
                         ]}
                       >
-                        {study.title}
+                        {study.category || "Study"}
                       </Text>
+                    </View>
 
-                      {!!study.subtitle && (
-                        <Text
-                          numberOfLines={1}
-                          style={[
-                            styles.studySubtitle,
-                            {
-                              color: colors.mutedText,
-                              fontFamily,
-                            },
-                          ]}
-                        >
-                          {study.subtitle}
-                        </Text>
-                      )}
+                    <Text
+                      numberOfLines={2}
+                      style={[
+                        styles.studyTitle,
+                        {
+                          color: colors.text,
+                          fontFamily,
+                        },
+                      ]}
+                    >
+                      {study.title}
+                    </Text>
 
-                      <Ionicons
-                        name="chevron-forward"
-                        size={18}
-                        color={colors.mutedText}
-                        style={styles.arrow}
-                      />
-                    </Pressable>
-                  </Link>
+                    {!!study.subtitle && (
+                      <Text
+                        numberOfLines={1}
+                        style={[
+                          styles.studySubtitle,
+                          {
+                            color: colors.mutedText,
+                            fontFamily,
+                          },
+                        ]}
+                      >
+                        {study.subtitle}
+                      </Text>
+                    )}
 
-                  <ShareIconButton
-                    color={colors.tint}
-                    borderColor={colors.border}
-                    backgroundColor={colors.card}
-                    onPress={() =>
-                      void shareStudy({
-                        title: study.title,
-                        category: study.category,
-                        author: study.author,
-                      })
-                    }
-                    style={styles.shareButton}
-                  />
-                </View>
-              </Animated.View>
+                    <Ionicons
+                      name="chevron-forward"
+                      size={18}
+                      color={colors.mutedText}
+                      style={styles.arrow}
+                    />
+                  </Pressable>
+                </Link>
+
+                <ShareIconButton
+                  color={colors.tint}
+                  borderColor={colors.border}
+                  backgroundColor={colors.card}
+                  onPress={() =>
+                    void shareStudyLink({
+                      title: study.title,
+                      category: study.category,
+                      author: study.author,
+                    })
+                  }
+                  style={styles.shareButton}
+                />
+              </View>
             );
           })}
         </View>
@@ -444,9 +515,9 @@ const styles = StyleSheet.create({
   },
 
   hero: {
-    height: 280,
-    borderBottomLeftRadius: 32,
-    borderBottomRightRadius: 32,
+    height: 270,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
     justifyContent: "center",
     alignItems: "center",
     overflow: "hidden",
@@ -454,62 +525,55 @@ const styles = StyleSheet.create({
 
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.12)",
+    backgroundColor: "rgba(0,0,0,0.08)",
   },
 
   logo: {
     width: 90,
     height: 90,
-    borderRadius: 30,
-    marginBottom: 18,
+    borderRadius: 24,
+    marginBottom: 16,
   },
 
   title: {
     color: "white",
     fontWeight: "800",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
 
   subtitle: {
     color: "rgba(255,255,255,0.88)",
-    marginTop: 8,
+    marginTop: 6,
     fontWeight: "500",
   },
 
   quoteCard: {
     marginHorizontal: 20,
-    marginTop: -36,
-    borderRadius: 24,
-    padding: 22,
+    marginTop: -32,
+    borderRadius: 22,
+    padding: 20,
     alignItems: "center",
     borderWidth: 1,
-    elevation: 4,
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
   },
 
   quoteText: {
-    marginTop: 14,
+    marginTop: 12,
     textAlign: "center",
-    lineHeight: 24,
+    lineHeight: 22,
     fontStyle: "italic",
     fontWeight: "500",
   },
 
   section: {
     paddingHorizontal: 20,
-    marginTop: 30,
+    marginTop: 28,
   },
 
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 18,
+    marginBottom: 16,
   },
 
   sectionTitle: {
@@ -522,50 +586,54 @@ const styles = StyleSheet.create({
 
   grid: {
     flexDirection: "row",
-    gap: 16,
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 16,
   },
 
   actionCard: {
-    width: 165,
-    borderRadius: 24,
+    width: "48%",
+    borderRadius: 22,
     borderWidth: 1,
-    padding: 22,
+    padding: 20,
     alignItems: "center",
+    marginBottom: 12,
   },
 
   iconWrap: {
-    width: 70,
-    height: 70,
-    borderRadius: 22,
+    width: 68,
+    height: 68,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 14,
   },
 
   cardTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
   },
 
   cardSub: {
     fontSize: 12,
-    marginTop: 6,
+    marginTop: 5,
   },
 
-  studyCard: {
-    borderRadius: 22,
-    borderWidth: 1,
-    padding: 18,
-  },
   studyCardContainer: {
     marginBottom: 14,
     position: "relative",
   },
 
+  studyCard: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 18,
+  },
+
   studyTop: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 10,
   },
 
   categoryDot: {
@@ -576,26 +644,27 @@ const styles = StyleSheet.create({
   },
 
   studyCategory: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "600",
     textTransform: "uppercase",
   },
 
   studyTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    lineHeight: 24,
+    lineHeight: 22,
   },
 
   studySubtitle: {
-    fontSize: 13,
-    marginTop: 6,
+    fontSize: 12,
+    marginTop: 5,
   },
 
   arrow: {
     alignSelf: "flex-end",
-    marginTop: 14,
+    marginTop: 12,
   },
+
   shareButton: {
     position: "absolute",
     top: 10,

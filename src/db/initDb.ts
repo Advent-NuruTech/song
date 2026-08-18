@@ -1,8 +1,56 @@
+import { syncSupabaseContent } from "@/src/content/supabase";
+import { syncRemoteContent } from "@/src/content/sync";
+import { registerBibleVersions } from "@/src/services/bibleService";
 import { db } from "./database";
+import { initBibleSchema } from "./initBible";
 import { seedSongs } from "./seedSongs";
 import { seedStudies } from "./seedStudies";
 
-export async function initDb() {
+/**
+ * Fast schema-only init. Cheap and deterministic — safe to BLOCK app startup on.
+ * Heavy work (seeding the corpus, remote sync, Bible verse installs) is deferred.
+ */
+export async function initSchema() {
+  await applyPragmas();
+  await createCoreTables();
+  await ensureSongsSchema();
+  await ensureStudiesSchema();
+  await ensureSongsFts();
+  await ensureStudiesFts();
+  await createIndexes();
+  await initBibleSchema();
+  // Bundled Bible catalog only — never block startup on the network.
+  await registerBibleVersions();
+}
+
+/**
+ * Populate/refresh content. Runs in the BACKGROUND on warm starts so the UI shows
+ * instantly; awaited only on a fresh install so first launch has data to render.
+ */
+export async function seedContent() {
+  await seedSongs({ prune: true });
+  await seedStudies({ prune: true });
+  await syncLanguagesFromSongs();
+  try {
+    // Refresh the Bible catalog with any remote (CDN) versions, then sync content.
+    await registerBibleVersions({ includeRemote: true });
+    await syncRemoteContent();
+    // Pull published songs/studies authored in the online admin dashboard.
+    await syncSupabaseContent();
+  } catch (e) {
+    console.warn("Remote content sync failed:", e);
+  }
+}
+
+/** True before any songs exist (very first launch). */
+export async function isFreshInstall(): Promise<boolean> {
+  const row = await db.getFirstAsync<{ c: number }>(
+    "SELECT COUNT(*) as c FROM songs"
+  );
+  return (row?.c ?? 0) === 0;
+}
+
+async function applyPragmas() {
   // Enable performance features
   await db.execAsync(`
     PRAGMA journal_mode = WAL;
@@ -12,7 +60,9 @@ export async function initDb() {
     PRAGMA cache_size = -20000;
     PRAGMA busy_timeout = 5000;
   `);
+}
 
+async function createCoreTables() {
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS songs (
       id TEXT PRIMARY KEY,
@@ -63,29 +113,19 @@ export async function initDb() {
       updatedAt INTEGER
     );
   `);
+}
 
-  await ensureSongsSchema();
-  await ensureStudiesSchema();
-  await ensureSongsFts();
-  await ensureStudiesFts();
-
-  // Create indexes for performance
+async function createIndexes() {
   await db.execAsync(`
     CREATE INDEX IF NOT EXISTS idx_studies_category ON studies(category);
     CREATE INDEX IF NOT EXISTS idx_studies_created ON studies(createdAt DESC);
     CREATE INDEX IF NOT EXISTS idx_studies_featured ON studies(isFeatured) WHERE isFeatured = 1;
-    
+
     CREATE INDEX IF NOT EXISTS idx_songs_language ON songs(language);
     CREATE INDEX IF NOT EXISTS idx_songs_hymnNumber ON songs(hymnNumber);
     CREATE INDEX IF NOT EXISTS idx_songs_language_hymn ON songs(language, hymnNumber);
     CREATE INDEX IF NOT EXISTS idx_songs_title_nocase ON songs(title COLLATE NOCASE);
   `);
-
-  // Check and seed data
-  await seedSongs({ prune: true });
-  await seedStudies({ prune: true });
-
-  await syncLanguagesFromSongs();
 }
 
 async function ensureSongsSchema() {
@@ -341,6 +381,15 @@ async function syncLanguagesFromSongs() {
       );
     }
   });
+}
+
+/**
+ * Full blocking init (schema + content). Kept for backward compatibility; prefer
+ * `initSchema()` + background `seedContent()` for a non-blocking startup.
+ */
+export async function initDb() {
+  await initSchema();
+  await seedContent();
 }
 
 // Migration function to update existing studies table

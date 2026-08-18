@@ -19,7 +19,13 @@ import {
   formatLanguageName,
   getLanguageMap,
 } from "@/src/services/languageService";
-import { shareSong, shareStudy } from "@/src/services/shareService";
+import {
+  type BibleSearchHit,
+  getSelectedVersionId,
+  listBibleVersions,
+  searchBible,
+} from "@/src/services/bibleService";
+import { shareSongLink, shareStudyLink } from "@/src/services/shareService";
 import { SearchResult, searchStudies } from "@/src/services/studiesService";
 
 type SongRow = {
@@ -33,7 +39,8 @@ type SongRow = {
 
 type SearchItem =
   | { type: "song"; song: SongRow }
-  | { type: "study"; study: SearchResult };
+  | { type: "study"; study: SearchResult }
+  | { type: "bible"; hit: BibleSearchHit };
 
 function safeLines(value: string) {
   try {
@@ -83,6 +90,8 @@ export default function SearchScreen() {
   const [songLoading, setSongLoading] = useState(false);
   const [studyResults, setStudyResults] = useState<SearchResult[]>([]);
   const [studyLoading, setStudyLoading] = useState(false);
+  const [bibleResults, setBibleResults] = useState<BibleSearchHit[]>([]);
+  const [bibleVersionId, setBibleVersionId] = useState<string | null>(null);
   const [languageMap, setLanguageMap] = useState<
     Record<string, { code: string; name: string }>
   >({});
@@ -93,10 +102,15 @@ export default function SearchScreen() {
     async function loadData() {
       try {
         const map = await getLanguageMap();
+        if (mounted) setLanguageMap(map);
 
-        if (mounted) {
-          setLanguageMap(map);
-        }
+        // Resolve which Bible version to search (selected, else any installed).
+        const versions = await listBibleVersions();
+        const installed = versions.filter((v) => v.installed);
+        const savedId = await getSelectedVersionId();
+        const chosen =
+          installed.find((v) => v.id === savedId) ?? installed[0] ?? null;
+        if (mounted) setBibleVersionId(chosen?.id ?? null);
       } catch (e) {
         console.error("Search load failed", e);
       }
@@ -115,6 +129,7 @@ export default function SearchScreen() {
     if (!trimmed) {
       setSongResults([]);
       setStudyResults([]);
+      setBibleResults([]);
       setSongLoading(false);
       setStudyLoading(false);
       return () => {
@@ -172,15 +187,20 @@ export default function SearchScreen() {
         }
 
         const matches = await searchStudies(trimmed);
+        const bibleMatches = bibleVersionId
+          ? await searchBible(trimmed, bibleVersionId, 40)
+          : [];
         if (mounted) {
           setSongResults(songMatches);
           setStudyResults(matches);
+          setBibleResults(bibleMatches);
         }
       } catch (error) {
         console.error("Search failed", error);
         if (mounted) {
           setSongResults([]);
           setStudyResults([]);
+          setBibleResults([]);
         }
       } finally {
         if (mounted) {
@@ -194,10 +214,11 @@ export default function SearchScreen() {
       mounted = false;
       clearTimeout(timer);
     };
-  }, [query]);
+  }, [query, bibleVersionId]);
 
   const hasQuery = query.trim().length > 0;
-  const hasResults = songResults.length + studyResults.length > 0;
+  const hasResults =
+    songResults.length + studyResults.length + bibleResults.length > 0;
 
   const sections = useMemo(
     () => {
@@ -211,6 +232,13 @@ export default function SearchScreen() {
         });
       }
 
+      if (bibleResults.length > 0) {
+        data.push({
+          title: `Bible (${bibleResults.length})`,
+          data: bibleResults.map((hit) => ({ type: "bible", hit })),
+        });
+      }
+
       if (studyResults.length > 0) {
         data.push({
           title: `Studies (${studyResults.length})`,
@@ -220,7 +248,7 @@ export default function SearchScreen() {
 
       return data;
     },
-    [hasQuery, songResults, studyResults]
+    [hasQuery, songResults, studyResults, bibleResults]
   );
 
   const highlightStyle = {
@@ -256,6 +284,8 @@ export default function SearchScreen() {
         keyExtractor={(item, index) =>
           item.type === "song"
             ? `${item.song.id}-${index}`
+            : item.type === "bible"
+            ? `${item.hit.versionId}-${item.hit.book}-${item.hit.chapter}-${item.hit.verse}-${index}`
             : `${item.study.id}-${index}`
         }
         keyboardShouldPersistTaps="handled"
@@ -340,7 +370,7 @@ export default function SearchScreen() {
                   borderColor={colors.border}
                   backgroundColor={colors.card}
                   onPress={() =>
-                    void shareSong({
+                    void shareSongLink({
                       title: song.title,
                       hymnNumber: song.hymnNumber,
                       language: name,
@@ -348,6 +378,54 @@ export default function SearchScreen() {
                   }
                   style={styles.shareButton}
                 />
+              </View>
+            );
+          }
+
+          if (item.type === "bible") {
+            const hit = item.hit;
+            const reference = `${hit.book} ${hit.chapter}:${hit.verse}`;
+            return (
+              <View style={styles.cardContainer}>
+                <Link
+                  href={{
+                    pathname: "/bible/read",
+                    params: {
+                      version: hit.versionId,
+                      book: hit.book,
+                      chapter: String(hit.chapter),
+                    },
+                  }}
+                  asChild
+                >
+                  <Pressable
+                    style={[
+                      styles.card,
+                      {
+                        borderColor: colors.border,
+                        backgroundColor: colors.card,
+                        shadowColor: colors.text,
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.studyTitle,
+                        { color: colors.tint, fontSize: size(15), fontFamily },
+                      ]}
+                    >
+                      {reference}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.studyExcerpt,
+                        { color: colors.text, fontSize: size(15), fontFamily },
+                      ]}
+                    >
+                      {highlight(hit.text.slice(0, 180), query, highlightStyle)}
+                    </Text>
+                  </Pressable>
+                </Link>
               </View>
             );
           }
@@ -408,7 +486,7 @@ export default function SearchScreen() {
                 borderColor={colors.border}
                 backgroundColor={colors.card}
                 onPress={() =>
-                  void shareStudy({
+                  void shareStudyLink({
                     title: study.title,
                     category: study.category,
                     author: study.author,

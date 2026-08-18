@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "adventpro",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.adventpro"
@@ -19,7 +18,6 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.adventpro"
     },
@@ -41,7 +39,8 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,
@@ -50,8 +49,11 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "1f522eb0-0085-4438-91b2-e7d94f5f117b"
-      }
-    }
+        "projectId": "10279f57-4ab4-42b7-a5bc-7bc53df7df1d"
+      },
+      "supabaseUrl": "https://rrwicyoaulfcchltamxg.supabase.co",
+      "supabaseAnonKey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJyd2ljeW9hdWxmY2NobHRhbXhnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDE5OTIsImV4cCI6MjA5NzExNzk5Mn0.SbPXCZykUs5jiNcgvh1HUYKZSCvwJlje1PBCBRSOm_o"
+    },
+    "owner": "advent384"
   }
 }

@@ -1,0 +1,21 @@
+{
+    "id":  "ENG_850",
+    "hymnNumber":  850,
+    "title":  "MY NAME IS IN THE BOOK",
+    "language":  "english",
+    "author":  "",
+    "stanzas":  [
+                    [
+                        "My name is in the book of life, Oh bless the name of Jesus; I rise above all doubt and strife, and read my title clear"
+                    ],
+                    [
+                        "With sinners lost my name once stood upon a painful record, But now it\u0027s cancelled by the blood, and written on His roll."
+                    ],
+                    [
+                        "Yet inward trouble often cast, a shadow o\u0027er my title, but now with full salvation blest praise God it\u0027s ever clear"
+                    ]
+                ],
+    "chorus":  [
+                   "I know, I know, my name is there I know, I truly know, my name is written there."
+               ]
+}

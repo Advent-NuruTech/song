@@ -1,0 +1,23 @@
+{
+    "id":  "ENG_885",
+    "hymnNumber":  885,
+    "title":  "GOD SEES THE LITTLE SPARROW FALL",
+    "language":  "english",
+    "author":  "Maria Straub, Solomon w.Straub",
+    "stanzas":  [
+                    [
+                        "God sees the little sparrow fall, it meets his tender view; if God so loves the little birds, I know he loves me too."
+                    ],
+                    [
+                        "He paints the lily of the field, perfumes each lily bell; if he so loves the little flow\u0027rs, I know he loves me well."
+                    ],
+                    [
+                        "God made the little birds and flow\u0027rs, and all things large and small; he\u0027ll not forget his little ones, I know he loves them all."
+                    ]
+                ],
+    "chorus":  [
+                   "He loves me too, he loves me too, I know loves me too; because he loves the little things, I know loves me too.",
+                   "He loves me too, he loves me too, I know loves me too; because he loves the little things, I know loves me too.",
+                   "He loves me too, he loves me too, I know loves me too; because he loves the little things, I know loves me too."
+               ]
+}

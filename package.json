@@ -8,7 +8,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "validate:content": "node ./scripts/validate-content-json.js"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -16,7 +17,11 @@
     "@react-navigation/native": "^7.1.8",
     "@shopify/flash-list": "2.0.2",
     "expo": "~54.0.32",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
+    "expo-file-system": "~19.0.23",
+    "expo-font": "~14.0.12",
+    "expo-linking": "~8.0.12",
     "expo-router": "~6.0.22",
     "expo-splash-screen": "~31.0.13",
     "expo-sqlite": "~16.0.10",
@@ -29,12 +34,14 @@
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
+    "react-native-svg": "15.12.1",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.5.1"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.3",
+    "babel-preset-expo": "~54.0.11",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
     "typescript": "~5.9.2"

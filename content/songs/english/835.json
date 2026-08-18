@@ -1,0 +1,21 @@
+{
+    "id":  "ENG_835",
+    "hymnNumber":  835,
+    "title":  "LEAD ME, SAVIOR",
+    "language":  "english",
+    "author":  "Frank M. Davis",
+    "stanzas":  [
+                    [
+                        "Savior, lead me lest I stray, Gently lead me all the way; I am safe when by thy side, I would in thy love abide."
+                    ],
+                    [
+                        "Thou the refuge of my soul, When life\u0027s stormy billows roll; I am safe when thou art nigh, All my hopes on thee rely."
+                    ],
+                    [
+                        "Savior, lead me, then at last, When the storm of life is past; To the land of endless day, Where all tears are wiped away."
+                    ]
+                ],
+    "chorus":  [
+                   "Lead me, lead me, Savior, lead me lest I stray; Gently down the stream of time, Lead me, Savior, all the way."
+               ]
+}

@@ -1,0 +1,21 @@
+{
+    "id":  "ENG_753",
+    "hymnNumber":  753,
+    "title":  "IN MY HEART THERE RINGS A MELODY",
+    "language":  "english",
+    "author":  "ELton M. Roth",
+    "stanzas":  [
+                    [
+                        "I have a song that Jesus gave me, It was sent from heav\u0027n above; There never was a sweeter melody, \u0027tis a melody of love."
+                    ],
+                    [
+                        "I love the Christ who died on Calv\u0027ry, For He washed my sins away; He put within my heart a melody, And I know it\u0027s there to stay."
+                    ],
+                    [
+                        "\u0027Till by be endless theme in glory, With the angels I will sing; \u0027Twill be a song with glorious harmony, When the courts of heaven ring."
+                    ]
+                ],
+    "chorus":  [
+                   "In my heart there rings a melody, There rings a melody with heaven\u0027s harmony; In my heart there rings a melody; There rings a melody of love."
+               ]
+}

@@ -26,6 +26,8 @@ type NormalizedSong = {
 const songsContext = require.context("../../content/songs", true, /\.json$/);
 const songFiles = loadJsonFromContext<RawSong>(songsContext);
 
+export type { RawSong };
+
 function normalizeStanzas(input: RawSong["stanzas"]): string[][] {
   if (Array.isArray(input)) {
     if (input.length === 0) return [];
@@ -130,18 +132,66 @@ async function pruneMissingSongs(keepIds: Set<string>) {
   }
 }
 
+const SONG_UPSERT_SQL = `INSERT INTO songs
+  (id, hymnNumber, title, language, author, stanzas, chorus, contentHash, createdAt, updatedAt)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET
+    hymnNumber = excluded.hymnNumber,
+    title = excluded.title,
+    language = excluded.language,
+    author = excluded.author,
+    stanzas = excluded.stanzas,
+    chorus = excluded.chorus,
+    contentHash = excluded.contentHash,
+    updatedAt = excluded.updatedAt,
+    createdAt = COALESCE(songs.createdAt, excluded.createdAt)
+  WHERE songs.contentHash IS NULL OR songs.contentHash != excluded.contentHash`;
+
+function songParams(song: NormalizedSong, now: number) {
+  return [
+    song.id,
+    song.hymnNumber,
+    song.title,
+    song.language,
+    song.author,
+    song.stanzasJson,
+    song.chorusJson,
+    song.contentHash,
+    now,
+    now,
+  ];
+}
+
+function dedupeById(songs: NormalizedSong[]): NormalizedSong[] {
+  const byId = new Map<string, NormalizedSong>();
+  for (const song of songs) byId.set(song.id, song);
+  return Array.from(byId.values());
+}
+
+/**
+ * Upsert raw songs into the cache from ANY source (bundled or remote shard).
+ * Shared write path so local seeding and CDN hydration stay identical.
+ */
+export async function upsertSongs(raw: RawSong[]): Promise<number> {
+  const now = Date.now();
+  const songs = dedupeById(
+    raw.map(normalizeSong).filter(Boolean) as NormalizedSong[]
+  );
+  if (!songs.length) return 0;
+
+  await db.withTransactionAsync(async () => {
+    for (const song of songs) {
+      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now));
+    }
+  });
+  return songs.length;
+}
+
 export async function seedSongs(options: { prune?: boolean } = {}) {
   const now = Date.now();
-  const normalized = songFiles
-    .map(normalizeSong)
-    .filter(Boolean) as NormalizedSong[];
-
-  const byId = new Map<string, NormalizedSong>();
-  for (const song of normalized) {
-    byId.set(song.id, song);
-  }
-
-  const songs = Array.from(byId.values());
+  const songs = dedupeById(
+    songFiles.map(normalizeSong).filter(Boolean) as NormalizedSong[]
+  );
   if (!songs.length) return;
 
   const collectionHash = getCollectionHash(songs);
@@ -156,34 +206,7 @@ export async function seedSongs(options: { prune?: boolean } = {}) {
 
   await db.withTransactionAsync(async () => {
     for (const song of songs) {
-      await db.runAsync(
-        `INSERT INTO songs
-        (id, hymnNumber, title, language, author, stanzas, chorus, contentHash, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          hymnNumber = excluded.hymnNumber,
-          title = excluded.title,
-          language = excluded.language,
-          author = excluded.author,
-          stanzas = excluded.stanzas,
-          chorus = excluded.chorus,
-          contentHash = excluded.contentHash,
-          updatedAt = excluded.updatedAt,
-          createdAt = COALESCE(songs.createdAt, excluded.createdAt)
-        WHERE songs.contentHash IS NULL OR songs.contentHash != excluded.contentHash`,
-        [
-          song.id,
-          song.hymnNumber,
-          song.title,
-          song.language,
-          song.author,
-          song.stanzasJson,
-          song.chorusJson,
-          song.contentHash,
-          now,
-          now,
-        ]
-      );
+      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now));
     }
 
     if (options.prune) {

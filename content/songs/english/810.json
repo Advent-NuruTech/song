@@ -1,0 +1,25 @@
+{
+    "id":  "ENG_810",
+    "hymnNumber":  810,
+    "title":  "HOLD THE FORT",
+    "language":  "english",
+    "author":  "Philip P.Bliss",
+    "stanzas":  [
+                    [
+                        "Ho! my comrades, see the signal, Waving in the sky! Reinforcements now appearing, Victory is nigh!"
+                    ],
+                    [
+                        "See the mighty host advancing, Satan leading on; Mighty ones around us falling, Courage almost gone."
+                    ],
+                    [
+                        "See the glorious banner waving, Hear the trumpet blow! In our Leader\u0027s Name we triumph Over every foe."
+                    ],
+                    [
+                        "Fierce and long the battle rages, But our help is near; Onward comes our great Commander, Cheer, my comrades, cheer!"
+                    ]
+                ],
+    "chorus":  [
+                   "\u0027Hold the fort, for I am coming,\u0027 Jesus signals still, Wave the answer back to Heaven, \u0027By Thy grace we will.\u0027",
+                   "\u0027Hold the fort, for I am coming,\u0027 Jesus signals still, Wave the answer back to Heaven, \u0027By Thy grace we will.\u0027"
+               ]
+}

@@ -1,0 +1,21 @@
+{
+    "id":  "ENG_858",
+    "hymnNumber":  858,
+    "title":  "ON THE SHORE BEYOND THE SEA",
+    "language":  "english",
+    "author":  "",
+    "stanzas":  [
+                    [
+                        "On the shore beyond the sea, where the fields are bright and fair, there\u0027s a call, a plaintive plea, I must hasten to be there."
+                    ],
+                    [
+                        "Hark! I hear the master say, \"Up ye reapers! why so slow?\" To the vineyard, far away, earthly kindred, let me go."
+                    ],
+                    [
+                        "Father mother, darling child, I must bid you all adieu; Far across the waters wild, there\u0027s a work for me to do."
+                    ]
+                ],
+    "chorus":  [
+                   "Let me go, I cannot stay, \u0027Tis the master calling me; Let me go I must obey; Native land farewell to thee"
+               ]
+}

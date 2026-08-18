@@ -21,9 +21,11 @@ import {
   View,
 } from "react-native";
 
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react-native";
 
 import { ShareIconButton } from "@/components/share-icon-button";
+import { ShareSheet } from "@/components/share-sheet";
+import { Toast } from "@/components/toast";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -35,7 +37,11 @@ import {
   getLanguageColor,
 } from "@/src/services/languageService";
 
-import { shareSong } from "@/src/services/shareService";
+import {
+  type ShareableSong,
+  copySong,
+  shareSong,
+} from "@/src/services/shareService";
 
 type ParsedSong = {
   id: string;
@@ -263,6 +269,12 @@ export default function SongScreen() {
   const [nextSongId, setNextSongId] =
     useState<string | null>(null);
 
+  const [shareOpen, setShareOpen] =
+    useState(false);
+
+  const [toast, setToast] =
+    useState<string | null>(null);
+
   useEffect(() => {
     mountedRef.current = true;
 
@@ -400,6 +412,31 @@ export default function SongScreen() {
       },
       [reportScroll]
     );
+
+  const shareableSong =
+    useMemo<ShareableSong | null>(() => {
+      if (!song) return null;
+      return {
+        title: song.title,
+        hymnNumber: song.hymnNumber,
+        language: song.language,
+        author: song.author,
+        stanzas: song.parsedStanzas,
+        chorus: song.parsedChorus,
+      };
+    }, [song]);
+
+  const handleShareSong =
+    useCallback(() => {
+      if (shareableSong) void shareSong(shareableSong);
+    }, [shareableSong]);
+
+  const handleCopySong =
+    useCallback(async () => {
+      if (!shareableSong) return;
+      const ok = await copySong(shareableSong);
+      setToast(ok ? "Hymn copied" : "Couldn't copy");
+    }, [shareableSong]);
 
   const navigateSong =
     useCallback(
@@ -608,14 +645,7 @@ export default function SongScreen() {
                 colors.card
               }
               onPress={() =>
-                void shareSong({
-                  title:
-                    song.title,
-                  hymnNumber:
-                    song.hymnNumber,
-                  language:
-                    song.language,
-                })
+                setShareOpen(true)
               }
               size={38}
               iconSize={18}
@@ -731,6 +761,31 @@ export default function SongScreen() {
           onScroll={handleScroll}
         />
       </View>
+
+      <ShareSheet
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={song.title}
+        subtitle={`Hymn #${song.hymnNumber}`}
+        options={[
+          {
+            key: "share",
+            label: "Share hymn",
+            hint: "Full lyrics — great for status",
+            icon: Share2,
+            onPress: handleShareSong,
+          },
+          {
+            key: "copy",
+            label: "Copy lyrics",
+            hint: "Paste anywhere",
+            icon: Copy,
+            onPress: () => void handleCopySong(),
+          },
+        ]}
+      />
+
+      <Toast message={toast} onHide={() => setToast(null)} />
     </>
   );
 }

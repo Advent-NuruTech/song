@@ -1,0 +1,25 @@
+{
+    "id":  "ENG_750",
+    "hymnNumber":  750,
+    "title":  "I KNOW THAT MY REDEEMER LIVETH",
+    "language":  "english",
+    "author":  "",
+    "stanzas":  [
+                    [
+                        "JesÂ­sie B. Pounds and James H. Filmore"
+                    ],
+                    [
+                        "I know that my Redeemer liveth, And on the earth again shall stand; I know eternal life He giveth, That grace and power are in His hand."
+                    ],
+                    [
+                        "I know His promise never faileth, The Word He speaks, it cannot die; Though cruel death my flesh assaileth, Yet I shall see Him by and by."
+                    ],
+                    [
+                        "I know my mansion He prepareth, That where He is there I may be; O wondrous thought, for me He careth, And He at last will come for me."
+                    ]
+                ],
+    "chorus":  [
+                   "I know, I know, that Jesus liveth, And on the earth again shall stand; I know, I know, that life He giveth, That grace and power are in His hand.",
+                   "I know, I know, that Jesus liveth, And on the earth again shall stand; I know, I know, that life He giveth, That grace and power are in His hand."
+               ]
+}

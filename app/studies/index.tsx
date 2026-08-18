@@ -26,7 +26,7 @@ import {
     searchStudies,
 } from "@/src/services/studiesService";
 import { ShareIconButton } from "@/components/share-icon-button";
-import { shareStudy } from "@/src/services/shareService";
+import { shareStudyLink } from "@/src/services/shareService";
 
 export default function StudiesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
@@ -312,7 +312,7 @@ export default function StudiesScreen() {
           borderColor={colors.border}
           backgroundColor={colors.card}
           onPress={() =>
-            void shareStudy({
+            void shareStudyLink({
               title: item.title,
               category: item.category,
               author: item.author,

@@ -27,6 +27,8 @@ type NormalizedStudy = {
 const studiesContext = require.context("../../content/studies", true, /\.json$/);
 const studies = loadJsonFromContext<RawStudy>(studiesContext);
 
+export type { RawStudy };
+
 function normalizeContent(input: RawStudy["content"]): string {
   if (Array.isArray(input)) {
     return input.map((line) => String(line ?? "").trim()).join("\n");
@@ -106,18 +108,65 @@ async function pruneMissingStudies(keepIds: Set<string>) {
   }
 }
 
+const STUDY_UPSERT_SQL = `INSERT INTO studies
+  (id, category, title, subtitle, content, author, wordCount, isFeatured, contentHash, createdAt, updatedAt)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  ON CONFLICT(id) DO UPDATE SET
+    category = excluded.category,
+    title = excluded.title,
+    subtitle = excluded.subtitle,
+    content = excluded.content,
+    author = excluded.author,
+    wordCount = excluded.wordCount,
+    isFeatured = excluded.isFeatured,
+    contentHash = excluded.contentHash,
+    updatedAt = excluded.updatedAt,
+    createdAt = COALESCE(studies.createdAt, excluded.createdAt)
+  WHERE studies.contentHash IS NULL OR studies.contentHash != excluded.contentHash`;
+
+function studyParams(study: NormalizedStudy, now: number) {
+  return [
+    study.id,
+    study.category,
+    study.title,
+    study.subtitle,
+    study.content,
+    study.author,
+    study.wordCount,
+    study.isFeatured,
+    study.contentHash,
+    now,
+    now,
+  ];
+}
+
+function dedupeStudiesById(items: NormalizedStudy[]): NormalizedStudy[] {
+  const byId = new Map<string, NormalizedStudy>();
+  for (const study of items) byId.set(study.id, study);
+  return Array.from(byId.values());
+}
+
+/** Upsert raw studies from ANY source (bundled or remote shard). */
+export async function upsertStudies(raw: RawStudy[]): Promise<number> {
+  const now = Date.now();
+  const items = dedupeStudiesById(
+    raw.map(normalizeStudy).filter(Boolean) as NormalizedStudy[]
+  );
+  if (!items.length) return 0;
+
+  await db.withTransactionAsync(async () => {
+    for (const study of items) {
+      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now));
+    }
+  });
+  return items.length;
+}
+
 export async function seedStudies(options: { prune?: boolean } = {}) {
   const now = Date.now();
-  const normalized = studies
-    .map(normalizeStudy)
-    .filter(Boolean) as NormalizedStudy[];
-
-  const byId = new Map<string, NormalizedStudy>();
-  for (const study of normalized) {
-    byId.set(study.id, study);
-  }
-
-  const items = Array.from(byId.values());
+  const items = dedupeStudiesById(
+    studies.map(normalizeStudy).filter(Boolean) as NormalizedStudy[]
+  );
   if (!items.length) return;
 
   const collectionHash = getCollectionHash(items);
@@ -132,36 +181,7 @@ export async function seedStudies(options: { prune?: boolean } = {}) {
 
   await db.withTransactionAsync(async () => {
     for (const study of items) {
-      await db.runAsync(
-        `INSERT INTO studies
-        (id, category, title, subtitle, content, author, wordCount, isFeatured, contentHash, createdAt, updatedAt)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(id) DO UPDATE SET
-          category = excluded.category,
-          title = excluded.title,
-          subtitle = excluded.subtitle,
-          content = excluded.content,
-          author = excluded.author,
-          wordCount = excluded.wordCount,
-          isFeatured = excluded.isFeatured,
-          contentHash = excluded.contentHash,
-          updatedAt = excluded.updatedAt,
-          createdAt = COALESCE(studies.createdAt, excluded.createdAt)
-        WHERE studies.contentHash IS NULL OR studies.contentHash != excluded.contentHash`,
-        [
-          study.id,
-          study.category,
-          study.title,
-          study.subtitle,
-          study.content,
-          study.author,
-          study.wordCount,
-          study.isFeatured,
-          study.contentHash,
-          now,
-          now,
-        ]
-      );
+      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now));
     }
 
     if (options.prune) {

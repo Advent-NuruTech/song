@@ -36,6 +36,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         if (theme) setDarkModeState(theme === "dark");
         if (font) setFontSizeState(Number(font));
       } catch (e) {
+
         console.warn("Failed to load settings:", e);
       } finally {
         setReady(true);

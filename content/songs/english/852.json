@@ -1,0 +1,24 @@
+{
+    "id":  "ENG_852",
+    "hymnNumber":  852,
+    "title":  "O JESUS, MY REDEEMER",
+    "language":  "english",
+    "author":  "",
+    "stanzas":  [
+                    [
+                        "O Jesus, my Redeemer, Thou art my joy and song, My Savior and my solace, When griefs around me throng."
+                    ],
+                    [
+                        "Thou art my hope and comfort, Through all the weary years, When shadows dark surround me, When fall the bitter tears."
+                    ],
+                    [
+                        "I trust in Thee, my Saviour, My faithful Friend and Guide; For Thou to me art dearer, than all on earth beside."
+                    ],
+                    [
+                        "My song and my rejoicing, While in this world of sin, My song and my rejoicing The heavenly gates within."
+                    ]
+                ],
+    "chorus":  [
+                   "O Jesus my Redeemer my song shall be of Thee; No other friend so constant, no friend so dear to me"
+               ]
+}

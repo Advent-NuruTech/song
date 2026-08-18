@@ -7,7 +7,7 @@ const sourceFile =
 
 // OUTPUT FOLDER
 const outputDir =
-  "C:/Users/ADVENT/Desktop/song/content/songs/swahili";
+  "C:/Users/ADVENT/Desktop/song/content/songs/english";
 
 // Read JSON file
 const rawData = fs.readFileSync(sourceFile, "utf8");

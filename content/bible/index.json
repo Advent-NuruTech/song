@@ -1,0 +1,20 @@
+{
+  "versions": [
+    {
+      "id": "king_james",
+      "file": "king_james.json",
+      "name": "King James Version",
+      "abbreviation": "KJV",
+      "language": "en",
+      "sortOrder": 1
+    },
+    {
+      "id": "swahili_nt",
+      "file": "swahili_nt.json",
+      "name": "Swahili New Testament",
+      "abbreviation": "SW-NT",
+      "language": "sw",
+      "sortOrder": 2
+    }
+  ]
+}

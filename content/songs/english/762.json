@@ -1,0 +1,24 @@
+{
+    "id":  "ENG_762",
+    "hymnNumber":  762,
+    "title":  "BEULAH LAND",
+    "language":  "english",
+    "author":  "Edgar P. Stites and John R.Sweney",
+    "stanzas":  [
+                    [
+                        "I\u0027ve reached the land of corn and wine, And all its riches freely mine; Here shines undimmed one blissful day, For all my night has passed away."
+                    ],
+                    [
+                        "My Savior comes and walks with me, And sweet communion here have we; He gently leads me by His hand, For this is Heaven\u0027s border land."
+                    ],
+                    [
+                        "A sweet perfume upon the breeze Is borne from ever-vernal trees; And flow\u0027rs that never fading grow Where streams of life forever flow."
+                    ],
+                    [
+                        "The zephyrs seem to float to me, Sweet sounds of Heaven\u0027s melody, As angels with the white-robed throng Join in the sweet redemption song."
+                    ]
+                ],
+    "chorus":  [
+                   "O Beulah Land, sweet Beulah Land, As on thy highest mount I stand, I look away across the sea, Where mansions are prepared for me, And view the shining glory shore, My Heav\u0027n, my home forevermore!"
+               ]
+}

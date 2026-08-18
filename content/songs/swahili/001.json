@@ -1,28 +1,27 @@
 {
-  "id": "LUO_001",
+  "id": "SWA_001",
   "hymnNumber": 1,
-  "title": "Nyasachwa Man Malo",
-  "language": "luo",
+  "title": "Mtakatifu, Mtakatifu, Mtakatifu",
+  "language": "swahili",
   "author": "",
   "stanzas": [
     [
-      "Nyasachwa man malo, Wuon teko duto",
-      "Onge teko moro mak tekone adier;",
-      "Onge ng`ato moro miporo go Nyasaye.",
-      "En Ruoth ruodhi, be Nyasach nyiseche."
+      "U Mtakatifu! Mungu mwenyezi! Alfajiri sifa zako tutaimba;",
+      "U Mtakatifu , Bwana wa huruma,",
+      "Mungu wa vyote hata milele."
     ],
     [
-      "Hera mar Nyasachwa, Hera adieri",
-      "En nooro Yesu nikech noherowa;",
-      "Ne Yesu othonwa mondo kik walal ngang`,",
-      "To wanahere kak` owinjore."
+      "U Mtakatifu! Na malaika Wengi sana wanakuabudu wote;",
+      "Elfu na maelfu wanakusujudu",
+      "Wa zamani na hata milele."
     ],
     [
-      "Ng`wono mar Nyasachwa, ng`wono mochwere;",
-      "Oloso ji duto, okonyogi pile;",
-      "Kik wacha Nyasachwa, to wamiye duong` chuth,",
-      "En Wuon ng`wono, gi hera, gi teko."
+      "U Mtakatifu! Ingawa giza Lakuficha fahari tusiione,",
+      "U Mtakatifu! Wewe peke yako,",
+      "Kamili kwa uwezo na pendo."
     ]
   ],
   "chorus": ""
 }
+
+

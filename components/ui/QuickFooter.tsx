@@ -56,6 +56,14 @@ const FOOTER_TABS: FooterTab[] = [
       pathname.startsWith("/studies"),
   },
   {
+    key: "bible",
+    label: "Bible",
+    icon: "book-outline",
+    path: "/bible",
+    match: (pathname) =>
+      pathname.startsWith("/bible"),
+  },
+  {
     key: "search",
     label: "Search",
     icon: "search-outline",

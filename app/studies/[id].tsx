@@ -1,6 +1,6 @@
 import { Link, Stack, useLocalSearchParams } from "expo-router";
-import { ChevronLeft } from "lucide-react-native";
-import { useEffect, useRef, useState } from "react";
+import { ChevronLeft, Copy, Send, Share2 } from "lucide-react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
   Linking,
@@ -16,9 +16,15 @@ import {
 } from "react-native";
 
 import { ShareIconButton } from "@/components/share-icon-button";
+import { ShareSheet } from "@/components/share-sheet";
+import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
-import { shareStudy } from "@/src/services/shareService";
+import {
+  copyStudy,
+  shareStudy,
+  shareStudyLink,
+} from "@/src/services/shareService";
 import { Study, getCategoryColor, getStudyById } from "@/src/services/studiesService";
 
 type InlineToken = {
@@ -289,7 +295,15 @@ export default function StudyDetailScreen() {
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHeader, setShowHeader] = useState(true);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const handleCopyStudy = useCallback(async () => {
+    if (!study) return;
+    const ok = await copyStudy(study);
+    setToast(ok ? "Study copied" : "Couldn't copy");
+  }, [study]);
 
   useEffect(() => {
     let isMounted = true;
@@ -432,13 +446,7 @@ export default function StudyDetailScreen() {
           color={colors.tint}
           borderColor={colors.border}
           backgroundColor={colors.card}
-          onPress={() =>
-            void shareStudy({
-              title: study.title,
-              category: study.category,
-              author: study.author,
-            })
-          }
+          onPress={() => setShareOpen(true)}
           style={styles.shareButton}
           size={36}
           iconSize={17}
@@ -578,6 +586,50 @@ export default function StudyDetailScreen() {
           </Pressable>
         </Link>
       )}
+
+      <ShareSheet
+        visible={shareOpen}
+        onClose={() => setShareOpen(false)}
+        title={study.title}
+        subtitle={study.category}
+        options={[
+          {
+            key: "share",
+            label: "Share full study",
+            hint: "Send the whole reading",
+            icon: Share2,
+            onPress: () =>
+              void shareStudy({
+                title: study.title,
+                subtitle: study.subtitle,
+                category: study.category,
+                author: study.author,
+                content: study.content,
+              }),
+          },
+          {
+            key: "copy",
+            label: "Copy study text",
+            hint: "Paste anywhere",
+            icon: Copy,
+            onPress: () => void handleCopyStudy(),
+          },
+          {
+            key: "recommend",
+            label: "Recommend this study",
+            hint: "Share title only",
+            icon: Send,
+            onPress: () =>
+              void shareStudyLink({
+                title: study.title,
+                category: study.category,
+                author: study.author,
+              }),
+          },
+        ]}
+      />
+
+      <Toast message={toast} onHide={() => setToast(null)} />
     </>
   );
 }

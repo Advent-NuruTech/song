@@ -1,4 +1,4 @@
-import QuickFooter from "@/components/ui/QuickFooter";
+import Sidebar from "@/components/ui/Sidebar";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -11,7 +11,7 @@ import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
-import { initDb } from "@/src/db/initDb";
+import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
 
 /* ================================
    Inner layout (can access context)
@@ -30,7 +30,7 @@ function AppLayout() {
           />
         </Stack>
 
-        <QuickFooter />
+        <Sidebar />
         <StatusBar style={darkMode ? "light" : "dark"} />
       </ThemeProvider>
     </QuickFooterProvider>
@@ -48,10 +48,22 @@ export default function RootLayout() {
 
     (async () => {
       try {
-        await initDb();
+        // Schema is fast and deterministic — block only on this.
+        await initSchema();
+
+        if (await isFreshInstall()) {
+          // First launch: seed the starter corpus before showing the UI.
+          await seedContent();
+          if (mounted) setDbReady(true);
+        } else {
+          // Warm start: show the UI immediately, refresh/sync in the background.
+          if (mounted) setDbReady(true);
+          void seedContent().catch((e) =>
+            console.warn("Background content sync failed:", e)
+          );
+        }
       } catch (e) {
         console.error("Failed to initialize database", e);
-      } finally {
         if (mounted) setDbReady(true);
       }
     })();
