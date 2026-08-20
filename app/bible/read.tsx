@@ -15,6 +15,7 @@ import { ChevronLeft, ChevronRight, Copy, Share2, X } from "lucide-react-native"
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";
+import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
@@ -44,6 +45,7 @@ export default function BibleReader() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [shareOpen, setShareOpen] = useState(false);
+  const [editorPayload, setEditorPayload] = useState<{ reference: string; text: string } | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
 
@@ -132,30 +134,17 @@ export default function BibleReader() {
   }, [book, chapter, verses]);
 
   // Selected verses
-  const shareSelection = useCallback(() => {
+  const openSelectionEditor = useCallback(() => {
     if (!selectedVerses.length) return;
     const ref = verseReference(book, chapter, selectedVerses);
-    void shareScripture(ref, selectedVerses);
-    setSelected(new Set());
+    const text = selectedVerses.map((verse) => `${verse.verse}. ${verse.text}`).join("\n");
+    setEditorPayload({ reference: ref, text });
   }, [book, chapter, selectedVerses]);
 
-  const copySelection = useCallback(async () => {
-    if (!selectedVerses.length) return;
-    const ref = verseReference(book, chapter, selectedVerses);
-    const ok = await copyScripture(ref, selectedVerses);
-    setToast(
-      ok
-        ? `Copied ${selectedVerses.length} verse${selectedVerses.length > 1 ? "s" : ""}`
-        : "Couldn't copy"
-    );
-    setSelected(new Set());
-  }, [book, chapter, selectedVerses]);
-
-  const copySingleVerse = useCallback(
-    async (verse: BibleVerse) => {
+  const openSingleVerseEditor = useCallback(
+    (verse: BibleVerse) => {
       const ref = verseReference(book, chapter, [verse]);
-      const ok = await copyScripture(ref, [verse]);
-      setToast(ok ? "Verse copied" : "Couldn't copy");
+      setEditorPayload({ reference: ref, text: verse.text });
     },
     [book, chapter]
   );
@@ -203,7 +192,7 @@ export default function BibleReader() {
               <Pressable
                 key={v.verse}
                 onPress={() => toggleVerse(v.verse)}
-                onLongPress={() => void copySingleVerse(v)}
+                onLongPress={() => openSingleVerseEditor(v)}
                 style={[
                   styles.verseRow,
                   isSelected && { backgroundColor: `${colors.tint}1A` },
@@ -263,14 +252,7 @@ export default function BibleReader() {
           </Text>
           <View style={styles.selActions}>
             <Pressable
-              onPress={() => void copySelection()}
-              style={[styles.selBtn, { borderColor: colors.border }]}
-            >
-              <Copy size={16} color={colors.text} />
-              <Text style={[styles.selBtnText, { color: colors.text, fontFamily }]}>Copy</Text>
-            </Pressable>
-            <Pressable
-              onPress={shareSelection}
+              onPress={openSelectionEditor}
               style={[styles.selBtn, styles.selBtnPrimary, { backgroundColor: colors.tint }]}
             >
               <Share2 size={16} color={darkMode ? "#0B1220" : "#fff"} />
@@ -280,7 +262,7 @@ export default function BibleReader() {
                   { color: darkMode ? "#0B1220" : "#fff", fontFamily },
                 ]}
               >
-                Share
+                Select text
               </Text>
             </Pressable>
           </View>
@@ -293,6 +275,16 @@ export default function BibleReader() {
         title={`${book} ${chapter}`}
         subtitle="Whole chapter"
         options={[
+          {
+            key: "exact",
+            label: "Choose exact text",
+            hint: "Select part of a verse or edit an excerpt",
+            icon: Copy,
+            onPress: () => {
+              const text = verses.map((verse) => `${verse.verse}. ${verse.text}`).join("\n");
+              setEditorPayload({ reference: `${book} ${chapter}`, text });
+            },
+          },
           {
             key: "share",
             label: "Share chapter",
@@ -308,6 +300,14 @@ export default function BibleReader() {
             onPress: () => void copyChapter(),
           },
         ]}
+      />
+
+      <ScriptureShareEditor
+        visible={editorPayload !== null}
+        onClose={() => setEditorPayload(null)}
+        reference={editorPayload?.reference ?? `${book} ${chapter}`}
+        text={editorPayload?.text ?? ""}
+        onCopied={() => setToast("Selected text copied")}
       />
 
       <Toast message={toast} onHide={() => setToast(null)} />

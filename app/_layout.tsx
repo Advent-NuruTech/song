@@ -33,15 +33,18 @@ function AppLayout() {
   return (
     <QuickFooterProvider>
       <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="modal"
-            options={{ presentation: "modal", title: "Modal" }}
-          />
-        </Stack>
-
-        <Sidebar />
+        <View style={styles.appShell}>
+          <Sidebar />
+          <View style={styles.routeContent}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="modal"
+                options={{ presentation: "modal", title: "Modal" }}
+              />
+            </Stack>
+          </View>
+        </View>
         <StatusBar style={darkMode ? "light" : "dark"} />
       </ThemeProvider>
     </QuickFooterProvider>
@@ -116,6 +119,8 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
+  appShell: { flex: 1 },
+  routeContent: { flex: 1 },
   splash: {
     flex: 1,
     alignItems: "center",

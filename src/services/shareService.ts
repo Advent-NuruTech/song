@@ -269,6 +269,20 @@ export async function copyScripture(
   return copyText(formatScriptureText(reference, verses, false));
 }
 
+/** Share an exact, user-selected portion of scripture. */
+export async function shareScriptureExcerpt(reference: string, excerpt: string) {
+  const message = tidy([reference, "", excerpt, "", buildFooter()].join("\n")).slice(0, 4000);
+  await shareText(message, `${reference} — ${APP_NAME}`);
+}
+
+/** Copy an exact scripture excerpt without promotional text. */
+export async function copyScriptureExcerpt(
+  reference: string,
+  excerpt: string
+): Promise<boolean> {
+  return copyText(tidy([reference, "", excerpt].join("\n")));
+}
+
 // ---------------------------------------------------------------------------
 // Studies — share the full reading, stripped of editor markup
 // ---------------------------------------------------------------------------

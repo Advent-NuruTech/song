@@ -263,7 +263,7 @@ export default function SearchScreen() {
       />      <TextInput
         value={query}
         onChangeText={setQuery}
-        placeholder="Search songs and studies..."
+        placeholder="Global search: songs, Bible verses, studies..."
         placeholderTextColor={colors.subtleText}
         style={[
           styles.input,
@@ -509,7 +509,7 @@ export default function SearchScreen() {
                   { color: colors.mutedText, fontSize: size(13), fontFamily },
                 ]}
               >
-                Searching songs and studies...
+                Searching songs, Bible verses, and studies...
               </Text>
             </View>
           ) : null
@@ -523,7 +523,7 @@ export default function SearchScreen() {
                   { color: colors.text, fontSize: size(18), fontFamily },
                 ]}
               >
-                Search songs and studies
+                Global search
               </Text>
               <Text
                 style={[
@@ -531,7 +531,7 @@ export default function SearchScreen() {
                   { color: colors.mutedText, fontSize: size(14), fontFamily },
                 ]}
               >
-                Type a title, number, lyric, or study topic to begin.
+                Find songs, lyrics, Bible verses, and study topics in one place.
               </Text>
             </View>
           ) : !hasResults && !studyLoading && !songLoading ? (

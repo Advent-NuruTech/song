@@ -25,6 +25,7 @@ import { ChevronLeft, ChevronRight, Copy, Share2 } from "lucide-react-native";
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";
+import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -274,6 +275,9 @@ export default function SongScreen() {
   const [shareOpen, setShareOpen] =
     useState(false);
 
+  const [selectionOpen, setSelectionOpen] =
+    useState(false);
+
   const [toast, setToast] =
     useState<string | null>(null);
 
@@ -440,6 +444,17 @@ export default function SongScreen() {
       const ok = await copySong(shareableSong);
       setToast(ok ? "Hymn copied" : "Couldn't copy");
     }, [shareableSong]);
+
+  const selectableSongText = useMemo(() => {
+    if (!song) return "";
+    const sections = song.parsedStanzas.map(
+      (stanza, index) => `Stanza ${index + 1}\n${stanza.join("\n")}`
+    );
+    if (song.parsedChorus.length) {
+      sections.push(`Chorus\n${song.parsedChorus.join("\n")}`);
+    }
+    return sections.join("\n\n");
+  }, [song]);
 
   const navigateSong =
     useCallback(
@@ -772,6 +787,13 @@ export default function SongScreen() {
         subtitle={`Hymn #${song.hymnNumber}`}
         options={[
           {
+            key: "exact",
+            label: "Choose exact text",
+            hint: "Select a line, part of a stanza, or any excerpt",
+            icon: Copy,
+            onPress: () => setSelectionOpen(true),
+          },
+          {
             key: "share",
             label: "Share full hymn",
             hint: "All lyrics — great for status",
@@ -808,6 +830,14 @@ export default function SongScreen() {
               ]
             : []),
         ]}
+      />
+
+      <ScriptureShareEditor
+        visible={selectionOpen}
+        onClose={() => setSelectionOpen(false)}
+        reference={`Hymn #${song.hymnNumber} — ${song.title}`}
+        text={selectableSongText}
+        onCopied={() => setToast("Selected hymn text copied")}
       />
 
       <Toast message={toast} onHide={() => setToast(null)} />

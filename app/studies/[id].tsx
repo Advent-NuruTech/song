@@ -17,6 +17,7 @@ import {
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";
+import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
@@ -24,6 +25,7 @@ import {
   copyStudy,
   shareStudy,
   shareStudyLink,
+  stripStudyMarkup,
 } from "@/src/services/shareService";
 import { Study, getCategoryColor, getStudyById } from "@/src/services/studiesService";
 
@@ -296,6 +298,7 @@ export default function StudyDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [showHeader, setShowHeader] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
+  const [selectionOpen, setSelectionOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -594,6 +597,13 @@ export default function StudyDetailScreen() {
         subtitle={study.category}
         options={[
           {
+            key: "exact",
+            label: "Choose exact text",
+            hint: "Select a sentence, paragraph, or any excerpt",
+            icon: Copy,
+            onPress: () => setSelectionOpen(true),
+          },
+          {
             key: "share",
             label: "Share full study",
             hint: "Full text with read more link",
@@ -631,6 +641,14 @@ export default function StudyDetailScreen() {
               }),
           },
         ]}
+      />
+
+      <ScriptureShareEditor
+        visible={selectionOpen}
+        onClose={() => setSelectionOpen(false)}
+        reference={study.title}
+        text={stripStudyMarkup(study.content)}
+        onCopied={() => setToast("Selected study text copied")}
       />
 
       <Toast message={toast} onHide={() => setToast(null)} />
@@ -816,6 +834,5 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
-
 
 

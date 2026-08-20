@@ -3,10 +3,9 @@ const path = require("node:path");
 
 const config = getDefaultConfig(__dirname);
 
-// Supabase 2.45 ships separate CommonJS (Node) and ES module (browser/native)
-// builds but has no package exports map. Prefer its module build so Metro does
-// not follow the Node-only `ws` package and attempt to bundle `stream`.
-config.resolver.resolverMainFields = ["react-native", "browser", "module", "main"];
+// Supabase Realtime includes a Node-only WebSocket fallback. React Native has a
+// global WebSocket, so replace only that fallback while preserving Expo's
+// default resolver order for Expo Router and its URL implementation.
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === "ws" && platform !== "web") {
     return {

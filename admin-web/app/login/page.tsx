@@ -44,10 +44,18 @@ export default function LoginPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password, signupCode }),
         });
-        const result = (await response.json()) as { error?: string };
+        const result = (await response.json()) as {
+          error?: string;
+          confirmationRequired?: boolean;
+          existingAccount?: boolean;
+        };
         if (!response.ok) throw new Error(result.error || "Unable to create account.");
         setNotice(
-          "Account created. If email confirmation is on, confirm via email. Then ask an admin to grant you access in Supabase."
+          result.existingAccount
+            ? "Admin access granted. You can sign in now."
+            : result.confirmationRequired
+              ? "Admin account created. Confirm your email, then sign in."
+              : "Admin account created. You can sign in now."
         );
         setSignupCode("");
         setMode("signin");

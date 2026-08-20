@@ -21,7 +21,6 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 
 const PANEL_WIDTH = 286;
 
@@ -95,7 +94,6 @@ export default function Sidebar() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { visible } = useQuickFooter();
 
   const [open, setOpen] = useState(false);
 
@@ -123,11 +121,6 @@ export default function Sidebar() {
     ],
   }));
 
-  const hamburgerStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(visible ? 1 : 0, { duration: 180 }),
-    transform: [{ translateY: withTiming(visible ? 0 : -70, { duration: 180 }) }],
-  }));
-
   const go = (item: NavItem) => {
     setOpen(false);
     if (item.match(pathname)) return;
@@ -136,30 +129,89 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Floating hamburger trigger */}
-      <Animated.View
-        pointerEvents={open ? "none" : "box-none"}
-        style={[styles.menuWrap, { top: insets.top + 8 }, hamburgerStyle]}
+      {/* This header is in the root layout, so every route starts below it. */}
+      <View
+        style={[
+          styles.topNav,
+          {
+            height: insets.top + 68,
+            paddingTop: insets.top,
+            backgroundColor: darkMode ? "#0B1220" : "#FFFFFF",
+            borderBottomColor: colors.border,
+          },
+        ]}
       >
-        <Pressable
-          accessibilityLabel="Open menu"
-          onPress={() => setOpen(true)}
-          android_ripple={{ color: "#d1d5db", borderless: true }}
-          style={[
-            styles.menuButton,
-            {
-              backgroundColor: darkMode ? "#111827" : "#ffffff",
-              borderColor: colors.border,
-            },
-          ]}
-        >
-          <Ionicons name="menu" size={size(22)} color={colors.text} />
-        </Pressable>
-      </Animated.View>
+        <View style={styles.homeBrand}>
+          <Image
+            source={require("@/assets/images/icon.png")}
+            style={styles.homeLogo}
+            resizeMode="contain"
+          />
+          <View style={styles.homeBrandCopy}>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.homeTitle,
+                { color: colors.text, fontFamily, fontSize: size(17) },
+              ]}
+            >
+              Advent Pro
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={[
+                styles.homeSubtitle,
+                { color: colors.mutedText, fontFamily, fontSize: size(10) },
+              ]}
+            >
+              Present Truth Resource Center
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityLabel="Global search for songs, Bible verses, and studies"
+            onPress={() => router.replace("/search" as never)}
+            android_ripple={{ color: "#d1d5db", borderless: true }}
+            style={[
+              styles.headerButton,
+              {
+                backgroundColor: pathname.startsWith("/search")
+                  ? `${colors.tint}14`
+                  : darkMode
+                    ? "#111827"
+                    : "#FFFFFF",
+                borderColor: pathname.startsWith("/search") ? colors.tint : colors.border,
+              },
+            ]}
+          >
+            <Ionicons
+              name="search"
+              size={size(20)}
+              color={pathname.startsWith("/search") ? colors.tint : colors.text}
+            />
+          </Pressable>
+          <Pressable
+            accessibilityLabel="Open navigation menu"
+            onPress={() => setOpen(true)}
+            android_ripple={{ color: "#d1d5db", borderless: true }}
+            style={[
+              styles.headerButton,
+              {
+                backgroundColor: darkMode ? "#111827" : "#FFFFFF",
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Ionicons name="menu" size={size(22)} color={colors.text} />
+          </Pressable>
+        </View>
+      </View>
 
       {/* Drawer overlay (always mounted, inert when closed) */}
       <View
-        style={StyleSheet.absoluteFill}
+        style={[StyleSheet.absoluteFill, styles.drawerLayer]}
         pointerEvents={open ? "auto" : "none"}
       >
         <AnimatedPressable
@@ -256,12 +308,25 @@ export default function Sidebar() {
 }
 
 const styles = StyleSheet.create({
-  menuWrap: {
-    position: "absolute",
-    left: 12,
-    zIndex: 998,
+  topNav: {
+    borderBottomWidth: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
   },
-  menuButton: {
+  homeBrand: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  homeBrandCopy: { flex: 1 },
+  homeLogo: { width: 42, height: 42, borderRadius: 11 },
+  homeTitle: { fontWeight: "900", letterSpacing: 0.1 },
+  homeSubtitle: { marginTop: 1, fontWeight: "600" },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 8, marginLeft: 10 },
+  headerButton: {
     width: 44,
     height: 44,
     borderRadius: 14,
@@ -282,6 +347,7 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "#000",
   },
+  drawerLayer: { zIndex: 1000, elevation: 30 },
   panel: {
     position: "absolute",
     top: 0,
