@@ -13,6 +13,7 @@
 --   004_study_engagement.sql
 --   005_api_role_privileges.sql
 --   006_api_privileges_and_admin_provisioning.sql
+--   007_song_catalog_privileges.sql
 --
--- See `supabase/MIGRATIONS.md`. Future changes must be added as 007, 008,
+-- See `supabase/MIGRATIONS.md`. Future changes must be added as 008, 009,
 -- and so on. Do not edit a migration after it has been deployed.
