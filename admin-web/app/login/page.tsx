@@ -8,6 +8,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [signupCode, setSignupCode] = useState("");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,11 +39,17 @@ export default function LoginPage() {
         if (error) throw error;
         router.replace("/");
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
-        if (error) throw error;
+        const response = await fetch("/api/admin-signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, signupCode }),
+        });
+        const result = (await response.json()) as { error?: string };
+        if (!response.ok) throw new Error(result.error || "Unable to create account.");
         setNotice(
           "Account created. If email confirmation is on, confirm via email. Then ask an admin to grant you access in Supabase."
         );
+        setSignupCode("");
         setMode("signin");
       }
     } catch (err) {
@@ -70,6 +77,19 @@ export default function LoginPage() {
           required
           autoComplete="email"
         />
+
+        {mode === "signup" && (
+          <>
+            <label>Admin signup code</label>
+            <input
+              type="password"
+              value={signupCode}
+              onChange={(e) => setSignupCode(e.target.value)}
+              required
+              autoComplete="off"
+            />
+          </>
+        )}
 
         <label>Password</label>
         <input
