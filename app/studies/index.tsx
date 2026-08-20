@@ -313,9 +313,11 @@ export default function StudiesScreen() {
           backgroundColor={colors.card}
           onPress={() =>
             void shareStudyLink({
+              id: item.id,
               title: item.title,
               category: item.category,
               author: item.author,
+              content: item.excerpt,
             })
           }
           style={styles.shareButton}

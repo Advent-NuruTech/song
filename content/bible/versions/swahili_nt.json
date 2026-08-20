@@ -1,5 +1,5 @@
 {
-  "Genesis": {
+  "Mwanzo": {
     "1": {
       "1": "Hapo mwanzo Mungu aliziumba mbingu na nchi.",
       "2": "Nayo nchi ilikuwa ukiwa, tena utupu, na giza lilikuwa juu ya uso wa vilindi vya maji; Roho ya Mungu ikatulia juu ya uso wa maji.",
@@ -1634,7 +1634,7 @@
       "26": "Basi Yusufu akafa, mwenye miaka mia na kumi; wakampaka dawa, wakamtia katika sanduku, huko Misri."
     }
   },
-  "Exodus": {
+  "Kutoka": {
     "1": {
       "1": "Basi majina ya wana wa Israeli walioingia Misri ni haya; kila mtu pamoja na jamaa zake walikuja pamoja na Yakobo.",
       "2": "Reubeni, na Simeoni na Lawi, na Yuda;",
@@ -2929,7 +2929,7 @@
       "38": "Kwa maana lile wingu la Bwana lilikuwa juu ya maskani wakati wa mchana, na mlikuwa na moto ndani yake wakati wa usiku, mbele ya macho ya nyumba ya Israeli katika safari zao zote."
     }
   },
-  "Leviticus": {
+  "Levitiko": {
     "1": {
       "1": "Bwana akamwita Musa, na kusema naye kutoka katika hema ya kukutania, akamwambia,",
       "2": "Nena na wana wa Israeli, uwaambie, Mtu wa kwenu atakapomtolea Bwana matoleo, mtatoa matoleo yenu katika wanyama wa mifugo, katika ng'ombe na katika kondoo.",
@@ -3844,7 +3844,7 @@
       "34": "Haya ndiyo maagizo, Bwana aliyomwagiza Musa kwa ajili ya wana wa Israeli katika mlima wa Sinai."
     }
   },
-  "Numbers": {
+  "Nambari": {
     "1": {
       "1": "Bwana akanena na Musa katika bara ya Sinai, hemani mwa kukutania, siku ya kwanza ya mwezi wa pili, katika mwaka wa pili baada ya kutoka kwao nchi ya Misri, akamwambia,",
       "2": "Fanyeni hesabu ya mkutano wote wa wana wa Israeli, kwa kuandama jamaa zao, na nyumba za baba zao, kama hesabu ya majina ilivyo, kila mtu mume kichwa kwa kichwa;",
@@ -5206,7 +5206,7 @@
       "13": "Haya ndiyo maagizo na hukumu, ambayo Bwana aliwaagiza wana wa Israeli, kwa mkono wa Musa, hapo katika nchi tambarare za Moabu, karibu na Yordani, hapo Yeriko"
     }
   },
-  "Deuteronomy": {
+  "Kumbukumbu la Torati": {
     "1": {
       "1": "Haya ndiyo maneno Musa aliyowaambia Israeli wote ng'ambo ya Yordani barani, katika Araba lililoelekea Sufu, kati ya Parani, na Tofeli, na Labani, na Hazerothi, na Dizahabu.",
       "2": "Ni mwendo wa siku kumi na moja kutoka Horebu kwa njia ya mlima wa Seiri mpaka Kadeshbarnea.",
@@ -6235,7 +6235,7 @@
       "12": "na katika ule mkono wa nguvu wote, tena katika ule utisho mkuu wote, alioutenda Musa machoni pa Israeli wote."
     }
   },
-  "Joshua": {
+  "Yoshua": {
     "1": {
       "1": "Ikawa baada ya kufa kwake Musa, mtumishi wa Bwana, Bwana akamwambia Yoshua, mwana wa Nuni, mtumishi wa Musa, akasema,",
       "2": "Musa mtumishi wangu amekufa; haya basi, ondoka, vuka mto huu wa Yordani; wewe na watu hawa wote, mkaende hata nchi niwapayo wana wa Israeli.",
@@ -6943,7 +6943,7 @@
       "33": "Huyo Eleazari mwana wa Haruni naye akafa; wakamzika katika kilima cha Finehasi mwanawe, ambacho alipewa yeye katika nchi ya vilima ya Efraimu."
     }
   },
-  "Judges": {
+  "Waamuzi": {
     "1": {
       "1": "Ikawa baada ya kufa kwake Yoshua, wana wa Israeli wakamwuliza Bwana, wakisema, Ni nani atakayekwea kwanza kwa ajili yetu juu ya Wakanaani, ili kupigana nao?",
       "2": "Bwana akasema, Yuda atakwea; tazama, nimeitia hiyo nchi mkononi mwake.",
@@ -7605,7 +7605,7 @@
       "25": "Siku hizo hapakuwa na mfalme katika Israeli; kila mtu alifanya yaliyokuwa ni mema machoni pake mwenyewe."
     }
   },
-  "Ruth": {
+  "Ruthu": {
     "1": {
       "1": "Ikawa zamani za Waamuzi walipoamua, kulikuwa na njaa katika nchi. Akaondoka mtu mmoja wa Bethlehemu ya Yuda, akaenda kukaa katika nchi ya Moabu, yeye na mkewe na wanawe wawili.",
       "2": "Na jina la mtu huyo aliitwa Elimeleki, na jina la mkewe Naomi, na majina ya wanawe wawili Maloni na Kilioni, Waefrathi wa Bethlehemu ya Yuda. Wakafika nchi ya Moabu, wakakaa huko.",
@@ -7700,7 +7700,7 @@
       "22": "na Obedi akamzaa Yese; na Yese akamzaa Daudi."
     }
   },
-  "1 Samuel": {
+  "1 Samuele": {
     "1": {
       "1": "Palikuwa na mtu mmoja wa Rama, Msufi, wa nchi ya milima milima ya Efraimu, jina lake akiitwa Elkana, mwana wa Yerohamu, mwana wa Elihu, mwana wa Tohu, mwana wa Sufu, Mwefraimu",
       "2": "naye alikuwa na wake wawili; jina lake mmoja akiitwa Hana, na jina lake wa pili aliitwa Penina; naye huyo Penina alikuwa na watoto, lakini Hana hakuwa na watoto.",
@@ -8574,7 +8574,7 @@
       "13": "Kisha wakaitwaa mifupa yao, na kuizika chini ya mkwaju huko Yabeshi, nao wakafunga siku saba."
     }
   },
-  "2 Samuel": {
+  "2 Samuele": {
     "1": {
       "1": "Ikawa baada ya kufa kwake Sauli, hapo Daudi aliporudi katika kuwaua Waamaleki, naye Daudi amekaa siku mbili katika Siklagi;",
       "2": "hata siku ya tatu ikawa, tazama! Akaja mtu kutoka kambi ya Sauli, nguo zake zimeraruliwa, tena ana mavumbi kichwani mwake; basi, ikawa alipomfikia Daudi, akaanguka chini, akamsujudia.",
@@ -9319,7 +9319,7 @@
       "25": "Naye Daudi akamjengea Bwana madhabahu huko, akatoa sadaka za kuteketezwa na sadaka za amani. Basi Bwana aliiridhia nchi, na tauni ikazuiliwa katika Israeli."
     }
   },
-  "1 Kings": {
+  "1 Wafalme": {
     "1": {
       "1": "Mfalme Daudi alikuwa mzee, mkongwe katika siku zake, nao wakamfunika nguo, lakini asipate moto.",
       "2": "Kwa hiyo watumishi wake wakamwambia, Bwana wangu mfalme na atafutiwe kijana mwanamwali; naye asimame mbele ya mfalme, amtunze; alale kifuani mwako, ili bwana wangu mfalme apate moto.",
@@ -10181,7 +10181,7 @@
       "53": "Akamtumikia Baali, akamwabudu, akamghadhibisha Bwana, Mungu wa Israeli, kwa mfano wa mambo yote aliyoyafanya baba yake."
     }
   },
-  "2 Kings": {
+  "2 Wafalme": {
     "1": {
       "1": "Ikawa, baada ya kufa kwake Ahabu, Moabu wakawaasi Israeli.",
       "2": "Na Ahazia akaanguka katika dirisha la chumba chake orofani, katika Samaria, akaugua; akatuma wajumbe, akawaambia, Enendeni mkaulize kwa Baalzebubu, mungu wa Ekroni, kwamba nitapona ugonjwa huu.",
@@ -10952,7 +10952,7 @@
       "30": "Na kwa posho yake, alipewa posho ya daima na mfalme, siku kwa siku sehemu, siku zote za maisha yake."
     }
   },
-  "1 Chronicles": {
+  "1 Mambo ya Siku za Nyuma": {
     "1": {
       "1": "Adamu, na Sethi, na Enoshi;",
       "2": "na Kenani, na Mahalaleli, na Yaredi;",
@@ -11954,7 +11954,7 @@
       "30": "pamoja na kutawala kwake kote na nguvu zake, nazo zamani zilizompata yeye, na Israeli, na falme zote za nchi."
     }
   },
-  "2 Chronicles": {
+  "2 Mambo ya Siku za Nyuma": {
     "1": {
       "1": "Basi Sulemani, mwana wa Daudi, alithibitishwa katika ufalme wake, naye Bwana, Mungu wake, alikuwa pamoja naye, akamtukuza mno.",
       "2": "Sulemani akasema na Israeli wote, na maakida wa maelfu, na wa mamia, na waamuzi, na kila shehe wa Israeli wote, wakuu wa nyumba za mababa.",
@@ -13152,7 +13152,7 @@
       "44": "Hao wote walikuwa wameoa wanawake wageni; na wake zao wengine walikuwa wamezaa watoto."
     }
   },
-  "Nehemiah": {
+  "Nehemia": {
     "1": {
       "1": "Habari za Nehemia, mwana wa Hakalia. Ikawa katika mwezi wa Kisleu, mwaka wa ishirini, nilipokuwapo Shushani ngomeni,",
       "2": "Hanani, mmoja wa ndugu zangu, akanijia, yeye na watu wengine waliotoka Yuda; nami nikawauliza habari za Wayahudi waliopona, hao watu wa uhamisho waliosalia; na habari za Yerusalemu.",
@@ -13586,7 +13586,7 @@
       "31": "na matoleo ya kuni nyakati zilizoamriwa, na malimbuko. Nikumbuke, Ee Mungu wangu, ili unitendee mema."
     }
   },
-  "Esther": {
+  "Estheri": {
     "1": {
       "1": "Zamani za Ahasuero; naye huyu Ahasuero alimiliki toka Bara Hindi mpaka Kushi, juu ya majimbo mia na ishirini na saba;",
       "2": "siku zile mfalme Ahasuero alipoketi katika kiti cha enzi cha ufalme wake, huko Shushani ngomeni;",
@@ -13775,7 +13775,7 @@
       "3": "Kwa maana Mordekai Myahudi akawa wa pili wake mfalme Ahasuero, na mkuu wa Wayahudi, amependeza mbele ya jamii ya ndugu zake; ambaye aliwatafuta watu wake wema, na kuiangalia hali njema ya wazao wao wote."
     }
   },
-  "Job": {
+  "Ayubu": {
     "1": {
       "1": "Palikuwa na mtu katika nchi ya Usi, jina lake alikuwa akiitwa Ayubu; mtu huyo alikuwa mkamilifu na mwelekevu, ni mmoja aliyemcha Mungu, na kuepukana na uovu.",
       "2": "Kisha walizaliwa kwake wana saba, na binti watatu.",
@@ -14931,7 +14931,7 @@
       "17": "Basi Ayubu akafa, mzee sana mwenye kujawa na siku."
     }
   },
-  "Psalms": {
+  "Zaburi": {
     "1": {
       "1": "Heri mtu yule asiyekwenda Katika shauri la wasio haki; Wala hakusimama katika njia ya wakosaji; Wala hakuketi barazani pa wenye mizaha.",
       "2": "Bali sheria ya Bwana ndiyo impendezayo, Na sheria yake huitafakari mchana na usiku.",
@@ -17694,7 +17694,7 @@
       "6": "Kila mwenye pumzi na amsifu Bwana. Haleluya."
     }
   },
-  "Proverbs": {
+  "Methali": {
     "1": {
       "1": "Mithali za Sulemani, mwana wa Daudi, mfalme wa Israeli.",
       "2": "Kujua hekima na adabu; kutambua maneno ya ufahamu;",
@@ -18673,7 +18673,7 @@
       "31": "Mpe mapato ya mikono yake, Na matendo yake yamsifu malangoni."
     }
   },
-  "Ecclesiastes": {
+  "Mhubiri": {
     "1": {
       "1": "Maneno ya Mhubiri",
       "2": "Mhubiri asema, Ubatili mtupu, ubatili mtupu, mambo yote ni ubatili.",
@@ -18921,7 +18921,7 @@
       "14": "Kwa maana Mungu ataleta hukumuni kila kazi, pamoja na kila neno la siri, likiwa jema au likiwa baya."
     }
   },
-  "Song of Solomon": {
+  "Wimbo la Sulemani": {
     "1": {
       "1": "Wimbo ulio bora, wa Sulemani.",
       "2": "Kubusu na anibusu kwa kinywa chake. Maana pambaja zako zapita divai;",
@@ -19056,7 +19056,7 @@
       "14": "Ukimbie, mpendwa wangu, Nawe uwe kama paa, au ayala, Juu ya milima ya manukato."
     }
   },
-  "Isaiah": {
+  "Isaya": {
     "1": {
       "1": "Haya ni maono ya Isaya, mwana wa Amozi, aliyoyaona katika habari za Yuda na Yerusalemu, siku za Uzia na Yothamu na Ahazi na Hezekia, wafalme wa Yuda.",
       "2": "Sikieni, enyi mbingu, tega sikio, Ee nchi, kwa maana Bwana amenena; Nimewalisha watoto na kuwalea, nao wameniasi.",
@@ -20482,7 +20482,7 @@
       "24": "Nao watatoka nje na kuitazama mizoga ya watu walioniasi; maana funza wao hatakufa, wala moto wao hautazimika nao watakuwa chukizo machoni pa wote wenye mwili."
     }
   },
-  "Jeremiah": {
+  "Yeremia": {
     "1": {
       "1": "Maneno ya Yeremia, mwana wa Hilkia, mmoja wa makuhani waliokuwa katika Anathothi, katika nchi ya Benyamini;",
       "2": "ambaye neno la Bwana lilimjia katika siku za Yosia, mwana wa Amoni, mfalme wa Yuda, katika mwaka wa kumi na tatu wa kumiliki kwake.",
@@ -21952,7 +21952,7 @@
       "34": "Na kwa posho yake, alipewa posho ya daima na mfalme wa Babeli; kila siku alipewa posho hata siku ya kufa kwake, siku zote za maisha yake."
     }
   },
-  "Lamentations": {
+  "Maombolezo": {
     "1": {
       "1": "Jinsi mji huu ukaavyo ukiwa, Huo uliokuwa umejaa watu! Jinsi alivyokuwa kama mjane, Yeye aliyekuwa mkuu kati ya mataifa! Binti mfalme kati ya majimbo, Jinsi alivyoshikwa shokoa!",
       "2": "Hulia sana wakati wa usiku, Na machozi yake yapo mashavuni; Miongoni mwa wote waliompenda Hakuna hata mmoja amfarijiye; Rafiki zake wote wamemtenda hila, Wamekuwa adui zake.",
@@ -22118,7 +22118,7 @@
       "22": "Isipokuwa wewe umetukataa kabisa; Nawe una hasira nyingi sana juu yetu."
     }
   },
-  "Ezekiel": {
+  "Ezekieli": {
     "1": {
       "1": "Ikawa katika mwaka wa thelathini, mwezi wa nne, siku ya tano ya mwezi, nilipokuwa pamoja na watu waliohamishwa, karibu na mto Kebari, mbingu zilifunuka, nikaona maono ya Mungu.",
       "2": "Siku ya tano ya mwezi, nao ulikuwa ni mwaka wa tano wa kuhamishwa kwake mfalme Yehoyakini,",
@@ -23489,7 +23489,7 @@
       "35": "Kuuzunguka ni mianzi kumi na nane elfu; na jina la mji huo tangu siku hiyo litakuwa hili, Bwana yupo hapa."
     }
   },
-  "Daniel": {
+  "Danieli": {
     "1": {
       "1": "Katika mwaka wa tatu wa kumiliki kwake Yehoyakimu, mfalme wa Yuda, Nebukadreza",
       "2": "Bwana akamtia Yehoyakimu, mfalme wa Yuda, katika mkono wake, pamoja na baadhi ya vyombo vya nyumba ya Mungu; naye akavichukua mpaka nchi ya Shinari, mpaka nyumba ya mungu wake; akaviingiza vile vyombo katika nyumba ya hazina ya mungu wake.",
@@ -24099,7 +24099,7 @@
       "9": "Ni nani aliye na hekima, naye atayafahamu mambo haya? Ni nani aliye na busara, naye atayajua? Kwa maana njia za Bwana zimenyoka, nao wenye haki watakwenda katika njia hizo; bali waasio wataanguka ndani yake."
     }
   },
-  "Joel": {
+  "Yoeli": {
     "1": {
       "1": "Neno la Bwana lililomjia Yoeli, mwana wa Pethueli.",
       "2": "Sikieni haya, enyi wazee; Sikilizeni, enyi wenyeji wote wa nchi. Je! Mambo haya yamekuwako katika siku zenu, Au katika siku za baba zenu?",
@@ -24180,7 +24180,7 @@
       "21": "Nami nitaitakasa damu yao ambayo sijaitakasa; kwa maana Bwana ndiye akaaye Sayuni."
     }
   },
-  "Amos": {
+  "Amosi": {
     "1": {
       "1": "Maneno ya Amosi, aliyekuwa mmoja wa wachungaji wa Tekoa; maono aliyoyaona katika habari za Israeli, siku za Uzia, mfalme wa Yuda, na siku za Yeroboamu, mwana wa Yoashi, mfalme wa Israeli, miaka miwili kabla ya tetemeko la nchi.",
       "2": "Naye alisema, Bwana atanguruma toka Sayuni, Atatoa sauti yake toka Yerusalemu; Na malisho ya wachungaji yataomboleza, Na kilele cha Karmeli kitanyauka.",
@@ -24346,7 +24346,7 @@
       "15": "Nami nitawapanda katika nchi yao, wala hawatang'olewa tena watoke katika nchi yao niliyowapa, asema Bwana, Mungu wako."
     }
   },
-  "Obadiah": {
+  "Obadia": {
     "1": {
       "1": "Maono yake Obadia. Ndivyo asemavyo Bwana MUNGU juu ya Edomu;",
       "2": "Tazama, nimekufanya mdogo kati ya mataifa; Umedharauliwa sana.",
@@ -24371,7 +24371,7 @@
       "21": "Tena waokozi watakwea juu ya mlima Sayuni ili kuuhukumu mlima wa Esau; na huo ufalme utakuwa ni mali ya Bwana."
     }
   },
-  "Jonah": {
+  "Yona": {
     "1": {
       "1": "Basi neno la Bwana lilimjia Yona, mwana wa Amitai, kusema,",
       "2": "Ondoka, uende Ninawi, mji ule mkubwa, ukapige kelele juu yake; kwa maana uovu wao umepanda juu mbele zangu.",
@@ -24429,7 +24429,7 @@
       "11": "na mimi, je! Haikunipasa kuuhurumia Ninawi, mji ule mkubwa; ambao ndani yake wamo watu zaidi ya mia na ishirini elfu, wasioweza kupambanua katika mkono wao wa kulia na mkono wao wa kushoto; tena wamo wanyama wa kufugwa wengi sana?"
     }
   },
-  "Micah": {
+  "Mika": {
     "1": {
       "1": "Hili ndilo neno la Bwana lililomjia Mika, Mmorashti, katika siku za Yothamu, na Ahazi, na Hezekia, wafalme wa Yuda; maono aliyoyaona katika habari za Samaria, na Yerusalemu.",
       "2": "Sikilizeni, enyi watu wa kabila zote; sikiliza, Ee dunia, na vyote vilivyomo; Bwana MUNGU na ashuhudie juu yenu, yeye Bwana kutoka hekalu lake takatifu.",
@@ -24550,7 +24550,7 @@
       "20": "Wewe utamtimilizia Yakobo kweli yako, na Ibrahimu rehema zako, ulizowaapia baba zetu tangu siku za kale."
     }
   },
-  "Nahum": {
+  "Nahumu": {
     "1": {
       "1": "Ufunuo juu ya Ninawi. Kitabu cha maono aliyoyaona Nahumu, Mwelkoshi.",
       "2": "Bwana ni Mungu mwenye wivu, naye hujilipiza kisasi; Bwana hujilipiza kisasi, naye ni mwingi wa hasira; Bwana hujilipiza kisasi juu ya adui zake, huwawekea adui zake akiba ya hasira.",
@@ -24605,7 +24605,7 @@
       "19": "Jeraha yako haipunguziki; jeraha yako ni nzito sana; wote wasikiao habari zako wapiga makofi juu yako; kwa maana ni nani ambaye uovu wako haukupita juu yake daima?"
     }
   },
-  "Habakkuk": {
+  "Habakuki": {
     "1": {
       "1": "Ufunuo aliouona nabii Habakuki.",
       "2": "Ee Bwana, nilie hata lini, wewe usitake kusikia? Nakulilia kwa sababu ya udhalimu, ila hutaki kuokoa.",
@@ -24669,7 +24669,7 @@
       "19": "YEHOVA, aliye Bwana, ni nguvu zangu, Yeye huifanya miguu yangu kuwa kama ya kulungu, Naye ataniendesha katika mahali pangu palipoinuka."
     }
   },
-  "Zephaniah": {
+  "Sefania": {
     "1": {
       "1": "Neno la Bwana lililomjia Sefania, mwana wa Kushi, mwana wa Gedalia, mwana wa Amaria, mwana wa Hezekia; katika siku za Yosia, mwana wa Amoni, mfalme wa Yuda.",
       "2": "Nitavikomesha kabisa vitu vyote, visionekane juu ya uso wa nchi, asema Bwana.",
@@ -24730,7 +24730,7 @@
       "20": "Wakati huo nitawaingizeni, na wakati huo nitawakusanya; kwa maana nitawafanya ninyi kuwa sifa na jina, miongoni mwa watu wote wa dunia, nitakapowarudisha wafungwa wenu mbele ya macho yenu, asema Bwana."
     }
   },
-  "Haggai": {
+  "Hagai": {
     "1": {
       "1": "Katika mwaka wa pili wa Dario mfalme, mwezi wa sita, siku ya kwanza ya mwezi, neno la Bwana lilimjia Zerubabeli, mwana wa Shealtieli, liwali wa Yuda, na Yoshua, mwana wa Yehosadaki, kuhani mkuu, kwa kinywa chake Hagai nabii, kusema,",
       "2": "Bwana wa majeshi asema hivi, ya kwamba, Watu hawa husema, Huu sio wakati utupasao kuja, huu sio wakati wa kujenga nyumba ya Bwana.",
@@ -24774,7 +24774,7 @@
       "23": "Katika siku ile, asema Bwana wa majeshi, nitakutwaa wewe, Ee Zerubabeli, mtumishi wangu, mwana wa Shealtieli, asema Bwana, nami nitakufanya kuwa kama pete yenye muhuri; kwa kuwa nimekuchagua, asema Bwana wa majeshi."
     }
   },
-  "Zechariah": {
+  "Zekaria": {
     "1": {
       "1": "Katika mwezi wa nane, mwaka wa pili wa Dario, neno la Bwana lilimjia Zekaria, mwana wa Berekia, mwana wa Ido, nabii, kusema,",
       "2": "Bwana amewakasirikia sana baba zenu.",
@@ -25015,7 +25015,7 @@
       "21": "Naam, kila chombo katika Yerusalemu, na katika Yuda, kitakuwa kitakatifu kwa Bwana wa majeshi; nao wote watoao dhabihu watakuja kuvitwaa vile vyombo, na kutokosa nyama ndani yake; wala siku hiyo hatakuwamo tena mfanya biashara ndani ya nyumba ya Bwana wa majeshi."
     }
   },
-  "Malachi": {
+  "Malaki": {
     "1": {
       "1": "Ufunuo wa neno la Bwana kwa Israeli kwa mkono wa Malaki",
       "2": "Nimewapenda ninyi, asema Bwana. Lakini ninyi mwasema, Umetupendaje? Je! Esau siye ndugu yake Yakobo? Asema Bwana; ila nimempenda Yakobo;",
@@ -25080,7 +25080,7 @@
       "6": "Naye ataigeuza mioyo ya baba iwaelekee watoto wao, na mioyo ya watoto iwaelekee baba zao, ili nisije nikaipiga dunia kwa laana."
     }
   },
-  "Matthew": {
+  "Mathayo": {
     "1": {
       "1": "Kitabu cha ukoo wa Yesu Kristo, mwana wa Daudi, mwana wa Ibrahimu.",
       "2": "Ibrahimu alimzaa Isaka; Isaka akamzaa Yakobo; Yakobo akamzaa Yuda na ndugu zake;",
@@ -26209,7 +26209,7 @@
       "20": "na kuwafundisha kuyashika yote niliyowaamuru ninyi; na tazama, mimi nipo pamoja nanyi siku zote, hata ukamilifu wa dahari."
     }
   },
-  "Mark": {
+  "Marko": {
     "1": {
       "1": "Mwanzo wa Injili ya Yesu Kristo, Mwana wa Mungu.",
       "2": "Kama ilivyoandikwa katika nabii Isaya, Tazama, namtuma mjumbe wangu Mbele ya uso wako, Atakayeitengeneza njia yako.",
@@ -26921,7 +26921,7 @@
       "20": "Nao wale wakatoka, wakahubiri kotekote, Bwana akitenda kazi pamoja nao, na kulithibitisha lile neno kwa ishara zilizofuatana nalo.]"
     }
   },
-  "Luke": {
+  "Luka": {
     "1": {
       "1": "Kwa kuwa watu wengi wametia mikono kutunga kwa taratibu habari za mambo yale yaliyotimizwa katikati yetu,",
       "2": "kama walivyotuhadithia wale waliokuwa mashahidi wenye kuyaona, na watumishi wa lile neno tokea mwanzo,",
@@ -28122,7 +28122,7 @@
       "53": "Nao walikuwa daima ndani ya hekalu, wakimsifu Mungu."
     }
   },
-  "John": {
+  "Yohana": {
     "1": {
       "1": "Hapo mwanzo kulikuwako Neno, naye Neno alikuwako kwa Mungu, naye Neno alikuwa Mungu.",
       "2": "Huyo mwanzo alikuwako kwa Mungu.",
@@ -29044,7 +29044,7 @@
       "25": "Kuna na mambo mengi aliyoyafanya Yesu; ambayo yakiandikwa moja moja, nadhani hata ulimwengu usingetosha kwa vile vitabu vitakavyoandikwa."
     }
   },
-  "Acts": {
+  "Matendo ya Mitume": {
     "1": {
       "1": "Kitabu kile cha kwanza nalikiandika, Theofilo, katika habari ya mambo yote aliyoanza Yesu kufanya na kufundisha,",
       "2": "hata siku ile alipochukuliwa juu, alipokuwa amekwisha kuwaagiza kwa Roho Mtakatifu wale mitume aliowachagua;",
@@ -30109,7 +30109,7 @@
       "31": "akihubiri habari za ufalme wa Mungu, na kuyafundisha mambo ya Bwana Yesu Kristo, kwa ujasiri mwingi, asikatazwe na mtu."
     }
   },
-  "Romans": {
+  "Warumi": {
     "1": {
       "1": "Paulo, mtumwa wa Kristo Yesu, aliyeitwa kuwa mtume, na kutengwa aihubiri Injili ya Mungu;",
       "2": "ambayo Mungu amekwisha kuiahidi kwa kinywa cha manabii wake katika maandiko matakatifu;",
@@ -30576,7 +30576,7 @@
       "27": "Ndiye Mungu mwenye hekima peke yake. Utukufu una yeye kwa Yesu Kristo, milele na milele. Amina."
     }
   },
-  "1 Corinthians": {
+  "1 Wakorinto": {
     "1": {
       "1": "Paulo, aliyeitwa kuwa mtume wa Yesu Kristo kwa mapenzi ya Mungu, na Sosthene ndugu yetu,",
       "2": "kwa kanisa la Mungu lililoko Korintho, wale waliotakaswa katika Kristo Yesu, walioitwa wawe watakatifu, pamoja na wote wanaoliitia jina la Bwana wetu Yesu Kristo kila mahali, Bwana wao na wetu.",
@@ -31047,7 +31047,7 @@
       "24": "Pendo langu na liwe pamoja nanyi nyote katika Kristo Yesu."
     }
   },
-  "2 Corinthians": {
+  "2 Wakorinto": {
     "1": {
       "1": "Paulo, mtume wa Kristo Yesu kwa mapenzi ya Mungu, na Timotheo ndugu yetu; kwa kanisa la Mungu lililoko Korintho, pamoja na watakatifu wote walioko katika nchi yote ya Akaya.",
       "2": "Neema na iwe kwenu na amani, zitokazo kwa Mungu Baba yetu na kwa Bwana Yesu Kristo.",
@@ -31332,7 +31332,7 @@
       "14": "Neema ya Bwana Yesu Kristo, na pendo la Mungu, na ushirika wa Roho Mtakatifu ukae nanyi nyote."
     }
   },
-  "Galatians": {
+  "Wagalatia": {
     "1": {
       "1": "Paulo, mtume, (si mtume wa wanadamu, wala kutumwa na mwanadamu, bali na Yesu Kristo, na Mungu Baba aliyemfufua kutoka kwa wafu),",
       "2": "na ndugu wote walio pamoja nami, kwa makanisa ya Galatia;",
@@ -31495,7 +31495,7 @@
       "18": "Ndugu zangu, neema ya Bwana wetu Yesu Kristo na iwe pamoja na roho zenu. Amina."
     }
   },
-  "Ephesians": {
+  "Waefeso": {
     "1": {
       "1": "Paulo, mtume wa Kristo Yesu, kwa mapenzi ya Mungu; kwa watakatifu walioko [Efeso] wanaomwamini Kristo Yesu.",
       "2": "Neema na iwe kwenu na amani zitokazo kwa Mungu Baba yetu na kwa Bwana Yesu Kristo.",
@@ -31664,7 +31664,7 @@
       "24": "Neema na iwe pamoja na wote wampendao Bwana wetu Yesu Kristo katika hali ya kutokuharibika."
     }
   },
-  "Philippians": {
+  "Wafilipi": {
     "1": {
       "1": "Paulo na Timotheo, watumwa wa Kristo Yesu, kwa watakatifu wote katika Kristo Yesu, walioko Filipi, pamoja na maaskofu",
       "2": "Neema na iwe kwenu na amani zitokazo kwa Mungu Baba yetu na kwa Bwana Yesu Kristo.",
@@ -31778,7 +31778,7 @@
       "23": "Neema ya Bwana Yesu Kristo na iwe pamoja na roho zenu."
     }
   },
-  "Colossians": {
+  "Wakolosai": {
     "1": {
       "1": "Paulo, mtume wa Kristo Yesu kwa mapenzi ya Mungu, na Timotheo, ndugu yetu,",
       "2": "kwa ndugu watakatifu, waaminifu katika Kristo, walioko Kolosai. Neema na iwe kwenu, na amani, zitokazo kwa Mungu Baba yetu.",
@@ -31883,7 +31883,7 @@
       "18": "Salamu yangu mimi Paulo, kwa mkono wangu mwenyewe. Kumbukeni kufungwa kwangu. Neema na iwe pamoja nanyi."
     }
   },
-  "1 Thessalonians": {
+  "1 Wathesalonike": {
     "1": {
       "1": "Paulo, na Silwano, na Timotheo, kwa kanisa la Wathesalonike, lililo katika Mungu Baba, na katika Bwana Yesu Kristo. Neema na iwe kwenu na amani.",
       "2": "Twamshukuru Mungu siku zote kwa ajili yenu nyote, tukiwataja katika maombi yetu.",
@@ -31984,7 +31984,7 @@
       "28": "Neema ya Bwana wetu Yesu Kristo na iwe pamoja nanyi."
     }
   },
-  "2 Thessalonians": {
+  "2 Wathesalonike": {
     "1": {
       "1": "Paulo, na Silwano, na Timotheo, kwa kanisa la Wathesalonike, lililo katika Mungu Baba yetu, na Bwana Yesu Kristo.",
       "2": "Neema na iwe kwenu na amani zitokazo kwa Mungu Baba, na kwa Bwana Yesu Kristo.",
@@ -32039,7 +32039,7 @@
       "18": "Neema ya Bwana wetu Yesu Kristo na iwe pamoja nanyi nyote."
     }
   },
-  "1 Timothy": {
+  "1 Timotheo": {
     "1": {
       "1": "Paulo, mtume wa Kristo Yesu, kwa amri ya Mungu Mwokozi wetu na Kristo Yesu, taraja letu;",
       "2": "kwa Timotheo, mwanangu hasa katika imani. Neema na iwe kwako, na rehema, na amani, zitokazo kwa Mungu Baba na kwa Kristo Yesu Bwana wetu.",
@@ -32166,7 +32166,7 @@
       "21": "ambayo wengine wakiikiri hiyo wameikosa Imani. Neema na iwe pamoja nanyi."
     }
   },
-  "2 Timothy": {
+  "2 Timotheo": {
     "1": {
       "1": "Paulo, mtume wa Kristo Yesu, kwa mapenzi ya Mungu; kwa ajili ya ahadi ya uzima ulio katika Kristo Yesu;",
       "2": "kwa Timotheo, mwanangu mpendwa. Neema na iwe kwako, na rehema, na amani, zitokazo kwa Mungu Baba na kwa Kristo Yesu Bwana wetu.",
@@ -32259,7 +32259,7 @@
       "22": "Bwana na awe pamoja na roho yako. Neema na iwe pamoja nanyi."
     }
   },
-  "Titus": {
+  "Tito": {
     "1": {
       "1": "Paulo, mtumwa wa Mungu, na mtume wa Yesu Kristo; kwa ajili ya imani ya wateule wa Mungu, na ujuzi wa kweli ile iletayo utauwa;",
       "2": "katika tumaini la uzima wa milele, ambao Mungu asiyeweza kusema uongo aliuahidi tangu milele;",
@@ -32313,7 +32313,7 @@
       "15": "Watu wote walio pamoja nami wakusalimu. Tusalimie wale watupendao katika imani. Neema na iwe pamoja nanyi nyote."
     }
   },
-  "Philemon": {
+  "Filemoni": {
     "1": {
       "1": "Paulo, mfungwa wa Kristo Yesu, na Timotheo aliye ndugu yetu, kwa Filemoni mpendwa wetu, mtenda kazi pamoja nasi,",
       "2": "na kwa Afia, ndugu yetu, na kwa Arkipo askari mwenzetu, na kwa kanisa lililo katika nyumba yako.",
@@ -32342,7 +32342,7 @@
       "25": "Neema ya Bwana Yesu Kristo na iwe pamoja na roho zenu."
     }
   },
-  "Hebrews": {
+  "Waebrania": {
     "1": {
       "1": "Mungu, ambaye alisema zamani na baba zetu katika manabii kwa sehemu nyingi na kwa njia nyingi,",
       "2": "mwisho wa siku hizi amesema na sisi katika Mwana, aliyemweka kuwa mrithi wa yote, tena kwa yeye aliufanya ulimwengu.",
@@ -32673,7 +32673,7 @@
       "25": "Neema na iwe nanyi nyote."
     }
   },
-  "James": {
+  "Yakobo": {
     "1": {
       "1": "Yakobo, mtumwa wa Mungu, na wa Bwana Yesu Kristo, kwa kabila kumi na mbili waliotawanyika; salamu.",
       "2": "Ndugu zangu, hesabuni ya kuwa ni furaha tupu, mkiangukia katika majaribu mbalimbali;",
@@ -32793,7 +32793,7 @@
       "20": "jueni ya kuwa yeye amrejezaye mwenye dhambi hata atoke katika njia ya upotevu, ataokoa roho na mauti, na kufunika wingi wa dhambi."
     }
   },
-  "1 Peter": {
+  "1 Petro": {
     "1": {
       "1": "Petro, mtume wa Yesu Kristo, kwa wateule wa Utawanyiko, wakaao hali ya ugeni katika Ponto, na Galatia, na Kapadokia, na Asia, na Bithinia;",
       "2": "kama vile Mungu Baba alivyotangulia kuwajua katika kutakaswa na Roho, hata mkapata kutii na kununyiziwa damu ya Yesu Kristo. Neema na amani na ziongezwe kwenu.",
@@ -32910,7 +32910,7 @@
       "14": "Salimianeni kwa busu la upendo. Amani na iwe kwenu nyote, mlio katika Kristo. Amina."
     }
   },
-  "2 Peter": {
+  "2 Petro": {
     "1": {
       "1": "Simoni Petro, mtumwa na mtume wa Yesu Kristo, kwa wale waliopata imani moja na sisi, yenye thamani, katika hali ya Mungu wetu, na Mwokozi Yesu Kristo.",
       "2": "Neema na iwe kwenu na amani iongezwe katika kumjua Mungu na Yesu Bwana wetu.",
@@ -32979,7 +32979,7 @@
       "18": "Lakini, kueni katika neema, na katika kumjua Bwana wetu na Mwokozi Yesu Kristo. Utukufu una yeye sasa na hata milele."
     }
   },
-  "1 John": {
+  "1 Yohana": {
     "1": {
       "1": "Lile lililokuwako tangu mwanzo, tulilolisikia, tuliloliona kwa macho yetu, tulilolitazama, na mikono yetu ikalipapasa, kwa habari ya Neno la uzima;",
       "2": "(na uzima huo ulidhihirika, nasi tumeona, tena twashuhudia, na kuwahubiri ninyi ule uzima wa milele, uliokuwa kwa Baba, ukadhihirika kwetu);",
@@ -33096,7 +33096,7 @@
       "21": "Watoto wadogo, jilindeni nafsi zenu na sanamu."
     }
   },
-  "2 John": {
+  "2 Yohana": {
     "1": {
       "1": "Mzee, kwa mama mteule na watoto wake niwapendao katika kweli; wala si mimi peke yangu, bali na wote waijuao ile kweli;",
       "2": "kwa ajili ya hiyo kweli ikaayo ndani yetu, nayo itakuwa pamoja nasi hata milele.",
@@ -33113,7 +33113,7 @@
       "13": "Watoto wa ndugu yako aliye mteule, wakusalimu."
     }
   },
-  "3 John": {
+  "3 Yohana": {
     "1": {
       "1": "Mzee, kwa Gayo mpenzi, nimpendaye katika kweli.",
       "2": "Mpenzi naomba ufanikiwe katika mambo yote na kuwa na afya yako, kama vile roho yako ifanikiwavyo.",
@@ -33132,7 +33132,7 @@
       "15": "Amani kwako. Rafiki zetu wakusalimu. Wasalimu hao rafiki zetu, kila mtu kwa jina lake."
     }
   },
-  "Jude": {
+  "Yuda": {
     "1": {
       "1": "Yuda, mtumwa wa Yesu Kristo, ndugu yake Yakobo, kwa hao walioitwa, waliopendwa katika Mungu Baba, na kuhifadhiwa kwa ajili ya Yesu Kristo.",
       "2": "Mwongezewe rehema na amani na upendano.",
@@ -33161,7 +33161,7 @@
       "25": "Yeye aliye Mungu pekee, Mwokozi wetu kwa Yesu Kristo Bwana wetu; utukufu una yeye, na ukuu, na uwezo, na nguvu, tangu milele, na sasa, na hata milele. Amina."
     }
   },
-  "Revelation": {
+  "Ufunuo": {
     "1": {
       "1": "Ufunuo wa Yesu Kristo, aliopewa na Mungu awaonyeshe watumwa wake mambo ambayo kwamba hayana budi kuwako upesi; naye akatuma kwa mkono wa malaika akamwonyesha mtumwa wake Yohana;",
       "2": "aliyelishuhudia Neno la Mungu, na ushuhuda wa Yesu Kristo, yaani, mambo yote aliyoyaona.",

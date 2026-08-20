@@ -41,6 +41,8 @@ import {
   type ShareableSong,
   copySong,
   shareSong,
+  shareChorus,
+  shareStanza,
 } from "@/src/services/shareService";
 
 type ParsedSong = {
@@ -417,6 +419,7 @@ export default function SongScreen() {
     useMemo<ShareableSong | null>(() => {
       if (!song) return null;
       return {
+        id: song.id,
         title: song.title,
         hymnNumber: song.hymnNumber,
         language: song.language,
@@ -770,18 +773,40 @@ export default function SongScreen() {
         options={[
           {
             key: "share",
-            label: "Share hymn",
-            hint: "Full lyrics — great for status",
+            label: "Share full hymn",
+            hint: "All lyrics — great for status",
             icon: Share2,
             onPress: handleShareSong,
           },
           {
             key: "copy",
-            label: "Copy lyrics",
+            label: "Copy full hymn",
             hint: "Paste anywhere",
             icon: Copy,
             onPress: () => void handleCopySong(),
           },
+          ...song.parsedStanzas.map((_, i) => ({
+            key: `stanza-${i}`,
+            label: `Share Stanza ${i + 1}`,
+            hint: `${song.parsedStanzas[i].length} lines`,
+            icon: Share2,
+            onPress: () => {
+              if (shareableSong) void shareStanza(shareableSong, i);
+            },
+          })),
+          ...(song.parsedChorus.length > 0
+            ? [
+                {
+                  key: "chorus",
+                  label: "Share Chorus",
+                  hint: `${song.parsedChorus.length} lines`,
+                  icon: Share2,
+                  onPress: () => {
+                    if (shareableSong) void shareChorus(shareableSong);
+                  },
+                },
+              ]
+            : []),
         ]}
       />
 

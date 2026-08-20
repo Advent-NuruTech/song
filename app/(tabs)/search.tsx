@@ -487,9 +487,11 @@ export default function SearchScreen() {
                 backgroundColor={colors.card}
                 onPress={() =>
                   void shareStudyLink({
+                    id: study.id,
                     title: study.title,
                     category: study.category,
                     author: study.author,
+                    content: study.excerpt,
                   })
                 }
                 style={styles.shareButton}

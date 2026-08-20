@@ -151,6 +151,15 @@ export default function BibleReader() {
     setSelected(new Set());
   }, [book, chapter, selectedVerses]);
 
+  const copySingleVerse = useCallback(
+    async (verse: BibleVerse) => {
+      const ref = verseReference(book, chapter, [verse]);
+      const ok = await copyScripture(ref, [verse]);
+      setToast(ok ? "Verse copied" : "Couldn't copy");
+    },
+    [book, chapter]
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -194,6 +203,7 @@ export default function BibleReader() {
               <Pressable
                 key={v.verse}
                 onPress={() => toggleVerse(v.verse)}
+                onLongPress={() => void copySingleVerse(v)}
                 style={[
                   styles.verseRow,
                   isSelected && { backgroundColor: `${colors.tint}1A` },

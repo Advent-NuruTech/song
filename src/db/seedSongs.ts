@@ -113,7 +113,7 @@ function getCollectionHash(items: NormalizedSong[]): string {
 
 async function pruneMissingSongs(keepIds: Set<string>) {
   const existing = await db.getAllAsync<{ id: string }>(
-    "SELECT id FROM songs"
+    "SELECT id FROM songs WHERE contentSource = 'bundled'"
   );
   const toDelete = existing
     .map((row) => row.id)
@@ -133,8 +133,8 @@ async function pruneMissingSongs(keepIds: Set<string>) {
 }
 
 const SONG_UPSERT_SQL = `INSERT INTO songs
-  (id, hymnNumber, title, language, author, stanzas, chorus, contentHash, createdAt, updatedAt)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  (id, hymnNumber, title, language, author, stanzas, chorus, contentHash, contentSource, serverRevision, createdAt, updatedAt)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     hymnNumber = excluded.hymnNumber,
     title = excluded.title,
@@ -143,11 +143,14 @@ const SONG_UPSERT_SQL = `INSERT INTO songs
     stanzas = excluded.stanzas,
     chorus = excluded.chorus,
     contentHash = excluded.contentHash,
+    contentSource = excluded.contentSource,
+    serverRevision = excluded.serverRevision,
     updatedAt = excluded.updatedAt,
     createdAt = COALESCE(songs.createdAt, excluded.createdAt)
-  WHERE songs.contentHash IS NULL OR songs.contentHash != excluded.contentHash`;
+  WHERE (excluded.contentSource = 'server' AND excluded.serverRevision >= songs.serverRevision)
+     OR (songs.contentSource != 'server' AND (songs.contentHash IS NULL OR songs.contentHash != excluded.contentHash))`;
 
-function songParams(song: NormalizedSong, now: number) {
+function songParams(song: NormalizedSong, now: number, source: "bundled" | "server", revision: number) {
   return [
     song.id,
     song.hymnNumber,
@@ -157,6 +160,8 @@ function songParams(song: NormalizedSong, now: number) {
     song.stanzasJson,
     song.chorusJson,
     song.contentHash,
+    source,
+    revision,
     now,
     now,
   ];
@@ -172,7 +177,10 @@ function dedupeById(songs: NormalizedSong[]): NormalizedSong[] {
  * Upsert raw songs into the cache from ANY source (bundled or remote shard).
  * Shared write path so local seeding and CDN hydration stay identical.
  */
-export async function upsertSongs(raw: RawSong[]): Promise<number> {
+export async function upsertSongs(
+  raw: RawSong[],
+  options: { source?: "bundled" | "server"; revisions?: Record<string, number> } = {}
+): Promise<number> {
   const now = Date.now();
   const songs = dedupeById(
     raw.map(normalizeSong).filter(Boolean) as NormalizedSong[]
@@ -181,7 +189,7 @@ export async function upsertSongs(raw: RawSong[]): Promise<number> {
 
   await db.withTransactionAsync(async () => {
     for (const song of songs) {
-      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now));
+      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now, options.source ?? "server", options.revisions?.[song.id] ?? 0));
     }
   });
   return songs.length;
@@ -206,7 +214,7 @@ export async function seedSongs(options: { prune?: boolean } = {}) {
 
   await db.withTransactionAsync(async () => {
     for (const song of songs) {
-      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now));
+      await db.runAsync(SONG_UPSERT_SQL, songParams(song, now, "bundled", 0));
     }
 
     if (options.prune) {

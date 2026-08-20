@@ -89,7 +89,7 @@ function getCollectionHash(items: NormalizedStudy[]): string {
 
 async function pruneMissingStudies(keepIds: Set<string>) {
   const existing = await db.getAllAsync<{ id: string }>(
-    "SELECT id FROM studies"
+    "SELECT id FROM studies WHERE contentSource = 'bundled'"
   );
   const toDelete = existing
     .map((row) => row.id)
@@ -109,8 +109,8 @@ async function pruneMissingStudies(keepIds: Set<string>) {
 }
 
 const STUDY_UPSERT_SQL = `INSERT INTO studies
-  (id, category, title, subtitle, content, author, wordCount, isFeatured, contentHash, createdAt, updatedAt)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  (id, category, title, subtitle, content, author, wordCount, isFeatured, contentHash, contentSource, serverRevision, createdAt, updatedAt)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     category = excluded.category,
     title = excluded.title,
@@ -120,11 +120,14 @@ const STUDY_UPSERT_SQL = `INSERT INTO studies
     wordCount = excluded.wordCount,
     isFeatured = excluded.isFeatured,
     contentHash = excluded.contentHash,
+    contentSource = excluded.contentSource,
+    serverRevision = excluded.serverRevision,
     updatedAt = excluded.updatedAt,
     createdAt = COALESCE(studies.createdAt, excluded.createdAt)
-  WHERE studies.contentHash IS NULL OR studies.contentHash != excluded.contentHash`;
+  WHERE (excluded.contentSource = 'server' AND excluded.serverRevision >= studies.serverRevision)
+     OR (studies.contentSource != 'server' AND (studies.contentHash IS NULL OR studies.contentHash != excluded.contentHash))`;
 
-function studyParams(study: NormalizedStudy, now: number) {
+function studyParams(study: NormalizedStudy, now: number, source: "bundled" | "server", revision: number) {
   return [
     study.id,
     study.category,
@@ -135,6 +138,8 @@ function studyParams(study: NormalizedStudy, now: number) {
     study.wordCount,
     study.isFeatured,
     study.contentHash,
+    source,
+    revision,
     now,
     now,
   ];
@@ -147,7 +152,10 @@ function dedupeStudiesById(items: NormalizedStudy[]): NormalizedStudy[] {
 }
 
 /** Upsert raw studies from ANY source (bundled or remote shard). */
-export async function upsertStudies(raw: RawStudy[]): Promise<number> {
+export async function upsertStudies(
+  raw: RawStudy[],
+  options: { source?: "bundled" | "server"; revisions?: Record<string, number> } = {}
+): Promise<number> {
   const now = Date.now();
   const items = dedupeStudiesById(
     raw.map(normalizeStudy).filter(Boolean) as NormalizedStudy[]
@@ -156,7 +164,7 @@ export async function upsertStudies(raw: RawStudy[]): Promise<number> {
 
   await db.withTransactionAsync(async () => {
     for (const study of items) {
-      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now));
+      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now, options.source ?? "server", options.revisions?.[study.id] ?? 0));
     }
   });
   return items.length;
@@ -181,7 +189,7 @@ export async function seedStudies(options: { prune?: boolean } = {}) {
 
   await db.withTransactionAsync(async () => {
     for (const study of items) {
-      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now));
+      await db.runAsync(STUDY_UPSERT_SQL, studyParams(study, now, "bundled", 0));
     }
 
     if (options.prune) {

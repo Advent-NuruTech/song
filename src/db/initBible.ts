@@ -26,6 +26,21 @@ export const CANONICAL_BOOK_ORDER: Record<string, number> = {
   "1 Timothy": 54, "2 Timothy": 55, Titus: 56, Philemon: 57, Hebrews: 58,
   James: 59, "1 Peter": 60, "2 Peter": 61, "1 John": 62, "2 John": 63,
   "3 John": 64, Jude: 65, Revelation: 66,
+  // Kiswahili book names
+  Mwanzo: 1, Kutoka: 2, Levitiko: 3, Nambari: 4, "Kumbukumbu la Torati": 5,
+  Yoshua: 6, Waamuzi: 7, Ruthu: 8, "1 Samuele": 9, "2 Samuele": 10,
+  "1 Wafalme": 11, "2 Wafalme": 12, "1 Mambo ya Siku za Nyuma": 13, "2 Mambo ya Siku za Nyuma": 14,
+  Nehemia: 16, Estheri: 17, Ayubu: 18, Zaburi: 19, Methali: 20,
+  Mhubiri: 21, "Wimbo la Sulemani": 22, Isaya: 23, Yeremia: 24,
+  Maombolezo: 25, Ezekieli: 26, Danieli: 27, Yoeli: 29, Amosi: 30,
+  Obadia: 31, Yona: 32, Mika: 33, Nahumu: 34, Habakuki: 35, Sefania: 36,
+  Hagai: 37, Zekaria: 38, Malaki: 39,
+  Mathayo: 40, Marko: 41, Luka: 42, Yohana: 43, "Matendo ya Mitume": 44, Warumi: 45,
+  "1 Wakorinto": 46, "2 Wakorinto": 47, Wagalatia: 48, Waefeso: 49,
+  Wafilipi: 50, Wakolosai: 51, "1 Wathesalonike": 52, "2 Wathesalonike": 53,
+  "1 Timotheo": 54, "2 Timotheo": 55, Tito: 56, Filemoni: 57, Waebrania: 58,
+  Yakobo: 59, "1 Petro": 60, "2 Petro": 61, "1 Yohana": 62, "2 Yohana": 63,
+  "3 Yohana": 64, Yuda: 65, Ufunuo: 66,
 };
 
 export function bookOrderFor(book: string, seenIndex: number): number {

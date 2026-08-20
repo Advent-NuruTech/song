@@ -1,126 +1,20 @@
 import { Stack } from "expo-router";
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
-
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
 
-export default function TermsOfUseScreen() {
-  const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
-
-  return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ headerShown: false }} />
-
-      <StatusBar
-        barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
-      />
-
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-        onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
-      >
-        <Text style={[styles.heading, { color: colors.text, fontSize: size(30), fontFamily }]}>
-          Terms of Use
-        </Text>
-
-        <Text style={[styles.text, { color: colors.text, fontSize: size(15), fontFamily }]}>
-          By using Advent Pro, you agree to these terms. The app is provided for personal study,
-          worship, learning, and spiritual growth.
-        </Text>
-
-        <Text style={[styles.title, { color: colors.text, fontSize: size(20), fontFamily }]}>
-          Content Usage
-        </Text>
-
-        <Text style={[styles.text, { color: colors.text, fontSize: size(15), fontFamily }]}>
-          Hymns, studies, and other resources are provided for personal use. Please respect original
-          authors, ministries, and copyright holders when sharing or redistributing content.
-        </Text>
-
-        <Text style={[styles.title, { color: colors.text, fontSize: size(20), fontFamily }]}>
-          User Responsibility
-        </Text>
-
-        <Text style={[styles.text, { color: colors.text, fontSize: size(15), fontFamily }]}>
-          You are responsible for how you use the app and its content. Advent Pro should not replace
-          professional, legal, medical, or spiritual counsel.
-        </Text>
-
-        <Text style={[styles.title, { color: colors.text, fontSize: size(20), fontFamily }]}>
-          Future Updates
-        </Text>
-
-        <Text style={[styles.text, { color: colors.text, fontSize: size(15), fontFamily }]}>
-          Features, services, and policies may change as Advent Pro grows. Continued use of the app
-          after updates means you accept the revised terms.
-        </Text>
-
-        <Text style={[styles.title, { color: colors.text, fontSize: size(20), fontFamily }]}>
-          Liability
-        </Text>
-
-        <Text style={[styles.text, { color: colors.text, fontSize: size(15), fontFamily }]}>
-          The app is provided &quot;as is&quot; without guarantees. The developer is not responsible for data
-          loss, interruptions, or device-related issues arising from app usage.
-        </Text>
-
-        <Text style={[styles.title, { color: colors.text, fontSize: size(40), fontFamily }]}>
-          Contact
-        </Text>
-
-        <Text
-                 style={[
-                   styles.paragraph,
-                   {
-                     color: colors.text,
-                     fontSize: size(15),
-                     fontFamily,
-                   },
-                 ]}
-               > If you have questions or
-          concerns regarding this
-          terms and conditions of use , you can
-          contact the Advent Pro
-          team through the About
-          section inside the app.
-        
-        </Text>
-      </ScrollView>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-
-  content: {
-    paddingHorizontal: 24,
-    paddingTop: Platform.OS === "ios" ? 70 : 52,
-    paddingBottom: 40,
-  },
-
-  heading: {
-    fontWeight: "800",
-    marginBottom: 18,
-  },
-
-  title: {
-    fontWeight: "700",
-    marginTop: 22,
-    marginBottom: 8,
-  },
-
-  text: {
-    lineHeight: 24,
-    marginBottom: 10,
-  },
-
-  paragraph: {
-    lineHeight: 24,
-    marginBottom: 10,
-  },
-});
+const sections=[
+ ["Eligibility and accounts","You must provide accurate information, protect your password, and promptly report unauthorized access. You are responsible for activity under your account. Administrative access is a privilege that may be changed or revoked to protect the service."],
+ ["Acceptable use","Do not misuse the service, bypass security, impersonate others, upload malicious or unlawful material, interfere with availability, scrape the platform abusively, or use content to harm, harass, deceive, or infringe another person's rights."],
+ ["Contributions and publishing","You retain rights you hold in submitted material. You grant Advent Pro a worldwide, non-exclusive license to host, reproduce, format, translate, distribute, and display submissions for operating and promoting the service. You confirm that you have permission to submit them. Editors may correct, reject, unpublish, or remove material under the editorial policy."],
+ ["Content and spiritual resources","Studies, hymns, Bible resources, and community material are provided for education, worship, and personal study. Views expressed by contributors do not necessarily represent Advent Pro. Verify important information and do not treat the service as medical, legal, financial, or emergency advice."],
+ ["Copyright and reports","Respect authors, ministries, publishers, and license terms. Send infringement or content concerns through adventnurutech.xyz or the contact options in About, identifying the material and the basis for your request."],
+ ["Offline use and updates","Previously downloaded content may remain available offline. When connected, the app may download corrections, withdrawals, compatibility information, and security changes without requiring an app-store release. Some new application capabilities may still require an app update."],
+ ["Suspension and termination","We may restrict or terminate access when an account violates these terms, creates risk, or when required by law. You may stop using the service and request account deletion. Certain audit, legal, backup, and published-content records may be retained where permitted or required."],
+ ["Service availability","The service is provided on an as-available basis. We work to keep it reliable but do not promise uninterrupted operation or that every item is complete or error-free. Keep copies of important original contributions."],
+ ["Limitation of liability","To the extent permitted by law, Advent Pro and Advent Nuru Tech are not liable for indirect, incidental, special, consequential, or punitive loss arising from use of the service. Nothing in these terms excludes rights or liability that cannot legally be excluded."],
+ ["Changes","We may update these terms as the service develops. Material changes will receive reasonable notice. Continued use after the effective date means you accept the revised terms."],
+ ["Contact","Questions, reports, and account requests can be submitted at https://adventnurutech.xyz or through the contact options in the app's About page."],
+];
+export default function TermsOfUseScreen(){const{colors,size,fontFamily,darkMode}=useAppTheme();const{reportScroll}=useQuickFooter();return <View style={[s.container,{backgroundColor:colors.background}]}><Stack.Screen options={{headerShown:false}}/><StatusBar barStyle={darkMode?"light-content":"dark-content"} backgroundColor={colors.background}/><ScrollView contentContainerStyle={s.content} onScroll={e=>reportScroll(e.nativeEvent.contentOffset.y)} scrollEventThrottle={16}><Text style={[s.heading,{color:colors.text,fontSize:size(30),fontFamily}]}>Terms of Service</Text><Text style={[s.date,{color:colors.mutedText,fontFamily}]}>Effective: August 20, 2026</Text><Text style={[s.text,{color:colors.text,fontSize:size(15),fontFamily}]}>By using Advent Pro, you agree to these terms. If you do not agree, do not create an account or use the online services. Core content may remain available offline where installed.</Text>{sections.map(([title,body])=><View key={title}><Text style={[s.title,{color:colors.text,fontSize:size(20),fontFamily}]}>{title}</Text><Text style={[s.text,{color:colors.text,fontSize:size(15),fontFamily}]}>{body}</Text></View>)}</ScrollView></View>}
+const s=StyleSheet.create({container:{flex:1},content:{paddingHorizontal:24,paddingTop:Platform.OS==="ios"?70:52,paddingBottom:50},heading:{fontWeight:"800"},date:{marginTop:6,marginBottom:18},title:{fontWeight:"700",marginTop:22,marginBottom:8},text:{lineHeight:24,marginBottom:10}});

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Advent Pro Admin",
   description: "Content management for Advent Pro",
+  icons: { icon: "/favicon.png" },
 };
 
 export default function RootLayout({

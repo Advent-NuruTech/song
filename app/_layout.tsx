@@ -6,18 +6,29 @@ import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useEffect, useState } from "react";
-import { Image, StyleSheet, View } from "react-native";
+import { AppState, Image, StyleSheet, View } from "react-native";
 import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
 import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
+import { AuthProvider } from "@/src/auth/AuthContext";
+import { syncSupabaseContent } from "@/src/content/supabase";
 
 /* ================================
    Inner layout (can access context)
    ================================ */
 function AppLayout() {
   const { darkMode } = useSettings();
+
+  useEffect(() => {
+    const sync = () => void syncSupabaseContent();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") sync();
+    });
+    const interval = setInterval(sync, 5 * 60 * 1000);
+    return () => { subscription.remove(); clearInterval(interval); };
+  }, []);
 
   return (
     <QuickFooterProvider>
@@ -95,9 +106,11 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <SettingsProvider>
-        <AppLayout />
-      </SettingsProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <AppLayout />
+        </SettingsProvider>
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

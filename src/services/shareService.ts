@@ -9,6 +9,11 @@ function buildFooter() {
   return [`— Shared from ${APP_NAME}`, DOWNLOAD_URL].join("\n");
 }
 
+/** Build a deep link that opens the content directly in the app. */
+function buildDeepLink(path: string) {
+  return `adventpro://${path}`;
+}
+
 /** Collapse 3+ blank lines into a single blank line and trim ends. */
 function tidy(text: string) {
   return text.replace(/\n{3,}/g, "\n\n").replace(/[ \t]+\n/g, "\n").trim();
@@ -48,6 +53,7 @@ export async function copyText(message: string): Promise<boolean> {
 // ---------------------------------------------------------------------------
 
 export type ShareableSong = {
+  id: string;
   title: string;
   hymnNumber?: number | null;
   language?: string | null;
@@ -91,6 +97,7 @@ export function formatSongText(song: ShareableSong, withFooter = true): string {
   if (song.author) parts.push(`Author: ${song.author}`);
 
   let text = tidy(parts.join("\n"));
+  text = `${text}\n\n${buildDeepLink(`song/${song.id}`)}`;
   if (withFooter) text = `${text}\n\n${buildFooter()}`;
   return text;
 }
@@ -102,6 +109,88 @@ export async function shareSong(song: ShareableSong) {
 export async function copySong(song: ShareableSong): Promise<boolean> {
   // Copy without the promo footer so the lyrics paste cleanly.
   return copyText(formatSongText(song, false));
+}
+
+// ---------------------------------------------------------------------------
+// Songs — share a single STANZA or CHORUS
+// ---------------------------------------------------------------------------
+
+/** Format a single stanza with identifying header. */
+export function formatStanzaText(
+  song: ShareableSong,
+  stanzaIndex: number,
+  withFooter = true
+): string {
+  const headerBits: string[] = [];
+  if (song.hymnNumber != null) headerBits.push(`Hymn #${song.hymnNumber}`);
+  const lang = prettyLanguage(song.language);
+  if (lang) headerBits.push(lang);
+
+  const parts: string[] = [`🎵 ${song.title}`];
+  if (headerBits.length) parts.push(headerBits.join(" · "));
+  parts.push(`Stanza ${stanzaIndex + 1}`);
+  parts.push("");
+
+  const stanza = song.stanzas[stanzaIndex];
+  if (stanza) {
+    const lines = stanza.map((l) => l.trim()).filter(Boolean);
+    parts.push(lines.join("\n"));
+  }
+
+  let text = tidy(parts.join("\n"));
+  text = `${text}\n\n${buildDeepLink(`song/${song.id}`)}`;
+  if (withFooter) text = `${text}\n\n${buildFooter()}`;
+  return text;
+}
+
+export async function shareStanza(song: ShareableSong, stanzaIndex: number) {
+  await shareText(
+    formatStanzaText(song, stanzaIndex),
+    `${song.title} — Stanza ${stanzaIndex + 1} — ${APP_NAME}`
+  );
+}
+
+export async function copyStanza(
+  song: ShareableSong,
+  stanzaIndex: number
+): Promise<boolean> {
+  return copyText(formatStanzaText(song, stanzaIndex, false));
+}
+
+/** Format just the chorus with identifying header. */
+export function formatChorusText(
+  song: ShareableSong,
+  withFooter = true
+): string {
+  const headerBits: string[] = [];
+  if (song.hymnNumber != null) headerBits.push(`Hymn #${song.hymnNumber}`);
+  const lang = prettyLanguage(song.language);
+  if (lang) headerBits.push(lang);
+
+  const parts: string[] = [`🎵 ${song.title}`];
+  if (headerBits.length) parts.push(headerBits.join(" · "));
+  parts.push("Chorus");
+  parts.push("");
+
+  if (song.chorus.length) {
+    parts.push(song.chorus.join("\n"));
+  }
+
+  let text = tidy(parts.join("\n"));
+  text = `${text}\n\n${buildDeepLink(`song/${song.id}`)}`;
+  if (withFooter) text = `${text}\n\n${buildFooter()}`;
+  return text;
+}
+
+export async function shareChorus(song: ShareableSong) {
+  await shareText(
+    formatChorusText(song),
+    `${song.title} — Chorus — ${APP_NAME}`
+  );
+}
+
+export async function copyChorus(song: ShareableSong): Promise<boolean> {
+  return copyText(formatChorusText(song, false));
 }
 
 /**
@@ -185,6 +274,7 @@ export async function copyScripture(
 // ---------------------------------------------------------------------------
 
 export type ShareableStudy = {
+  id: string;
   title: string;
   subtitle?: string | null;
   category?: string | null;
@@ -211,7 +301,13 @@ export function formatStudyText(study: ShareableStudy, withFooter = true): strin
   if (study.subtitle) parts.push(study.subtitle);
   if (meta) parts.push(meta);
   parts.push("");
-  parts.push(stripStudyMarkup(study.content));
+
+  const stripped = stripStudyMarkup(study.content);
+  parts.push(stripped);
+
+  const deepLink = buildDeepLink(`studies/${study.id}`);
+  parts.push("");
+  parts.push(`Read more in ${APP_NAME}: ${deepLink}`);
 
   const text = tidy(parts.join("\n"));
   return withFooter ? `${text}\n\n${buildFooter()}` : text;
@@ -225,23 +321,39 @@ export async function copyStudy(study: ShareableStudy): Promise<boolean> {
   return copyText(formatStudyText(study, false));
 }
 
-/** Share just the title/metadata of a study (a quick "recommend this read"). */
+/** Share just the title/metadata of a study with a content snippet preview. */
 export async function shareStudyLink(study: {
+  id: string;
   title: string;
+  subtitle?: string | null;
   category?: string | null;
   author?: string | null;
+  content?: string | null;
 }) {
   const meta = [study.category, study.author ? `by ${study.author}` : null]
     .filter(Boolean)
     .join(" · ");
-  const message = tidy(
-    [
-      `I'm reading "${study.title}" on ${APP_NAME}.`,
-      meta,
-      "",
-      buildFooter(),
-    ].join("\n")
-  );
+
+  const parts: string[] = [`I'm reading "${study.title}" on ${APP_NAME}.`];
+  if (meta) parts.push(meta);
+
+  if (study.content) {
+    const snippet = stripStudyMarkup(study.content)
+      .replace(/\n{2,}/g, " ")
+      .trim()
+      .slice(0, 200);
+    if (snippet.length > 0) {
+      parts.push("");
+      parts.push(snippet.length < study.content.length ? `${snippet}...` : snippet);
+    }
+  }
+
+  parts.push("");
+  parts.push(buildDeepLink(`studies/${study.id}`));
+  parts.push("");
+  parts.push(buildFooter());
+
+  const message = tidy(parts.join("\n"));
   await shareText(message, `${APP_NAME} Study`);
 }
 

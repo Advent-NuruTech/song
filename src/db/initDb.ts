@@ -73,6 +73,8 @@ async function createCoreTables() {
       stanzas TEXT,
       chorus TEXT,
       contentHash TEXT,
+      contentSource TEXT NOT NULL DEFAULT 'bundled',
+      serverRevision INTEGER NOT NULL DEFAULT 0,
       createdAt INTEGER,
       updatedAt INTEGER
     );
@@ -87,6 +89,8 @@ async function createCoreTables() {
       wordCount INTEGER DEFAULT 0,
       isFeatured BOOLEAN DEFAULT 0,
       contentHash TEXT,
+      contentSource TEXT NOT NULL DEFAULT 'bundled',
+      serverRevision INTEGER NOT NULL DEFAULT 0,
       createdAt INTEGER,
       updatedAt INTEGER
     );
@@ -144,6 +148,12 @@ async function ensureSongsSchema() {
   if (!columnNames.has("contentHash")) {
     await db.execAsync(`ALTER TABLE songs ADD COLUMN contentHash TEXT`);
   }
+  if (!columnNames.has("contentSource")) {
+    await db.execAsync(`ALTER TABLE songs ADD COLUMN contentSource TEXT NOT NULL DEFAULT 'bundled'`);
+  }
+  if (!columnNames.has("serverRevision")) {
+    await db.execAsync(`ALTER TABLE songs ADD COLUMN serverRevision INTEGER NOT NULL DEFAULT 0`);
+  }
 }
 
 async function ensureStudiesSchema() {
@@ -185,6 +195,12 @@ async function ensureStudiesSchema() {
       `ALTER TABLE studies ADD COLUMN isFeatured BOOLEAN DEFAULT 0`
     );
   }
+  if (!columnNames.has("contentSource")) {
+    await db.execAsync(`ALTER TABLE studies ADD COLUMN contentSource TEXT NOT NULL DEFAULT 'bundled'`);
+  }
+  if (!columnNames.has("serverRevision")) {
+    await db.execAsync(`ALTER TABLE studies ADD COLUMN serverRevision INTEGER NOT NULL DEFAULT 0`);
+  }
 
   if (!hasContentHash) {
     await db.execAsync(`ALTER TABLE studies ADD COLUMN contentHash TEXT`);
@@ -215,6 +231,8 @@ async function rebuildStudiesTable(options: {
       wordCount INTEGER DEFAULT 0,
       isFeatured BOOLEAN DEFAULT 0,
       contentHash TEXT,
+      contentSource TEXT NOT NULL DEFAULT 'bundled',
+      serverRevision INTEGER NOT NULL DEFAULT 0,
       createdAt INTEGER,
       updatedAt INTEGER
     )

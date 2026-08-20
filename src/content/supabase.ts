@@ -60,6 +60,7 @@ type SongRow = {
   is_published: boolean;
   deleted: boolean;
   updated_at: string;
+  revision: number;
 };
 
 type StudyRow = {
@@ -73,6 +74,7 @@ type StudyRow = {
   is_published: boolean;
   deleted: boolean;
   updated_at: string;
+  revision: number;
 };
 
 /** GET a page from PostgREST with the anon key. Returns null on any failure. */
@@ -103,21 +105,22 @@ async function restGet<T>(
   }
 }
 
-async function lastSync(collection: string): Promise<string> {
+async function lastSync(collection: string): Promise<number> {
   const row = await db.getFirstAsync<{ hash: string }>(
     "SELECT hash FROM content_sync WHERE key = ?",
     [`supabase:${collection}`]
   );
   // ISO epoch start = pull everything on first run.
-  return row?.hash || "1970-01-01T00:00:00Z";
+  const revision = Number(row?.hash || "0");
+  return Number.isFinite(revision) ? revision : 0;
 }
 
-async function recordSync(collection: string, maxUpdatedAt: string) {
+async function recordSync(collection: string, revision: number) {
   await db.runAsync(
     `INSERT INTO content_sync (key, hash, updatedAt)
      VALUES (?, ?, ?)
      ON CONFLICT(key) DO UPDATE SET hash = excluded.hash, updatedAt = excluded.updatedAt`,
-    [`supabase:${collection}`, maxUpdatedAt, Date.now()]
+    [`supabase:${collection}`, String(revision), Date.now()]
   );
 }
 
@@ -134,15 +137,15 @@ async function deleteByIds(table: "songs" | "studies", ids: string[]) {
 /** Fetch every row changed since `since`, paging until exhausted. */
 async function fetchChanged<T>(
   table: string,
-  since: string,
+  since: number,
   columns: string
 ): Promise<T[] | null> {
   const all: T[] = [];
   for (let offset = 0; ; offset += SupabaseConfig.pageSize) {
     const q =
       `select=${columns}` +
-      `&updated_at=gt.${encodeURIComponent(since)}` +
-      `&order=updated_at.asc` +
+      `&revision=gt.${since}` +
+      `&order=revision.asc` +
       `&limit=${SupabaseConfig.pageSize}` +
       `&offset=${offset}`;
     const page = await restGet<T>(table, q);
@@ -182,18 +185,20 @@ async function syncSongs(): Promise<void> {
   const rows = await fetchChanged<SongRow>(
     "songs",
     since,
-    "id,hymn_number,title,language,author,stanzas,chorus,is_published,deleted,updated_at"
+    "id,hymn_number,title,language,author,stanzas,chorus,is_published,deleted,updated_at,revision"
   );
   if (!rows || !rows.length) return;
 
   const tombstones = rows.filter((r) => r.deleted).map((r) => r.id);
   const live = rows.filter((r) => !r.deleted).map(toRawSong);
 
-  if (live.length) await upsertSongs(live);
+  if (live.length) {
+    const revisions = Object.fromEntries(rows.filter((r) => !r.deleted).map((r) => [r.id, r.revision]));
+    await upsertSongs(live, { source: "server", revisions });
+  }
   await deleteByIds("songs", tombstones);
 
-  const maxUpdatedAt = rows[rows.length - 1].updated_at;
-  await recordSync("songs", maxUpdatedAt);
+  await recordSync("songs", rows[rows.length - 1].revision);
 }
 
 async function syncStudies(): Promise<void> {
@@ -201,18 +206,20 @@ async function syncStudies(): Promise<void> {
   const rows = await fetchChanged<StudyRow>(
     "studies",
     since,
-    "id,category,title,subtitle,content,author,is_featured,is_published,deleted,updated_at"
+    "id,category,title,subtitle,content,author,is_featured,is_published,deleted,updated_at,revision"
   );
   if (!rows || !rows.length) return;
 
   const tombstones = rows.filter((r) => r.deleted).map((r) => r.id);
   const live = rows.filter((r) => !r.deleted).map(toRawStudy);
 
-  if (live.length) await upsertStudies(live);
+  if (live.length) {
+    const revisions = Object.fromEntries(rows.filter((r) => !r.deleted).map((r) => [r.id, r.revision]));
+    await upsertStudies(live, { source: "server", revisions });
+  }
   await deleteByIds("studies", tombstones);
 
-  const maxUpdatedAt = rows[rows.length - 1].updated_at;
-  await recordSync("studies", maxUpdatedAt);
+  await recordSync("studies", rows[rows.length - 1].revision);
 }
 
 /**

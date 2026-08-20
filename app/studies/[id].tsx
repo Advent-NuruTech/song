@@ -596,10 +596,11 @@ export default function StudyDetailScreen() {
           {
             key: "share",
             label: "Share full study",
-            hint: "Send the whole reading",
+            hint: "Full text with read more link",
             icon: Share2,
             onPress: () =>
               void shareStudy({
+                id: study.id,
                 title: study.title,
                 subtitle: study.subtitle,
                 category: study.category,
@@ -617,13 +618,16 @@ export default function StudyDetailScreen() {
           {
             key: "recommend",
             label: "Recommend this study",
-            hint: "Share title only",
+            hint: "Preview + link to read more",
             icon: Send,
             onPress: () =>
               void shareStudyLink({
+                id: study.id,
                 title: study.title,
+                subtitle: study.subtitle,
                 category: study.category,
                 author: study.author,
+                content: study.content,
               }),
           },
         ]}

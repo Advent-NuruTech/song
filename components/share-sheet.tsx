@@ -4,7 +4,9 @@ import {
   Animated,
   Easing,
   Modal,
+  Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -98,7 +100,11 @@ export function ShareSheet({
             </Text>
           ) : null}
 
-          <View style={styles.options}>
+          <ScrollView
+            style={styles.optionsScroll}
+            contentContainerStyle={styles.options}
+            showsVerticalScrollIndicator={false}
+          >
             {options.map((option) => {
               const Icon = option.icon;
               return (
@@ -146,7 +152,7 @@ export function ShareSheet({
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           <Pressable
             onPress={onClose}
@@ -191,7 +197,11 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: "800", textAlign: "center" },
   subtitle: { textAlign: "center", marginTop: 2, fontWeight: "500" },
-  options: { marginTop: 18, gap: 10 },
+  optionsScroll: {
+    marginTop: 18,
+    maxHeight: Platform.OS === "ios" ? 380 : 360,
+  },
+  options: { gap: 10 },
   option: {
     flexDirection: "row",
     alignItems: "center",

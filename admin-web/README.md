@@ -20,9 +20,9 @@ mobile app ──pulls published rows────┘  (src/content/supabase.ts �
 ## 1. Set up Supabase (once)
 
 1. Create a project at [supabase.com](https://supabase.com) (or use the existing one).
-2. Open **SQL Editor** and run [`../supabase/schema.sql`](../supabase/schema.sql).
-   This creates the `songs`, `studies`, `study_categories`, and `admins` tables,
-   the Row-Level Security policies, and seeds default categories.
+2. Apply the ordered files in [`../supabase/migrations`](../supabase/migrations)
+   as documented in [`../supabase/MIGRATIONS.md`](../supabase/MIGRATIONS.md).
+   Do not run `schema.sql`; it is now only a short migration entry point.
 3. Get your keys from **Project Settings → API**:
    - `Project URL` and `anon public` key → used by the app + dashboard (public).
    - `service_role` key → used **only** by the import script (keep secret).
@@ -50,7 +50,8 @@ npm run dev          # http://localhost:3000
    select id, email from auth.users where email = 'you@example.com'
    on conflict (user_id) do nothing;
    ```
-   (Only admins can write content; everyone else is read-only via RLS.)
+   Existing legacy admins are migrated to `super_admin`. Future access and role
+   assignments are managed from **Users & roles** in the dashboard.
 3. Sign in. You can now create/edit/publish songs, studies, and categories.
 
 > Tip: in **Authentication → Providers → Email**, turn **off** "Confirm email"
@@ -82,10 +83,30 @@ Deploy `admin-web/` to [Vercel](https://vercel.com):
 - Add the three env vars from `.env.local` in the Vercel dashboard.
 - `npm run build` is the build command (default).
 
+After deployment, replace `YOUR_DOMAIN` with the domain Vercel gives you:
+
+- Privacy Policy: `https://YOUR_DOMAIN/privacy`
+- Terms of Service: `https://YOUR_DOMAIN/terms`
+- Account deletion: `https://YOUR_DOMAIN/account-deletion`
+
+Use the Privacy Policy URL in the Google Play privacy-policy field and the
+account-deletion URL in the Data safety account-deletion field. Keep these pages
+public; they do not require sign-in.
+
 ## Security notes
 
 - The **service_role** key bypasses RLS — never expose it in the browser, the
   mobile app, or any `NEXT_PUBLIC_*` variable. It's only for `scripts/`.
 - `.env` / `.env.local` are gitignored. Rotate keys if they were ever committed.
-- Content security relies on RLS: anon can read only published rows + tombstones;
-  writes require an `admins` row.
+- Content security relies on RLS: anonymous clients can read only published rows
+  and tombstones; writes require the relevant role permission.
+- Role assignment uses the protected `set_user_roles` database function, records
+  an audit event, and supports multiple roles per account.
+
+## Google Play account deletion
+
+Deploy this dashboard and give Play Console the public URL
+`https://YOUR_DOMAIN/account-deletion`. The mobile account screen also
+contains **Request account deletion**. A trusted administrator or server job must
+process pending rows in `account_deletion_requests` and remove the corresponding
+Supabase Auth user and associated personal data.
