@@ -8,6 +8,9 @@ type AuthValue = {
   profile: Profile | null; roles: string[]; permissions: string[];
   signIn(email: string, password: string): Promise<void>;
   signUp(email: string, password: string, displayName: string): Promise<boolean>;
+  updateDisplayName(displayName: string): Promise<void>;
+  updateEmail(email: string): Promise<boolean>;
+  updatePassword(password: string): Promise<void>;
   signOut(): Promise<void>; refreshAccess(): Promise<void>;
 };
 
@@ -46,6 +49,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async signUp(email, password, displayName) {
       const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { data: { display_name: displayName.trim() } } });
       if (error) throw error; return !data.session;
+    },
+    async updateDisplayName(displayName) {
+      const name = displayName.trim();
+      if (!session?.user.id) throw new Error("Sign in to update your profile.");
+      if (name.length < 2) throw new Error("Name must contain at least 2 characters.");
+      const { error } = await supabase.from("profiles").update({ display_name: name }).eq("id", session.user.id);
+      if (error) throw error;
+      const { error: metadataError } = await supabase.auth.updateUser({ data: { display_name: name } });
+      if (metadataError) throw metadataError;
+      await refreshAccess();
+    },
+    async updateEmail(email) {
+      const nextEmail = email.trim().toLowerCase();
+      const { data, error } = await supabase.auth.updateUser({ email: nextEmail });
+      if (error) throw error;
+      return data.user?.email !== nextEmail;
+    },
+    async updatePassword(password) {
+      const { error } = await supabase.auth.updateUser({ password });
+      if (error) throw error;
     },
     async signOut() { const { error } = await supabase.auth.signOut(); if (error) throw error; },
     refreshAccess,

@@ -117,18 +117,6 @@ export default function SettingsScreen() {
       </View>
 
       {/* Reset Settings */}
-      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <Pressable style={styles.row} onPress={() => router.push("/account")}>
-          <MaterialIcons name="account-circle" size={24} color={colors.tint} />
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.label, { fontSize: size(16), color: colors.text, fontFamily }]}>Account &amp; access</Text>
-            <Text style={{ color: colors.mutedText, fontSize: size(12), fontFamily }}>Sign in, sign up, and view your roles</Text>
-          </View>
-          <MaterialIcons name="chevron-right" size={24} color={colors.text} />
-        </Pressable>
-      </View>
-
-      {/* Reset Settings */}
       <View
         style={[
           styles.card,

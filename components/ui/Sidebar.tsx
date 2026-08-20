@@ -21,6 +21,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useAuth } from "@/src/auth/AuthContext";
 
 const PANEL_WIDTH = 286;
 
@@ -94,6 +95,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const auth = useAuth();
 
   const [open, setOpen] = useState(false);
 
@@ -301,6 +303,47 @@ export default function Sidebar() {
               );
             })}
           </ScrollView>
+
+          <View style={[styles.accountDivider, { backgroundColor: colors.border }]} />
+          <Pressable
+            accessibilityLabel={auth.user ? "Open your account" : "Login or create an account"}
+            onPress={() => {
+              setOpen(false);
+              if (!pathname.startsWith("/account")) router.replace("/account" as never);
+            }}
+            android_ripple={{ color: "#d1d5db" }}
+            style={[
+              styles.navItem,
+              styles.accountItem,
+              pathname.startsWith("/account") && {
+                backgroundColor: darkMode
+                  ? "rgba(56,189,248,0.12)"
+                  : "rgba(11,74,166,0.08)",
+              },
+            ]}
+          >
+            <Ionicons
+              name={auth.user ? "person-circle" : "log-in-outline"}
+              size={size(21)}
+              color={pathname.startsWith("/account") ? colors.tint : colors.mutedText}
+            />
+            <Text
+              style={[
+                styles.navLabel,
+                {
+                  color: pathname.startsWith("/account") ? colors.tint : colors.text,
+                  fontFamily,
+                  fontSize: size(15),
+                  fontWeight: pathname.startsWith("/account") ? "700" : "600",
+                },
+              ]}
+            >
+              {auth.user ? "Account" : "Login"}
+            </Text>
+            {pathname.startsWith("/account") && (
+              <View style={[styles.activeBar, { backgroundColor: colors.tint }]} />
+            )}
+          </Pressable>
         </Animated.View>
       </View>
     </>
@@ -397,6 +440,15 @@ const styles = StyleSheet.create({
   },
   navContent: {
     gap: 4,
+  },
+  accountDivider: {
+    height: 1,
+    marginTop: 12,
+    marginBottom: 12,
+    opacity: 0.6,
+  },
+  accountItem: {
+    flexShrink: 0,
   },
   navItem: {
     flexDirection: "row",

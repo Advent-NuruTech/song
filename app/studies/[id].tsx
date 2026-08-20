@@ -1,8 +1,9 @@
-import { Link, Stack, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Copy, Send, Share2 } from "lucide-react-native";
+import { Link, Stack, router, useLocalSearchParams } from "expo-router";
+import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2, Trash2 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,
+  Alert,
   Linking,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -12,6 +13,7 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -20,6 +22,7 @@ import { ShareSheet } from "@/components/share-sheet";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useAuth } from "@/src/auth/AuthContext";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   copyStudy,
@@ -28,6 +31,22 @@ import {
   stripStudyMarkup,
 } from "@/src/services/shareService";
 import { Study, getCategoryColor, getStudyById } from "@/src/services/studiesService";
+import {
+  StudyEngagement,
+  addStudyComment,
+  deleteStudyComment,
+  getStudyEngagement,
+  recordStudyShare,
+  toggleStudyLike,
+} from "@/src/services/studyEngagementService";
+
+const EMPTY_ENGAGEMENT: StudyEngagement = {
+  likeCount: 0,
+  shareCount: 0,
+  commentCount: 0,
+  likedByMe: false,
+  comments: [],
+};
 
 type InlineToken = {
   text: string;
@@ -294,13 +313,26 @@ export default function StudyDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const { reportScroll } = useQuickFooter();
+  const auth = useAuth();
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
   const [showHeader, setShowHeader] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
   const [selectionOpen, setSelectionOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [engagement, setEngagement] = useState<StudyEngagement>(EMPTY_ENGAGEMENT);
+  const [comment, setComment] = useState("");
+  const [engagementBusy, setEngagementBusy] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const loadEngagement = useCallback(async () => {
+    if (!id) return;
+    try {
+      setEngagement(await getStudyEngagement(id));
+    } catch (error) {
+      console.warn("Failed to load study engagement:", error);
+    }
+  }, [id]);
 
   const handleCopyStudy = useCallback(async () => {
     if (!study) return;
@@ -331,6 +363,77 @@ export default function StudyDetailScreen() {
       isMounted = false;
     };
   }, [id]);
+
+  useEffect(() => {
+    void loadEngagement();
+  }, [auth.user?.id, loadEngagement]);
+
+  const openAccount = (reason: string) => Alert.alert(
+    "Join the conversation",
+    reason,
+    [
+      { text: "Not now", style: "cancel" },
+      { text: "Sign in", onPress: () => router.push("/account") },
+    ]
+  );
+
+  const handleLike = async () => {
+    if (!id) return;
+    if (!auth.user) return openAccount("Sign in or create a free account to like this study.");
+    setEngagementBusy(true);
+    try {
+      const result = await toggleStudyLike(id);
+      setEngagement((current) => ({ ...current, likedByMe: result.liked, likeCount: Number(result.likeCount) }));
+    } catch (error) {
+      Alert.alert("Couldn’t update like", (error as Error).message);
+    } finally {
+      setEngagementBusy(false);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!id) return;
+    if (!auth.user) return openAccount("Sign in or create a free account to share your thoughts.");
+    const body = comment.trim();
+    if (!body) return;
+    if (body.length > 2000) return Alert.alert("Comment is too long", "Keep your comment under 2,000 characters.");
+    setEngagementBusy(true);
+    try {
+      await addStudyComment(id, body);
+      setComment("");
+      await loadEngagement();
+      setToast("Comment posted");
+    } catch (error) {
+      Alert.alert("Couldn’t post comment", (error as Error).message);
+    } finally {
+      setEngagementBusy(false);
+    }
+  };
+
+  const handleDeleteComment = (commentId: string) => Alert.alert(
+    "Delete comment?",
+    "This removes your comment from the conversation.",
+    [
+      { text: "Cancel", style: "cancel" },
+      { text: "Delete", style: "destructive", onPress: async () => {
+        try { await deleteStudyComment(commentId); await loadEngagement(); }
+        catch (error) { Alert.alert("Couldn’t delete comment", (error as Error).message); }
+      } },
+    ]
+  );
+
+  const handleTrackedShare = async (kind: "full" | "recommend") => {
+    if (!study) return;
+    const payload = { id: study.id, title: study.title, subtitle: study.subtitle, category: study.category, author: study.author, content: study.content };
+    const shared = kind === "full" ? await shareStudy(payload) : await shareStudyLink(payload);
+    if (!shared) return;
+    try {
+      const total = await recordStudyShare(study.id);
+      setEngagement((current) => ({ ...current, shareCount: total || current.shareCount + 1 }));
+    } catch (error) {
+      console.warn("Share completed but its count could not be updated:", error);
+    }
+  };
 
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
@@ -514,6 +617,82 @@ export default function StudyDetailScreen() {
         <View style={styles.content}>
           {renderStudyContent(study.content, colors, size, fontFamily)}
 
+          <View style={[styles.engagementCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+            <Text style={[styles.engagementTitle, { color: colors.text, fontFamily, fontSize: size(20) }]}>Continue the conversation</Text>
+            <Text style={[styles.engagementSubtitle, { color: colors.mutedText, fontFamily, fontSize: size(13) }]}>Let the community know what spoke to you.</Text>
+
+            <View style={[styles.actionBar, { borderColor: colors.border }]}>
+              <Pressable disabled={engagementBusy} onPress={() => void handleLike()} style={styles.engagementAction} accessibilityLabel={engagement.likedByMe ? "Unlike this study" : "Like this study"}>
+                <Heart size={size(21)} color={engagement.likedByMe ? "#E5484D" : colors.mutedText} fill={engagement.likedByMe ? "#E5484D" : "transparent"} />
+                <Text style={[styles.actionCount, { color: engagement.likedByMe ? "#E5484D" : colors.text, fontFamily }]}>{engagement.likeCount.toLocaleString()}</Text>
+                <Text style={[styles.actionLabel, { color: colors.mutedText, fontFamily }]}>Likes</Text>
+              </Pressable>
+              <View style={[styles.actionDivider, { backgroundColor: colors.border }]} />
+              <View style={styles.engagementAction}>
+                <MessageCircle size={size(21)} color={colors.mutedText} />
+                <Text style={[styles.actionCount, { color: colors.text, fontFamily }]}>{engagement.commentCount.toLocaleString()}</Text>
+                <Text style={[styles.actionLabel, { color: colors.mutedText, fontFamily }]}>Comments</Text>
+              </View>
+              <View style={[styles.actionDivider, { backgroundColor: colors.border }]} />
+              <Pressable onPress={() => setShareOpen(true)} style={styles.engagementAction} accessibilityLabel="Share this study">
+                <Share2 size={size(21)} color={colors.mutedText} />
+                <Text style={[styles.actionCount, { color: colors.text, fontFamily }]}>{engagement.shareCount.toLocaleString()}</Text>
+                <Text style={[styles.actionLabel, { color: colors.mutedText, fontFamily }]}>Shares</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.commentsHeader}>
+              <Text style={[styles.commentsTitle, { color: colors.text, fontFamily, fontSize: size(17) }]}>Reader comments</Text>
+              <Text style={[styles.commentsCount, { color: colors.mutedText, fontFamily }]}>{engagement.commentCount}</Text>
+            </View>
+
+            {auth.user ? (
+              <View style={[styles.composer, { borderColor: colors.border, backgroundColor: colors.background }]}>
+                <View style={[styles.commentAvatar, { backgroundColor: `${colors.tint}20` }]}>
+                  <Text style={[styles.commentAvatarText, { color: colors.tint }]}>{(auth.profile?.display_name || auth.user.email || "A").trim().charAt(0).toUpperCase()}</Text>
+                </View>
+                <View style={styles.composerBody}>
+                  <TextInput
+                    value={comment}
+                    onChangeText={setComment}
+                    placeholder="Share a thoughtful response…"
+                    placeholderTextColor={colors.subtleText}
+                    multiline
+                    maxLength={2000}
+                    style={[styles.commentInput, { color: colors.text, fontFamily, fontSize: size(14) }]}
+                  />
+                  <View style={styles.composerFooter}>
+                    <Text style={[styles.characterCount, { color: colors.subtleText, fontFamily }]}>{comment.length}/2000</Text>
+                    <Pressable disabled={engagementBusy || !comment.trim()} onPress={() => void handleAddComment()} style={[styles.postButton, { backgroundColor: colors.tint, opacity: engagementBusy || !comment.trim() ? 0.5 : 1 }]}>
+                      <Send size={15} color={darkMode ? "#0B1220" : "#FFFFFF"} />
+                      <Text style={[styles.postButtonText, { color: darkMode ? "#0B1220" : "#FFFFFF", fontFamily }]}>Post</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              </View>
+            ) : (
+              <Pressable onPress={() => openAccount("Sign in or create a free account to share your thoughts.")} style={[styles.signInPrompt, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <MessageCircle size={20} color={colors.tint} />
+                <View style={{ flex: 1 }}><Text style={[styles.signInPromptTitle, { color: colors.text, fontFamily }]}>Add to the discussion</Text><Text style={[styles.signInPromptCopy, { color: colors.mutedText, fontFamily }]}>Sign in to post a comment</Text></View>
+                <Text style={[styles.signInPromptAction, { color: colors.tint, fontFamily }]}>Sign in</Text>
+              </Pressable>
+            )}
+
+            <View style={styles.commentList}>
+              {engagement.comments.map((item) => (
+                <View key={item.id} style={[styles.commentRow, { borderTopColor: colors.border }]}>
+                  <View style={[styles.commentAvatar, { backgroundColor: `${colors.tint}18` }]}><Text style={[styles.commentAvatarText, { color: colors.tint }]}>{item.authorName.charAt(0).toUpperCase()}</Text></View>
+                  <View style={styles.commentBody}>
+                    <View style={styles.commentMeta}><Text style={[styles.commentAuthor, { color: colors.text, fontFamily }]}>{item.authorName}</Text><Text style={[styles.commentDate, { color: colors.subtleText, fontFamily }]}>{new Date(item.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: new Date(item.createdAt).getFullYear() === new Date().getFullYear() ? undefined : "numeric" })}</Text></View>
+                    <Text style={[styles.commentText, { color: colors.text, fontFamily, fontSize: size(14) }]}>{item.body}</Text>
+                  </View>
+                  {auth.user?.id === item.userId ? <Pressable accessibilityLabel="Delete your comment" hitSlop={10} onPress={() => handleDeleteComment(item.id)} style={styles.deleteComment}><Trash2 size={16} color={colors.mutedText} /></Pressable> : null}
+                </View>
+              ))}
+              {!engagement.comments.length ? <Text style={[styles.emptyComments, { color: colors.mutedText, fontFamily }]}>No comments yet. Start a thoughtful conversation.</Text> : null}
+            </View>
+          </View>
+
           <View style={[styles.footerMetadata, { borderTopColor: colors.border }]}> 
             {study.author ? (
               <Text
@@ -608,15 +787,7 @@ export default function StudyDetailScreen() {
             label: "Share full study",
             hint: "Full text with read more link",
             icon: Share2,
-            onPress: () =>
-              void shareStudy({
-                id: study.id,
-                title: study.title,
-                subtitle: study.subtitle,
-                category: study.category,
-                author: study.author,
-                content: study.content,
-              }),
+            onPress: () => void handleTrackedShare("full"),
           },
           {
             key: "copy",
@@ -630,15 +801,7 @@ export default function StudyDetailScreen() {
             label: "Recommend this study",
             hint: "Preview + link to read more",
             icon: Send,
-            onPress: () =>
-              void shareStudyLink({
-                id: study.id,
-                title: study.title,
-                subtitle: study.subtitle,
-                category: study.category,
-                author: study.author,
-                content: study.content,
-              }),
+            onPress: () => void handleTrackedShare("recommend"),
           },
         ]}
       />
@@ -789,6 +952,59 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
     fontWeight: "700",
   },
+  engagementCard: {
+    marginTop: 42,
+    borderWidth: 1,
+    borderRadius: 22,
+    padding: 20,
+  },
+  engagementTitle: { fontWeight: "800" },
+  engagementSubtitle: { marginTop: 5, lineHeight: 19 },
+  actionBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderRadius: 16,
+    marginTop: 18,
+    paddingVertical: 13,
+  },
+  engagementAction: {
+    flex: 1,
+    minHeight: 34,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 5,
+  },
+  actionCount: { fontSize: 14, fontWeight: "800" },
+  actionLabel: { width: "100%", textAlign: "center", fontSize: 10, fontWeight: "600" },
+  actionDivider: { width: 1, height: 36 },
+  commentsHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 25, marginBottom: 12 },
+  commentsTitle: { fontWeight: "800" },
+  commentsCount: { fontSize: 12, fontWeight: "800" },
+  composer: { flexDirection: "row", alignItems: "flex-start", gap: 11, borderWidth: 1, borderRadius: 16, padding: 12 },
+  composerBody: { flex: 1 },
+  commentAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },
+  commentAvatarText: { fontSize: 13, fontWeight: "900" },
+  commentInput: { minHeight: 54, maxHeight: 140, paddingTop: 1, textAlignVertical: "top", lineHeight: 20 },
+  composerFooter: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 7 },
+  characterCount: { fontSize: 10 },
+  postButton: { minHeight: 34, paddingHorizontal: 14, borderRadius: 10, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  postButtonText: { fontSize: 12, fontWeight: "900" },
+  signInPrompt: { flexDirection: "row", alignItems: "center", gap: 11, borderWidth: 1, borderRadius: 15, padding: 14 },
+  signInPromptTitle: { fontSize: 13, fontWeight: "800" },
+  signInPromptCopy: { fontSize: 11, marginTop: 2 },
+  signInPromptAction: { fontSize: 12, fontWeight: "900" },
+  commentList: { marginTop: 8 },
+  commentRow: { flexDirection: "row", alignItems: "flex-start", gap: 11, borderTopWidth: 1, paddingVertical: 16 },
+  commentBody: { flex: 1 },
+  commentMeta: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 },
+  commentAuthor: { fontSize: 13, fontWeight: "800" },
+  commentDate: { fontSize: 10 },
+  commentText: { lineHeight: 21, marginTop: 5 },
+  deleteComment: { padding: 4 },
+  emptyComments: { textAlign: "center", fontSize: 12, lineHeight: 18, paddingVertical: 20 },
   footerMetadata: {
     marginTop: 40,
     paddingTop: 20,
@@ -834,5 +1050,3 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 });
-
-

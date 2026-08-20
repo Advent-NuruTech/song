@@ -31,9 +31,11 @@ function prettyLanguage(language?: string | null) {
 /** Open the OS share sheet with the given message. */
 export async function shareText(message: string, title: string) {
   try {
-    await Share.share({ title, message: message.trim() });
+    const result = await Share.share({ title, message: message.trim() });
+    return result.action === Share.sharedAction;
   } catch (error) {
     console.error("Share failed:", error);
+    return false;
   }
 }
 
@@ -328,7 +330,7 @@ export function formatStudyText(study: ShareableStudy, withFooter = true): strin
 }
 
 export async function shareStudy(study: ShareableStudy) {
-  await shareText(formatStudyText(study), `${study.title} — ${APP_NAME}`);
+  return shareText(formatStudyText(study), `${study.title} — ${APP_NAME}`);
 }
 
 export async function copyStudy(study: ShareableStudy): Promise<boolean> {
@@ -368,7 +370,7 @@ export async function shareStudyLink(study: {
   parts.push(buildFooter());
 
   const message = tidy(parts.join("\n"));
-  await shareText(message, `${APP_NAME} Study`);
+  return shareText(message, `${APP_NAME} Study`);
 }
 
 // ---------------------------------------------------------------------------
