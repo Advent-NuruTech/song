@@ -25,7 +25,7 @@ mobile app ──pulls published rows────┘  (src/content/supabase.ts �
    Do not run `schema.sql`; it is now only a short migration entry point.
 3. Get your keys from **Project Settings → API**:
    - `Project URL` and `anon public` key → used by the app + dashboard (public).
-   - `service_role` key → used **only** by the import script (keep secret).
+   - `service_role` key → used **only** by trusted server code (keep secret).
 
 ## 2. Configure environment
 
@@ -33,7 +33,7 @@ mobile app ──pulls published rows────┘  (src/content/supabase.ts �
 cd admin-web
 cp .env.local.example .env.local
 # fill in NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
-# and SUPABASE_SERVICE_ROLE_KEY
+# SUPABASE_SERVICE_ROLE_KEY, and ADMIN_SIGNUP_CODE
 ```
 
 ## 3. Run the dashboard
@@ -44,15 +44,10 @@ npm run dev          # http://localhost:3000
 ```
 
 1. Go to `/login`, **Sign up** with your email + password.
-2. Make yourself an admin — in the Supabase **SQL Editor** run:
-   ```sql
-   insert into public.admins (user_id, email)
-   select id, email from auth.users where email = 'you@example.com'
-   on conflict (user_id) do nothing;
-   ```
-   Existing legacy admins are migrated to `super_admin`. Future access and role
-   assignments are managed from **Users & roles** in the dashboard.
-3. Sign in. You can now create/edit/publish songs, studies, and categories.
+2. Enter the configured `ADMIN_SIGNUP_CODE`. The protected server endpoint
+   provisions the profile and administrator role atomically.
+3. Confirm the email if email confirmation is enabled, then sign in. Future
+   role assignments are managed from **Users & roles** in the dashboard.
 
 > Tip: in **Authentication → Providers → Email**, turn **off** "Confirm email"
 > for the fastest internal setup, or leave it on and confirm via the email link.
@@ -80,7 +75,8 @@ pulls published changes into SQLite. Use only the **anon** key in the app.
 Deploy `admin-web/` to [Vercel](https://vercel.com):
 
 - Set the project root to `admin-web`.
-- Add the three env vars from `.env.local` in the Vercel dashboard.
+- Add `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+  `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_SIGNUP_CODE` in the Vercel dashboard.
 - `npm run build` is the build command (default).
 
 After deployment, replace `YOUR_DOMAIN` with the domain Vercel gives you:
@@ -96,7 +92,8 @@ public; they do not require sign-in.
 ## Security notes
 
 - The **service_role** key bypasses RLS — never expose it in the browser, the
-  mobile app, or any `NEXT_PUBLIC_*` variable. It's only for `scripts/`.
+  mobile app, or any `NEXT_PUBLIC_*` variable. It is only for trusted server
+  routes and scripts.
 - `.env` / `.env.local` are gitignored. Rotate keys if they were ever committed.
 - Content security relies on RLS: anonymous clients can read only published rows
   and tombstones; writes require the relevant role permission.

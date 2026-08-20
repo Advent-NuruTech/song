@@ -90,29 +90,22 @@ export async function POST(request: Request) {
     );
   }
 
-  // The auth trigger normally creates the profile and Reader role. These
-  // service-role writes make the protected admin-signup contract explicit and
-  // also repair accounts created before this endpoint granted admin access.
-  const { error: profileError } = await adminClient.from("profiles").upsert(
-    { id: userId, email },
-    { onConflict: "id" }
-  );
-  if (profileError) {
-    console.error("Failed to provision admin profile", profileError);
+  // Provision the profile and both roles in one database transaction. If a new
+  // Auth account cannot be provisioned, remove it so a retry is not mistaken
+  // for an existing account and the user is never left half-created.
+  const { error: provisionError } = await adminClient.rpc("provision_admin_user", {
+    target_user: userId,
+  });
+  if (provisionError) {
+    console.error("Failed to provision admin account", provisionError);
+    if (!existingAccount) {
+      const { error: cleanupError } = await adminClient.auth.admin.deleteUser(userId);
+      if (cleanupError) {
+        console.error("Failed to clean up unprovisioned Auth account", cleanupError);
+      }
+    }
     return NextResponse.json(
-      { error: "Account created, but its admin profile could not be provisioned." },
-      { status: 500 }
-    );
-  }
-
-  const { error: roleError } = await adminClient.from("app_user_roles").upsert(
-    { user_id: userId, role_name: "super_admin", granted_by: userId },
-    { onConflict: "user_id,role_name" }
-  );
-  if (roleError) {
-    console.error("Failed to grant super-admin role", roleError);
-    return NextResponse.json(
-      { error: "Account created, but admin access could not be granted." },
+      { error: "Admin account could not be provisioned. Please try again." },
       { status: 500 }
     );
   }
