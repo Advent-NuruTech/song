@@ -9,6 +9,7 @@ Run migrations in numeric order. For a new project use:
 5. `005_api_role_privileges.sql`
 6. `006_api_privileges_and_admin_provisioning.sql`
 7. `007_song_catalog_privileges.sql`
+8. `008_media_module.sql`
 
 With the Supabase CLI, link the production project once and run `supabase db push`.
 In the SQL Editor, open and run each file in order. Never put a service-role key

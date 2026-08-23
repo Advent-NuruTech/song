@@ -1,4 +1,4 @@
-import { Check, Copy, Share2, X } from "lucide-react-native";
+import { Check, Copy, Share2, X } from "@/components/icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,

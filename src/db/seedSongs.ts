@@ -1,5 +1,4 @@
 import { db } from "./database";
-import { loadJsonFromContext } from "./contentLoader";
 import { hashString, hashToHex, startHash, updateHash } from "./hash";
 
 type RawSong = {
@@ -23,8 +22,9 @@ type NormalizedSong = {
   contentHash: string;
 };
 
-const songsContext = require.context("../../content/songs", true, /\.json$/);
-const songFiles = loadJsonFromContext<RawSong>(songsContext);
+// One generated module keeps Metro from transforming more than 1,500 tiny JSON
+// modules whenever Expo Go requests its first development bundle.
+const songFiles = require("../../content/bundles/songs.json") as RawSong[];
 
 export type { RawSong };
 

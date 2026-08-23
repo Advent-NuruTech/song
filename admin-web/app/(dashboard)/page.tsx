@@ -10,6 +10,7 @@ type Counts = {
   studies: number;
   publishedStudies: number;
   categories: number;
+  media: number;
 };
 
 export default function DashboardHome() {
@@ -26,6 +27,7 @@ export default function DashboardHome() {
       supabase.from("studies").select("*", head).eq("deleted", false),
       supabase.from("studies").select("*", head).eq("deleted", false).eq("is_published", true),
       supabase.from("study_categories").select("*", head),
+      supabase.from("media").select("*", head).eq("deleted", false),
     ])
       .then((res) => {
         const err = res.find((r) => r.error)?.error;
@@ -36,6 +38,7 @@ export default function DashboardHome() {
           studies: res[2].count ?? 0,
           publishedStudies: res[3].count ?? 0,
           categories: res[4].count ?? 0,
+          media: res[5].count ?? 0,
         });
       })
       .catch((e) => setError((e as Error).message));
@@ -58,6 +61,10 @@ export default function DashboardHome() {
           <div className="meta" style={{ color: "var(--muted)", fontSize: 12, marginTop: 4 }}>
             {counts ? `${counts.songs} total` : ""}
           </div>
+        </div>
+        <div className="card stat">
+          <div className="num">{counts ? counts.media : "—"}</div>
+          <div className="label">Media items</div>
         </div>
         <div className="card stat">
           <div className="num">{counts ? counts.publishedStudies : "—"}</div>
@@ -84,6 +91,9 @@ export default function DashboardHome() {
         </Link>
         <Link className="btn" href="/studies">
           Manage studies
+        </Link>
+        <Link className="btn" href="/media">
+          Manage media
         </Link>
       </div>
     </div>

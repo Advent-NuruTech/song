@@ -1,5 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { Search } from "lucide-react-native";
+import { Search } from "@/components/icons";
 import React, {
   memo,
   useCallback,

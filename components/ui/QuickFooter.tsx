@@ -64,12 +64,12 @@ const FOOTER_TABS: FooterTab[] = [
       pathname.startsWith("/bible"),
   },
   {
-    key: "search",
-    label: "Search",
-    icon: "search-outline",
-    path: "/search",
+    key: "media",
+    label: "Media",
+    icon: "play-circle-outline",
+    path: "/media",
     match: (pathname) =>
-      pathname.startsWith("/search"),
+      pathname.startsWith("/media"),
   },
   {
     key: "settings",

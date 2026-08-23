@@ -1,5 +1,5 @@
 import { Link, Stack } from "expo-router";
-import { Search, X } from "lucide-react-native";
+import { Search, X } from "@/components/icons";
 import { useEffect, useRef, useState } from "react";
 import {
     ActivityIndicator,

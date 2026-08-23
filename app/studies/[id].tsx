@@ -1,5 +1,5 @@
 import { Link, Stack, router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2, Trash2 } from "lucide-react-native";
+import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2, Trash2 } from "@/components/icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   Animated,

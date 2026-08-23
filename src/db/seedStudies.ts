@@ -1,5 +1,4 @@
 import { db } from "./database";
-import { loadJsonFromContext } from "./contentLoader";
 import { hashString, hashToHex, startHash, updateHash } from "./hash";
 
 type RawStudy = {
@@ -24,8 +23,7 @@ type NormalizedStudy = {
   contentHash: string;
 };
 
-const studiesContext = require.context("../../content/studies", true, /\.json$/);
-const studies = loadJsonFromContext<RawStudy>(studiesContext);
+const studies = require("../../content/bundles/studies.json") as RawStudy[];
 
 export type { RawStudy };
 

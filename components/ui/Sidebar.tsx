@@ -68,6 +68,13 @@ const NAV_ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/bible"),
   },
   {
+    key: "media",
+    label: "Media",
+    icon: "play-circle-outline",
+    path: "/media",
+    match: (p) => p.startsWith("/media"),
+  },
+  {
     key: "search",
     label: "Search",
     icon: "search-outline",

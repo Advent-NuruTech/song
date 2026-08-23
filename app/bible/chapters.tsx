@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-import { ChevronLeft } from "lucide-react-native";
+import { ChevronLeft } from "@/components/icons";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { getBooks } from "@/src/services/bibleService";

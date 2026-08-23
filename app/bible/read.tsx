@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 
-import { ChevronLeft, ChevronRight, Copy, Share2, X } from "lucide-react-native";
+import { ChevronLeft, ChevronRight, Copy, Share2, X } from "@/components/icons";
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";

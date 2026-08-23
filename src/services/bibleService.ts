@@ -5,6 +5,7 @@ import { fetchJson } from "@/src/content/net";
 import type { ProgressFn } from "@/src/content/types";
 import { db } from "@/src/db/database";
 import { bookOrderFor } from "@/src/db/initBible";
+import { bundledBibleLoaders } from "@/src/generated/bibleVersionLoaders";
 
 /**
  * Bible content service.
@@ -53,12 +54,6 @@ const SELECTED_KEY = "@bible/selectedVersion";
 
 // ----- Bundled catalog (lazy: big JSON is only parsed at install time) -----
 
-const versionsCtx = require.context(
-  "../../content/bible/versions",
-  false,
-  /\.json$/
-);
-
 const bundledIndex = require("../../content/bible/index.json") as {
   versions: Omit<BibleVersionMeta, "source">[];
 };
@@ -76,8 +71,7 @@ function bundledCatalog(): BibleVersionMeta[] {
   );
 
   // Every file present is offered, even if not listed in index.json (zero-config).
-  return versionsCtx.keys().map((key) => {
-    const file = key.replace(/^\.\//, "");
+  return Object.keys(bundledBibleLoaders).map((file) => {
     const meta = declared.get(file);
     const id = meta?.id ?? file.replace(/\.json$/i, "");
     return {
@@ -93,8 +87,10 @@ function bundledCatalog(): BibleVersionMeta[] {
   });
 }
 
-function loadBundledVersion(file: string): RawVersionData {
-  const mod = versionsCtx(`./${file}`) as { default?: RawVersionData } | RawVersionData;
+async function loadBundledVersion(file: string): Promise<RawVersionData | null> {
+  const loader = bundledBibleLoaders[file];
+  if (!loader) return null;
+  const mod = (await loader()) as { default?: RawVersionData } | RawVersionData;
   return (mod && typeof mod === "object" && "default" in mod
     ? (mod as { default: RawVersionData }).default
     : mod) as RawVersionData;
@@ -205,7 +201,7 @@ function flattenVerses(versionId: string, data: RawVersionData) {
 
 async function loadVersionData(meta: BibleVersionRow): Promise<RawVersionData | null> {
   if (meta.source === "bundled" && meta.file) {
-    return loadBundledVersion(meta.file);
+    return await loadBundledVersion(meta.file);
   }
   if (meta.source === "remote" && meta.remotePath) {
     const url = shardUrl(meta.remotePath);

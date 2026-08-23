@@ -1,9 +1,10 @@
 import Sidebar from "@/components/ui/Sidebar";
+import QuickFooter from "@/components/ui/QuickFooter";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useEffect, useState } from "react";
 import { AppState, Image, StyleSheet, View } from "react-native";
@@ -20,6 +21,7 @@ import { syncSupabaseContent } from "@/src/content/supabase";
    ================================ */
 function AppLayout() {
   const { darkMode } = useSettings();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     const sync = () => void syncSupabaseContent();
@@ -35,7 +37,7 @@ function AppLayout() {
       <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
         <View style={styles.appShell}>
           <Sidebar />
-          <View style={styles.routeContent}>
+          <View style={[styles.routeContent, { paddingBottom: insets.bottom + 72 }]}>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="account" options={{ headerShown: false }} />
@@ -45,6 +47,7 @@ function AppLayout() {
               />
             </Stack>
           </View>
+          <QuickFooter />
         </View>
         <StatusBar style={darkMode ? "light" : "dark"} />
       </ThemeProvider>
