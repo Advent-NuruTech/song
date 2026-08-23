@@ -1,0 +1,35 @@
+# Dependencies and local Expo state
+node_modules/
+.expo/
+.git/
+
+# Local/native build output. EAS regenerates Android from app.json.
+android/
+ios/
+.kotlin/
+dist/
+dist-verify/
+web-build/
+
+# The separate admin website is not part of the mobile binary.
+admin-web/
+
+# Secrets and local environment files
+.env
+.env.*
+!.env.example
+*.jks
+*.keystore
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Editor, logs, and generated files
+.vscode/
+*.log
+*.tsbuildinfo
+.DS_Store
+app-example/
+allsong701-950.json

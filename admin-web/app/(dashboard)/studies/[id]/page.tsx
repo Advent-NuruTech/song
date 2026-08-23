@@ -5,6 +5,32 @@ import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabaseClient";
 import { makeStudyId } from "@/lib/ids";
 import type { Category, Study } from "@/lib/types";
+import RichTextEditor, {
+  richTextToPlainText,
+  sanitizeRichTextHtml,
+} from "@/components/RichTextEditor";
+
+const cloudinaryCloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+const cloudinaryUploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+
+async function uploadStudyImage(source: File | string) {
+  if (!cloudinaryCloudName || !cloudinaryUploadPreset) {
+    throw new Error("Image storage is not configured.");
+  }
+  const body = new FormData();
+  body.append("file", source);
+  body.append("upload_preset", cloudinaryUploadPreset);
+  body.append("folder", "advent-pro/studies");
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${encodeURIComponent(cloudinaryCloudName)}/image/upload`,
+    { method: "POST", body }
+  );
+  const result = await response.json() as { secure_url?: string; error?: { message?: string } };
+  if (!response.ok || !result.secure_url) {
+    throw new Error(result.error?.message || "Image upload failed.");
+  }
+  return result.secure_url;
+}
 
 export default function StudyEditor() {
   const router = useRouter();
@@ -14,6 +40,7 @@ export default function StudyEditor() {
 
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [editorBusy, setEditorBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -63,11 +90,12 @@ export default function StudyEditor() {
   }, [isNew, rawId]);
 
   const save = async (publish?: boolean) => {
+    if (editorBusy) return;
     setSaving(true);
     setError(null);
     try {
       if (!title.trim()) throw new Error("Title is required.");
-      if (!content.trim()) throw new Error("Content is required.");
+      if (!richTextToPlainText(content).trim()) throw new Error("Content is required.");
 
       const id = isNew ? makeStudyId(category, number) : rawId;
       const willPublish = publish ?? isPublished;
@@ -77,7 +105,7 @@ export default function StudyEditor() {
         category: category.trim(),
         title: title.trim(),
         subtitle: subtitle.trim(),
-        content: content.trim(),
+        content: sanitizeRichTextHtml(content),
         author: author.trim(),
         is_featured: isFeatured,
         is_published: willPublish,
@@ -132,7 +160,7 @@ export default function StudyEditor() {
   return (
     <div style={{ maxWidth: 820 }}>
       <h1>{isNew ? "New study" : `Edit ${rawId}`}</h1>
-      <p className="sub">Content supports Markdown (headings, bold, etc.).</p>
+      <p className="sub">Create a fully formatted document or paste one from Google Docs.</p>
 
       <div className="card">
         <div className="field-row">
@@ -171,12 +199,14 @@ export default function StudyEditor() {
         <label>Author (optional)</label>
         <input value={author} onChange={(e) => setAuthor(e.target.value)} />
 
-        <label>Content (Markdown)</label>
-        <textarea
-          rows={18}
+        <label>Document content</label>
+        <RichTextEditor
           value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder={"# Heading\n\nParagraph text…"}
+          onChange={setContent}
+          placeholder="Start writing your study…"
+          ariaLabel="Study document content"
+          uploadImage={cloudinaryCloudName && cloudinaryUploadPreset ? uploadStudyImage : undefined}
+          onBusyChange={setEditorBusy}
         />
 
         <div className="check">
@@ -208,11 +238,11 @@ export default function StudyEditor() {
         {error && <div className="error">{error}</div>}
 
         <div className="row wrap" style={{ marginTop: 20, gap: 10 }}>
-          <button className="btn" onClick={() => save(false)} disabled={saving}>
+          <button className="btn" onClick={() => save(false)} disabled={saving || editorBusy}>
             Save draft
           </button>
-          <button className="btn primary" onClick={() => save(true)} disabled={saving}>
-            {saving ? "Saving…" : "Save & publish"}
+          <button className="btn primary" onClick={() => save(true)} disabled={saving || editorBusy}>
+            {editorBusy ? "Uploading images…" : saving ? "Saving…" : "Save & publish"}
           </button>
           {!isNew && isPublished && (
             <button className="btn" onClick={unpublish} disabled={saving}>

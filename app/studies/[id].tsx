@@ -20,6 +20,7 @@ import {
 import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
+import { isRichStudyHtml, StudyRichContent } from "@/components/study-rich-content";
 import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/src/auth/AuthContext";
@@ -615,7 +616,16 @@ export default function StudyDetailScreen() {
         scrollEventThrottle={16}
       >
         <View style={styles.content}>
-          {renderStudyContent(study.content, colors, size, fontFamily)}
+          {isRichStudyHtml(study.content) ? (
+            <StudyRichContent
+              html={study.content}
+              colors={colors}
+              size={size}
+              fontFamily={fontFamily}
+            />
+          ) : (
+            renderStudyContent(study.content, colors, size, fontFamily)
+          )}
 
           <View style={[styles.engagementCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.engagementTitle, { color: colors.text, fontFamily, fontSize: size(20) }]}>Continue the conversation</Text>

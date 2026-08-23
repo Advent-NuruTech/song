@@ -1,7 +1,7 @@
 {
   "name": "advent-pro",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "scripts": {
     "start": "expo start",
     "start:phone": "expo start --tunnel --clear",
@@ -10,6 +10,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "build:android:test": "npx eas-cli@latest build --platform android --profile preview",
+    "build:android:play": "npx eas-cli@latest build --platform android --profile production",
     "lint": "expo lint",
     "validate:content": "node ./scripts/validate-content-json.js"
   },

@@ -298,14 +298,30 @@ export type ShareableStudy = {
   content: string;
 };
 
-/** Convert the study's lightweight markup to clean, paste-ready plain text. */
+/** Convert rich HTML or legacy lightweight markup to clean, paste-ready text. */
 export function stripStudyMarkup(content: string): string {
   return content
+    .replace(/<\s*br\s*\/?\s*>/gi, "\n")
+    .replace(/<\s*\/\s*(p|div|h[1-6]|blockquote|pre|figcaption|tr)\s*>/gi, "\n")
+    .replace(/<\s*li\b[^>]*>/gi, "• ")
+    .replace(/<\s*\/\s*li\s*>/gi, "\n")
+    .replace(/<\s*img\b[^>]*\balt=(?:"([^"]*)"|'([^']*)')[^>]*>/gi, (_match, doubleQuoted, singleQuoted) => doubleQuoted || singleQuoted || "")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#(\d+);/g, (_match, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_match, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
     .replace(/\[color=[^\]]+\]([\s\S]*?)\[\/color\]/g, "$1") // color tags
     .replace(/\*\*(.+?)\*\*/g, "$1") // bold
     .replace(/^#{2,3}\s+/gm, "") // heading markers
     .replace(/^\s*[-*]\s+/gm, "• ") // bullets
-    .replace(/^\s*(\d+)\.\s+/gm, "$1. "); // numbered lists
+    .replace(/^\s*(\d+)\.\s+/gm, "$1. ") // numbered lists
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export function formatStudyText(study: ShareableStudy, withFooter = true): string {

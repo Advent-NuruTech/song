@@ -2,7 +2,7 @@
   "expo": {
     "name": "Advent Pro",
     "slug": "advent-pro",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "adventpro",
@@ -13,10 +13,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#03051C",
+        "foregroundImage": "./assets/images/android-icon-foreground-v1.2.png"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.adventpro"
