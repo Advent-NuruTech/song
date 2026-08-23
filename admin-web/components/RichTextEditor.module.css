@@ -17,10 +17,11 @@
   z-index: 5;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px 0;
   min-height: 46px;
   padding: 6px 8px;
-  overflow-x: auto;
+  flex-wrap: wrap;
+  overflow: visible;
   border-bottom: 1px solid var(--border);
   background: #f8fafc;
   scrollbar-width: thin;
@@ -31,14 +32,18 @@
   align-items: center;
   gap: 2px;
   flex: 0 0 auto;
+  min-width: max-content;
+  padding: 0 8px;
+  border-right: 1px solid #cbd5e1;
 }
 
-.divider {
-  width: 1px;
-  height: 24px;
-  margin: 0 5px;
-  background: #cbd5e1;
-  flex: 0 0 auto;
+.group:first-child {
+  padding-left: 0;
+}
+
+.group:last-child {
+  border-right: 0;
+  padding-right: 0;
 }
 
 .toolButton,
@@ -78,16 +83,18 @@
 }
 
 .toolSelect {
-  width: auto;
+  flex: 0 0 auto;
   min-width: 0;
   padding: 0 25px 0 8px;
   cursor: pointer;
   font-size: 13px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
-.blockSelect { max-width: 116px; }
-.fontSelect { width: 112px; }
-.sizeSelect { width: 65px; }
+.blockSelect { width: 124px; }
+.fontSelect { width: 128px; }
+.sizeSelect { width: 80px; }
 
 .colorButton {
   position: relative;
@@ -151,6 +158,10 @@
   margin: 1em 0 0.45em;
 }
 
+.editor h1 { font-size: 32px; }
+.editor h2 { font-size: 26px; }
+.editor h3 { font-size: 21px; }
+
 .editor blockquote {
   margin: 1em 0;
   padding: 0.2em 0 0.2em 1em;
@@ -188,5 +199,25 @@
 .hiddenInput { display: none; }
 
 @media (max-width: 767px) {
+  .toolbar {
+    align-items: stretch;
+    padding: 6px;
+  }
+
+  .group {
+    padding: 0 5px;
+  }
+
+  .blockSelect { width: 112px; }
+  .fontSelect { width: 112px; }
+  .sizeSelect { width: 72px; }
   .editor { min-height: 300px; padding: 24px 18px 40px; }
+}
+
+@media (max-width: 520px) {
+  .toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
 }

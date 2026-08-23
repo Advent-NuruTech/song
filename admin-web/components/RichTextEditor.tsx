@@ -369,17 +369,17 @@ export default function RichTextEditor({
           <button type="button" className={styles.toolButton} title="Undo" aria-label="Undo" onMouseDown={stopMouseDown} onClick={() => command("undo")}>↶</button>
           <button type="button" className={styles.toolButton} title="Redo" aria-label="Redo" onMouseDown={stopMouseDown} onClick={() => command("redo")}>↷</button>
         </div>
-        <span className={styles.divider} />
-        <select className={`${styles.toolSelect} ${styles.blockSelect}`} defaultValue="p" aria-label="Paragraph style" onMouseDown={rememberSelection} onChange={(e) => command("formatBlock", e.target.value)}>
-          <option value="p">Normal text</option><option value="h1">Title</option><option value="h2">Heading 1</option><option value="h3">Heading 2</option><option value="blockquote">Quote</option>
-        </select>
-        <select className={`${styles.toolSelect} ${styles.fontSelect}`} defaultValue="Arial" aria-label="Font family" onMouseDown={rememberSelection} onChange={(e) => command("fontName", e.target.value)}>
-          <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New">Courier New</option>
-        </select>
-        <select className={`${styles.toolSelect} ${styles.sizeSelect}`} defaultValue="3" aria-label="Font size" onMouseDown={rememberSelection} onChange={(e) => command("fontSize", e.target.value)}>
-          <option value="1">10</option><option value="2">13</option><option value="3">16</option><option value="4">18</option><option value="5">24</option><option value="6">32</option><option value="7">48</option>
-        </select>
-        <span className={styles.divider} />
+        <div className={styles.group}>
+          <select className={`${styles.toolSelect} ${styles.blockSelect}`} defaultValue="p" aria-label="Paragraph style" title="Paragraph style" onMouseDown={rememberSelection} onChange={(e) => command("formatBlock", e.target.value)}>
+            <option value="p">Normal text</option><option value="h1">Title</option><option value="h2">Heading 1</option><option value="h3">Heading 2</option><option value="blockquote">Quote</option>
+          </select>
+          <select className={`${styles.toolSelect} ${styles.fontSelect}`} defaultValue="Arial" aria-label="Font family" title="Font family" onMouseDown={rememberSelection} onChange={(e) => command("fontName", e.target.value)}>
+            <option value="Arial">Arial</option><option value="Georgia">Georgia</option><option value="Times New Roman">Times New Roman</option><option value="Verdana">Verdana</option><option value="Tahoma">Tahoma</option><option value="Trebuchet MS">Trebuchet MS</option><option value="Courier New">Courier New</option>
+          </select>
+          <select className={`${styles.toolSelect} ${styles.sizeSelect}`} defaultValue="3" aria-label="Font size" title="Font size" onMouseDown={rememberSelection} onChange={(e) => command("fontSize", e.target.value)}>
+            <option value="1">10</option><option value="2">13</option><option value="3">16</option><option value="4">18</option><option value="5">24</option><option value="6">32</option><option value="7">48</option>
+          </select>
+        </div>
         <div className={styles.group}>
           <button type="button" className={styles.toolButton} title="Bold" aria-label="Bold" style={{ fontWeight: 800 }} onMouseDown={stopMouseDown} onClick={() => command("bold")}>B</button>
           <button type="button" className={styles.toolButton} title="Italic" aria-label="Italic" style={{ fontStyle: "italic" }} onMouseDown={stopMouseDown} onClick={() => command("italic")}>I</button>
@@ -387,13 +387,11 @@ export default function RichTextEditor({
           <label className={styles.colorButton} title="Text color" aria-label="Text color">A<span className={styles.colorUnderline} style={{ background: textColor }} /><input type="color" value={textColor} onMouseDown={rememberSelection} onChange={(e) => { setTextColor(e.target.value); command("foreColor", e.target.value); }} /></label>
           <label className={styles.colorButton} title="Highlight color" aria-label="Highlight color">✎<span className={styles.colorUnderline} style={{ background: highlightColor }} /><input type="color" value={highlightColor} onMouseDown={rememberSelection} onChange={(e) => { setHighlightColor(e.target.value); command("hiliteColor", e.target.value); }} /></label>
         </div>
-        <span className={styles.divider} />
         <div className={styles.group}>
           <button type="button" className={styles.toolButton} title="Insert link" aria-label="Insert link" onMouseDown={stopMouseDown} onClick={addLink}>🔗</button>
           <button type="button" className={styles.toolButton} title="Remove link" aria-label="Remove link" onMouseDown={stopMouseDown} onClick={() => command("unlink")}>⛓</button>
           <button type="button" className={styles.toolButton} title="Insert image" aria-label="Insert image" onMouseDown={stopMouseDown} onClick={() => imageInputRef.current?.click()}>▣</button>
         </div>
-        <span className={styles.divider} />
         <div className={styles.group}>
           <button type="button" className={styles.toolButton} title="Bulleted list" aria-label="Bulleted list" onMouseDown={stopMouseDown} onClick={() => command("insertUnorderedList")}>•≡</button>
           <button type="button" className={styles.toolButton} title="Numbered list" aria-label="Numbered list" onMouseDown={stopMouseDown} onClick={() => command("insertOrderedList")}>1≡</button>
