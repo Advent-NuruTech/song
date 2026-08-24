@@ -390,6 +390,27 @@ export async function shareStudyLink(study: {
 }
 
 // ---------------------------------------------------------------------------
+// Media — always share the Advent Pro destination, never the YouTube source
+// ---------------------------------------------------------------------------
+
+export async function shareMediaLink(media: {
+  id: string;
+  title: string;
+  description?: string | null;
+  mediaType?: "video" | "short";
+}) {
+  const preview = tidy(media.description || "").replace(/\n+/g, " ").slice(0, 180);
+  const parts = [
+    media.mediaType === "short"
+      ? `Watch “${media.title}” in Advent Pro Shorts.`
+      : `Watch “${media.title}” on Advent Pro.`,
+  ];
+  if (preview) parts.push("", `${preview}${(media.description?.length || 0) > preview.length ? "…" : ""}`);
+  parts.push("", buildDeepLink(`media/${media.id}`), "", buildFooter());
+  return shareText(tidy(parts.join("\n")), `${media.title} — ${APP_NAME}`);
+}
+
+// ---------------------------------------------------------------------------
 // App
 // ---------------------------------------------------------------------------
 

@@ -8,10 +8,10 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 
 import { useEffect, useState } from "react";
 import { AppState, Image, StyleSheet, View } from "react-native";
-import Svg, { Defs, RadialGradient, Rect, Stop } from "react-native-svg";
 
 import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
+import { Colors } from "@/constants/theme";
 import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
 import { AuthProvider } from "@/src/auth/AuthContext";
 import { syncSupabaseContent } from "@/src/content/supabase";
@@ -22,6 +22,7 @@ import { syncSupabaseContent } from "@/src/content/supabase";
 function AppLayout() {
   const { darkMode } = useSettings();
   const insets = useSafeAreaInsets();
+  const backgroundColor = Colors[darkMode ? "dark" : "light"].background;
 
   useEffect(() => {
     const sync = () => void syncSupabaseContent();
@@ -35,9 +36,9 @@ function AppLayout() {
   return (
     <QuickFooterProvider>
       <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-        <View style={styles.appShell}>
+        <View style={[styles.appShell, { backgroundColor }]}>
           <Sidebar />
-          <View style={[styles.routeContent, { paddingBottom: insets.bottom + 72 }]}>
+          <View style={[styles.routeContent, { paddingBottom: insets.bottom + 72, backgroundColor }]}>
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="account" options={{ headerShown: false }} />
@@ -94,19 +95,12 @@ export default function RootLayout() {
   if (!dbReady) {
     return (
       <View style={styles.splash}>
-        <StatusBar style="light" />
-        <Svg style={styles.splashGradient} width="100%" height="100%">
-          <Defs>
-            <RadialGradient id="splashBg" cx="50%" cy="50%" r="75%">
-              <Stop offset="0%" stopColor="#001b4d" />
-              <Stop offset="35%" stopColor="#000d2e" />
-              <Stop offset="70%" stopColor="#00061c" />
-              <Stop offset="100%" stopColor="#00030f" />
-            </RadialGradient>
-          </Defs>
-          <Rect x="0" y="0" width="100%" height="100%" fill="url(#splashBg)" />
-        </Svg>
-        <Image source={require("@/assets/images/icon.png")} style={styles.splashLogo} />
+        <StatusBar style="dark" />
+        <Image
+          source={require("@/assets/images/splash-logo-transparent.png")}
+          style={styles.splashLogo}
+          resizeMode="contain"
+        />
       </View>
     );
   }
@@ -130,13 +124,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     overflow: "hidden",
-  },
-  splashGradient: {
-    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#FFFFFF",
   },
   splashLogo: {
-    width: 120,
-    height: 120,
-    borderRadius: 32,
+    width: 220,
+    height: 220,
   },
 });

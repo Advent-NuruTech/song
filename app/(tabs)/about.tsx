@@ -25,7 +25,7 @@ import Animated, {
 const NURUTECH_URL = "https://adventnurutech.xyz";
 const DONATE_PAGE_URL = "https://adventnurutech.xyz/donate";
 const NURUTECH_ABOUT_URL = "https://adventnurutech.xyz/about";
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.2.0";
 
 const DOWNLOAD_URL = "https://play.google.com/store/apps/details?id=com.adventpro";
 
@@ -369,10 +369,10 @@ export default function AboutScreen() {
               </View>
               <View style={styles.paymentDetails}>
                 <Text style={[styles.paymentDetail, { color: colors.mutedText, fontFamily }]}>
-                  <Text style={styles.paymentLabel}>TILL NUMBER:</Text> 5340329
+                  <Text style={[styles.paymentLabel, { color: colors.text }]}>TILL NUMBER:</Text> 5340329
                 </Text>
                 <Text style={[styles.paymentDetail, { color: colors.mutedText, fontFamily }]}>
-                  <Text style={styles.paymentLabel}>Account Name:</Text> ADVENT NURUTECH
+                  <Text style={[styles.paymentLabel, { color: colors.text }]}>Account Name:</Text> ADVENT NURUTECH
                 </Text>
               </View>
             </View>
@@ -406,8 +406,8 @@ export default function AboutScreen() {
           </Text>
 
           <View style={styles.contactButtons}>
-            <Pressable onPress={handleCall} style={[styles.contactButton, { backgroundColor: colors.tint }]}>
-              <Ionicons name="call-outline" size={size(20)} color="#FFFFFF" />
+            <Pressable onPress={handleCall} style={[styles.contactButton, { backgroundColor: colors.primary }]}>
+              <Ionicons name="call-outline" size={size(20)} color={colors.onPrimary} />
               <View style={styles.contactButtonTextContainer}>
                 <Text style={[styles.contactButtonText, { fontSize: size(14), fontFamily }]}>Call Us</Text>
                 <Text style={[styles.contactButtonSubtext, { fontSize: size(12), fontFamily }]}>{CALL_NUMBER}</Text>
@@ -472,9 +472,9 @@ export default function AboutScreen() {
             )}
 
             {adminEnabled && (
-              <Pressable onPress={openAdminDashboard} style={[styles.adminButton, { backgroundColor: colors.tint }]}>
-                <Ionicons name="shield-checkmark-outline" size={size(16)} color="#FFFFFF" />
-                <Text style={[styles.adminButtonText, { color: "#FFFFFF", fontSize: size(13), fontFamily }]}>
+              <Pressable onPress={openAdminDashboard} style={[styles.adminButton, { backgroundColor: colors.primary }]}>
+                <Ionicons name="shield-checkmark-outline" size={size(16)} color={colors.onPrimary} />
+                <Text style={[styles.adminButtonText, { color: colors.onPrimary, fontSize: size(13), fontFamily }]}>
                   Open Admin Dashboard
                 </Text>
               </Pressable>
@@ -544,7 +544,7 @@ const styles = StyleSheet.create({
   paymentMethodTitle: { fontSize: 15, fontWeight: '600', marginLeft: 8 },
   paymentDetails: { backgroundColor: 'rgba(0,0,0,0.02)', padding: 12, borderRadius: 8, marginBottom: 16 },
   paymentDetail: { fontSize: 14, lineHeight: 20, marginBottom: 4 },
-  paymentLabel: { fontWeight: '600', color: '#333' },
+  paymentLabel: { fontWeight: '600' },
   linkList: { marginTop: 16, gap: 12 },
   linkItem: { paddingVertical: 14, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.03)' },
   linkText: { fontWeight: '700', fontSize: 15 },

@@ -4,6 +4,7 @@ import YoutubePlayer, { PLAYER_STATES } from "react-native-youtube-iframe";
 
 import { recordMediaView } from "../mediaService";
 import type { MediaItem } from "../types";
+import { recordMediaPreference } from "../recommendations";
 
 export function EmbeddedYouTubePlayer({
   item,
@@ -41,6 +42,7 @@ export function EmbeddedYouTubePlayer({
       void recordMediaView(item.id, threshold)
         .then((result) => onViewCount?.(result.viewCount))
         .catch(() => undefined);
+      void recordMediaPreference(item, "view");
     }, threshold * 1000);
   };
 

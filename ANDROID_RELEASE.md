@@ -1,146 +1,188 @@
 # Advent Pro Android release guide (version 1.2.0)
 
-This project is configured to produce two different Android files:
+Last verified: August 24, 2026.
 
-- `preview` creates an **APK**. Send this file to a tester through WhatsApp; it can be installed directly.
-- `production` creates an **AAB**. Upload this file to Google Play Console; it cannot be installed directly on a phone.
+This project produces two Android artifacts:
 
-The Android application ID is `com.adventpro`. Do not change it after the first Play Console release. EAS manages `versionCode` remotely and increments it for production builds; the public version shown to users is `1.2.0`.
+- The `preview` profile creates an installable **APK** for direct testing.
+- The `production` profile creates an **AAB** for Google Play. An AAB is not installed directly on a phone.
 
-## 1. One-time setup on the development computer
+The application ID is `com.adventpro`; never change it after the first Play release. The public version is `1.2.0`. EAS stores the Android `versionCode` remotely and increments it for production builds because `eas.json` uses `appVersionSource: "remote"` and `autoIncrement: true`.
 
-1. Install Node.js 20 LTS or 22 LTS and Git.
-2. Open a terminal in this project folder.
-3. Install the exact dependencies:
+The app currently uses Expo SDK 54 and React Native 0.81. SDK 54 compiles and targets Android 16/API 36, which meets Google Play's API 36 requirement that applies to new mobile-app submissions and updates from August 31, 2026. Do not override the target SDK below 36.
+
+## 1. Release scope for 1.2.0
+
+Release testing and store text should cover the features that are actually in this build:
+
+- Offline songs, studies, Bible versions, search, categories, and reading settings
+- Verse of the day and scripture, hymn, and study sharing
+- Home discovery with up to 20 videos and 20 studies, with Explore more links only after a section reaches 20 items
+- Videos and Shorts through the embedded YouTube player
+- Media and study views, likes, comments, sharing, reports, moderation, and discovery rankings
+- Email/password accounts, display names, role-based administration, and account-deletion requests
+- Light/dark themes, responsive Android layouts, and offline cached content
+
+Suggested release-note summary:
+
+> Adds videos and Shorts, richer study discovery and community interactions, improved sharing and Bible navigation, refreshed account controls, and updated privacy and release information.
+
+## 2. One-time setup
+
+1. Install Git and a Node version allowed by `package.json`: Node `20.19.x`, `22.x`, or `24.x`. Prefer the latest maintained LTS line supported by the project.
+2. Open PowerShell in the repository root and install the locked dependencies:
 
    ```powershell
    npm ci
+   npm --prefix admin-web ci
    ```
 
-4. Sign in to the Expo account that owns this project (`advent384`):
+3. Sign in to the Expo account that owns project `10279f57-4ab4-42b7-a5bc-7bc53df7df1d`:
 
    ```powershell
    npx eas-cli@latest login
    npx eas-cli@latest whoami
    ```
 
-5. Run the release checks:
+4. Let EAS manage the Android signing keystore. Keep the same application ID, Expo project, upload key, and Play App Signing setup for every update.
 
-   ```powershell
-   npm run validate:content
-   npm run lint
-   npx tsc --noEmit
-   npx expo-doctor
-   ```
+## 3. Pre-build release checks
 
-All commands must finish without errors. A warning should be reviewed, but it does not necessarily block a build.
+Run these from the repository root:
 
-## 2. Build the APK for WhatsApp testing
+```powershell
+npm run validate:content
+npm run test:media
+npm run lint
+npx tsc --noEmit
+npx expo-doctor
+npm --prefix admin-web run build
+```
 
-1. Run:
+All commands must finish without errors. Review warnings before proceeding.
 
-   ```powershell
-   npm run build:android:test
-   ```
+Also verify the following manually:
 
-2. If EAS asks about Android credentials, choose **Generate new keystore** and let EAS store it. Keep using the same Expo project and signing credentials for later updates.
-3. Wait for the cloud build. When it finishes, open the build link and download the `.apk` file.
-4. Rename it to something recognizable, for example `Advent-Pro-1.2.0-test.apk`.
-5. Send the APK to the tester as a WhatsApp document. If WhatsApp refuses the file or changes it, send the EAS download link instead.
-
-### Instructions for the tester
-
-1. Download the APK on the Android phone.
-2. Open it and allow **Install unknown apps** for WhatsApp or the phone's file manager when Android asks.
-3. Install and open Advent Pro.
-4. If Android reports a signature conflict, uninstall an older test copy first, then install this APK. This removes that copy's local app data.
-5. Test on Wi-Fi and mobile data, then test with airplane mode after content has loaded.
-6. Report the phone model, Android version, screen recording/screenshot, and the exact steps for every problem.
-
-### Minimum test checklist
-
-- Fresh install, splash screen, icon, and first launch
-- Home, categories, songs, song details, search, Bible, and studies
-- English, Swahili, and Luo content; long text and font-size settings
-- Light/dark theme and Android back navigation
-- Sharing text to WhatsApp
-- Offline launch and offline reading
-- Sign up, email confirmation, sign in/out, profile update, password update
-- Post/comment features and account-deletion request
-- Privacy policy, terms, About links, calls, and WhatsApp contact actions
-- Relaunch after the phone restarts; no crashes or blank screens
-
-Fix any release-blocking problem, run the checks again, and make another preview APK. Preview builds may keep the same public version; Play builds receive a unique `versionCode` automatically.
-
-## 3. Prepare Google Play Console
-
-1. Create or verify the Google Play developer account and complete identity/contact verification.
-2. In Play Console, create an app named **Advent Pro**, choose the correct default language, select **App**, and choose whether it is free or paid. A free app cannot later be changed to paid.
-3. Confirm the package name is exactly `com.adventpro` when the first bundle is uploaded.
-4. Complete the store listing:
-   - App name, short description, and full description
-   - 512 x 512 Play Store icon
-   - 1024 x 500 feature graphic
-   - At least two good phone screenshots (more are recommended)
-   - App category and support contact details
-5. Deploy the public legal pages in `admin-web` before submission. Configure its Supabase/server environment variables on the host, then verify these pages work without signing in:
+1. `package.json`, `app.json`, the About screen, and `android/app/build.gradle` all show public version `1.2.0`.
+2. `app.json` and the Android native project resolve to package `com.adventpro` and target API 36.
+3. The production Supabase database has every migration in `supabase/MIGRATIONS.md`, currently through `009_study_discovery.sql`.
+4. The public site is deployed with working, no-login pages:
    - `https://YOUR_DOMAIN/privacy`
    - `https://YOUR_DOMAIN/terms`
    - `https://YOUR_DOMAIN/account-deletion`
-6. Enter the public privacy URL and account-deletion URL in Play Console.
-7. Complete **App content** honestly: Data safety, ads, content rating, target audience, app access, news-app declaration, and any other declarations shown. The app uses account email/display name and Supabase authentication, so do not declare that it collects no data.
-8. If reviewers need an account to reach restricted features, supply a working review account and precise instructions under **App access**. Do not give Google an administrator account.
+5. The privacy policy and Play Data Safety answers match the shipping binary, including Supabase authentication, email/display name, comments and reports, likes, media/study view activity, session identifiers, watch duration, embedded YouTube playback, and account deletion.
+6. The account-deletion page provides an actual way to submit a request without reinstalling the app, and a trusted administrator or server process can complete the pending database request by deleting the Supabase Auth account and associated personal data.
 
-## 4. Build the signed Play Store bundle
+## 4. Build and test the preview APK
 
-Only do this after the tested APK is accepted:
+Build the direct-install test file:
+
+```powershell
+npm run build:android:test
+```
+
+When the build completes, download the `.apk` from its EAS build page and name it clearly, for example `Advent-Pro-1.2.0-preview.apk`. Send it as a document or share the EAS download link.
+
+### Tester installation
+
+1. Download and open the APK on an Android phone.
+2. Allow **Install unknown apps** for the browser, WhatsApp, or file manager when Android asks.
+3. If Android reports a signature conflict, first confirm the APK came from this project's EAS credentials. Uninstall an older test copy only if necessary; uninstalling removes that copy's local app data.
+4. Record the phone model, Android version, connection type, screenshots or screen recordings, and exact reproduction steps for every problem.
+
+### Minimum device checklist
+
+- Fresh install, icon, splash screen, first launch, edge-to-edge layout, status/navigation bars, and Android back behavior
+- Home page: never more than 20 videos or 20 studies; Explore more appears only when its section reaches 20 items and opens the correct page
+- Categories, songs, song detail, search, Bible navigation, studies, rich study content, and daily verse
+- English, Swahili, and Luo resources; long text; font sizes; light and dark themes
+- Videos, Shorts, YouTube playback, inactive/active player behavior, pagination, cached states, and poor/offline-network messages
+- Signed-out and signed-in view counting, duplicate-view protection, likes, comments, deletion, reporting, moderation, shares, and updated counters
+- For-you and popular studies, study engagement, and behavior when discovery services are unavailable
+- Account creation, email confirmation, sign-in/out, display-name and email updates, password update, roles, and expired sessions
+- In-app Terms acceptance before the first comment or other user-generated submission
+- In-app reporting and user/content blocking flows required for publicly accessible user-generated content
+- Account-deletion request, sign-out after the request, administrator processing, and verification that associated personal data is removed
+- Public privacy, terms, and account-deletion links without login
+- Calls, WhatsApp, donation links, clipboard/share sheet, and Play Store share link
+- Relaunch after force-stop and phone restart; offline launch and reading after content has loaded; no crashes, blank screens, or stuck loaders
+
+Fix release-blocking problems, rerun all checks, and issue another preview APK before creating the Play bundle.
+
+## 5. Prepare Google Play Console
+
+1. Create or verify the Play developer account and complete its identity and contact verification.
+2. Create an app named **Advent Pro**, select the correct default language and app type, and choose free or paid carefully. A free app cannot later be converted to paid.
+3. Confirm the package name is exactly `com.adventpro` when uploading the first bundle, and enable or confirm Play App Signing.
+4. Complete the main store listing with accurate content:
+   - App name, short description, and full description
+   - 512 x 512 PNG Play Store icon
+   - 1024 x 500 feature graphic
+   - At least two valid screenshots; four portrait screenshots at 1080 x 1920 or higher are recommended for broader featuring eligibility
+   - App category, developer contact details, and release notes
+5. Under **Policy and programs → App content** (wording may move), complete every applicable declaration: privacy policy, Data Safety, ads, app access, content rating, target audience, news-app status, account deletion, and any permission or content declarations Play shows.
+6. In Data Safety, audit both first-party code and third-party libraries. Do not state that Advent Pro collects no data. Check at least account identifiers/email/display name, user-generated comments and reports, app interactions such as likes and views, pseudonymous session identifiers and watch duration, Supabase processing, embedded YouTube behavior, encryption in transit, and deletion handling against the final bundle.
+7. Because comments are publicly accessible user-generated content, confirm the release complies with Google Play's UGC policy. Users must accept the Terms or user policy before posting, objectionable behavior must be prohibited, and the app must provide suitable in-app reporting, blocking, and ongoing moderation. Treat a missing required safeguard as a release blocker.
+8. Supply a non-administrator reviewer account and exact access instructions if Google cannot reach account-only features itself.
+9. If this is a personal developer account created after November 13, 2023, plan for a closed test with at least 12 testers opted in continuously for at least 14 days before applying for production access. Internal testing alone does not satisfy this requirement.
+
+## 6. Build the production AAB
+
+Only build production after the preview APK passes:
 
 ```powershell
 npm run build:android:play
 ```
 
-The `production` profile creates a signed `.aab` and increments the remote Android `versionCode`. Download the AAB from the EAS build page and keep the build link for your records. Do not send the AAB to a phone—it is for Play Console.
+The production profile creates a signed `.aab` and increments the remote Android `versionCode`. Download the AAB and keep the EAS build URL and test record. Do not send an AAB to testers for direct installation.
 
-To inspect the current remote build number before an update, use:
+Inspect the remote build number when needed:
 
 ```powershell
 npx eas-cli@latest build:version:get --platform android
 ```
 
-If this app already has a release outside EAS, first synchronize EAS with the highest `versionCode` already uploaded to Play:
+If an earlier Play build used a higher `versionCode` outside this EAS remote-version history, synchronize EAS before the next production build:
 
 ```powershell
 npx eas-cli@latest build:version:set --platform android
 ```
 
-Enter the last Play Store `versionCode`; the next production build will increment it.
+Enter the greatest `versionCode` already uploaded to Play; the next production build will increment it.
 
-## 5. Upload and test through Google Play
+## 7. Upload, test, and release through Google Play
 
-1. Open Play Console -> **Test and release** -> **Testing** -> **Internal testing**.
-2. Create a release and upload the `.aab`.
-3. Add release notes for version 1.2.0, save, review, and roll out to internal testing.
-4. Add tester email addresses or a Google Group, copy the opt-in link, and have testers install from Google Play. Test this Play-installed build even if the direct APK worked, because Play signing and delivery are different.
-5. Resolve every Play Console error. Review warnings and fix those that apply.
-6. For a personal developer account created after November 13, 2023, run the required closed test (currently at least 12 opted-in testers continuously for 14 days), then apply for production access in Play Console.
-7. Promote the tested release to **Production**, select the intended countries/regions, review the rollout, and submit it for Google review.
+1. Open **Test and release → Testing → Internal testing**, create a release, and upload the AAB. Play Console labels can change; use its dashboard tasks if the exact navigation differs.
+2. Add version 1.2.0 release notes, save, review, and roll out to internal testing.
+3. Add tester emails or a Google Group and share the opt-in link. Test the Play-installed build even if the direct APK passed because Play signing and delivery are different.
+4. Resolve every Play Console error. Review warnings, pre-launch reports, accessibility findings, Android vitals, and policy messages.
+5. If the account is subject to the new-personal-account rule, complete the qualifying closed test and production-access application.
+6. Promote the tested release to Production, select intended countries/regions, review the staged or full rollout, and submit it for Google review.
+7. After approval, install from the public listing and recheck sign-in, Supabase sync, videos/Shorts, comments and reports, sharing, privacy links, account deletion, and offline reading.
 
-## 6. After publishing
-
-1. Wait until Play Console shows the release as available, then install it from its public store page.
-2. Verify sign-in, content sync, sharing, privacy links, account deletion, and offline reading again.
-3. Monitor Android vitals, crashes/ANRs, reviews, Supabase usage, and deletion requests.
-4. Process account-deletion requests promptly; the current database flow records a request but a trusted administrator or server job must remove the Supabase Auth user and associated personal data.
-5. For every update, increase `expo.version`, run all checks, build a preview APK, test it, then make one production AAB. Never lose or replace the Android signing setup.
-
-## Release gate
+## 8. Release gate
 
 Do not submit to production until all of these are true:
 
-- The preview APK passed the checklist on at least one real Android phone.
-- The AAB was accepted in Play internal testing.
-- Public privacy, terms, and account-deletion URLs work without login.
-- Data safety answers match the app's real Supabase/account behavior.
-- A real deletion request has been tested end-to-end, including administrator processing.
-- Store graphics, screenshots, descriptions, content rating, target audience, and app access are complete.
-- No unresolved Play Console errors or release-blocking crashes remain.
+- The exact production candidate passed the checklist on at least one real Android device, with another Android version or screen size tested where possible.
+- The AAB targets API 36, has package `com.adventpro`, public version `1.2.0`, and a unique `versionCode`.
+- Every database migration through 009 is deployed and the app behaves safely if network-backed features fail.
+- Public privacy, terms, and account-deletion pages work without login and match actual app behavior.
+- Data Safety answers include current account, community, activity, session, third-party SDK, and deletion behavior.
+- Terms acceptance, objectionable-content rules, in-app reporting/blocking, and operational moderation satisfy the UGC policy before comments are enabled in production.
+- A real account-deletion request has been completed end-to-end, not merely queued.
+- Store graphics, screenshots, descriptions, content rating, target audience, app access, and reviewer credentials are complete.
+- There are no unresolved Play Console errors, release-blocking crashes/ANRs, or critical pre-launch findings.
+
+## Current official references
+
+- [Expo SDK 54 platform support and API levels](https://docs.expo.dev/versions/v54.0.0/)
+- [EAS app version management](https://docs.expo.dev/build-reference/app-versions/)
+- [Google Play target API requirements](https://support.google.com/googleplay/android-developer/answer/11926878?hl=en)
+- [Google Play Data Safety guidance](https://support.google.com/googleplay/android-developer/answer/10787469?hl=en)
+- [Google Play account-deletion requirements](https://support.google.com/googleplay/android-developer/answer/13327111?hl=en)
+- [Google Play user-generated-content policy](https://support.google.com/googleplay/android-developer/answer/9876937?hl=en)
+- [Testing requirements for new personal accounts](https://support.google.com/googleplay/android-developer/answer/14151465?hl=en)
+- [Google Play store-listing asset requirements](https://support.google.com/googleplay/android-developer/answer/9866151?hl=en)
+
+Re-check these official pages before every release because Play Console requirements and navigation can change.

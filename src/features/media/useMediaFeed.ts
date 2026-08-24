@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { getCachedMedia, listMediaPage } from "./mediaService";
 import type { MediaCursor, MediaItem, MediaType } from "./types";
+import { rankMediaForViewer } from "./recommendations";
 
 export function useMediaFeed(type: MediaType) {
   const [items, setItems] = useState<MediaItem[]>([]);
@@ -18,7 +19,7 @@ export function useMediaFeed(type: MediaType) {
     setError(null);
     try {
       const page = await listMediaPage(type);
-      setItems(page.items);
+      setItems(await rankMediaForViewer(page.items));
       setCursor(page.nextCursor);
       setOfflineCache(false);
     } catch (reason) {

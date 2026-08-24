@@ -13,6 +13,7 @@ export default function MediaEditor() {
   const isNew = id === "new";
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [title, setTitle] = useState("");
@@ -35,6 +36,21 @@ export default function MediaEditor() {
       setLoading(false);
     });
   }, [id, isNew]);
+
+  const importYouTubeDetails = async () => {
+    if (!videoId || importing) return;
+    setImporting(true); setError(null);
+    try {
+      const { data } = await getSupabase().auth.getSession();
+      const response = await fetch(`/api/youtube-metadata?videoId=${encodeURIComponent(videoId)}`, { headers: { Authorization: `Bearer ${data.session?.access_token || ""}` } });
+      const metadata = await response.json() as { error?: string; title?: string; description?: string; durationSeconds?: number | null; thumbnailUrl?: string };
+      if (!response.ok) throw new Error(metadata.error || "YouTube details could not be imported.");
+      if (metadata.title) setTitle(metadata.title);
+      if (metadata.description) setDescription(metadata.description.slice(0, 5000));
+      if (metadata.durationSeconds != null) setDuration(String(metadata.durationSeconds));
+      if (metadata.thumbnailUrl) setCustomThumbnail(metadata.thumbnailUrl);
+    } catch (reason) { setError((reason as Error).message); } finally { setImporting(false); }
+  };
 
   const save = async (publish?: boolean) => {
     setSaving(true); setError(null);
@@ -60,6 +76,7 @@ export default function MediaEditor() {
   if (loading) return <div className="center-screen">Loading…</div>;
   return <div style={{ maxWidth: 820 }}><h1>{isNew ? "Add media" : "Edit media"}</h1><p className="sub">Paste a normal YouTube URL. Advent Pro extracts and validates the video ID automatically.</p><div className="card">
     <label>YouTube URL *</label><input value={youtubeUrl} onChange={(e) => setYoutubeUrl(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />{youtubeUrl && <div className={videoId ? "meta" : "error"} style={{ marginTop: 6 }}>{videoId ? `Video ID: ${videoId}` : "This is not a supported YouTube URL."}</div>}
+    {videoId && <div className="row" style={{ marginTop: 10 }}><button className="btn" type="button" disabled={importing} onClick={() => void importYouTubeDetails()}>{importing ? "Importing…" : "Import title, description & duration"}</button></div>}
     <label>Title *</label><input value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
     <label>Description</label><textarea value={description} maxLength={5000} rows={6} onChange={(e) => setDescription(e.target.value)} />
     <div className="field-row"><div><label>Media type *</label><select value={mediaType} onChange={(e) => setMediaType(e.target.value as typeof mediaType)}><option value="video">Video</option><option value="short">Short</option></select></div><div><label>Category</label><input value={category} maxLength={100} onChange={(e) => setCategory(e.target.value)} /></div></div>

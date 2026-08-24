@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -8,6 +8,9 @@ import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
+import { MediaCard } from "@/src/features/media/components/MediaCard";
+import { listMediaPage } from "@/src/features/media/mediaService";
+import type { MediaItem } from "@/src/features/media/types";
 import {
   type DailyVerse,
   getDailyVerse,
@@ -21,21 +24,37 @@ import {
   getStudySummaries,
 } from "@/src/services/studiesService";
 
+const HOME_SECTION_LIMIT = 20;
+
 export default function HomeScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const router = useRouter();
   const { reportScroll } = useQuickFooter();
   const [studies, setStudies] = useState<StudySummary[]>([]);
+  const [videos, setVideos] = useState<MediaItem[]>([]);
+  const [showExploreStudies, setShowExploreStudies] = useState(false);
+  const [showExploreVideos, setShowExploreVideos] = useState(false);
   const [dailyVerse, setDailyVerse] = useState<DailyVerse>(() => getDailyVerse());
   const [dailyVerseVisible, setDailyVerseVisible] = useState(false);
   const [verseShareOpen, setVerseShareOpen] = useState(false);
 
   useEffect(() => {
     let mounted = true;
-    getStudySummaries({ limit: 8 })
+    getStudySummaries({ limit: HOME_SECTION_LIMIT + 1 })
       .then((data) => {
-        if (mounted) setStudies(Array.isArray(data) ? data : []);
+        if (!mounted) return;
+        const availableStudies = Array.isArray(data) ? data : [];
+        setStudies(availableStudies.slice(0, HOME_SECTION_LIMIT));
+        setShowExploreStudies(availableStudies.length >= HOME_SECTION_LIMIT);
       })
       .catch((error) => console.log("Study loading error:", error));
+    void listMediaPage("video")
+      .then((page) => {
+        if (!mounted) return;
+        setVideos(page.items.slice(0, HOME_SECTION_LIMIT));
+        setShowExploreVideos(page.items.length >= HOME_SECTION_LIMIT);
+      })
+      .catch(() => undefined);
     return () => {
       mounted = false;
     };
@@ -119,16 +138,19 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {videos.length ? <View style={styles.mediaSection}>
+          <View style={[styles.sectionHeader, styles.mediaHeader]}>
+            <Text style={[styles.sectionTitle, { color: colors.text, fontFamily, fontSize: size(18) }]}>Featured Videos</Text>
+          </View>
+          {videos.map((video) => <MediaCard key={video.id} item={video} layout="compact" onPress={() => router.push({ pathname: "/media/[id]", params: { id: video.id } })} />)}
+          {showExploreVideos ? <ExploreMore href="/media" label="Explore more videos" /> : null}
+        </View> : null}
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text, fontFamily, fontSize: size(18) }]}>
               Featured Studies
             </Text>
-            <Link href="/studies" asChild>
-              <Pressable hitSlop={8}>
-                <Text style={[styles.seeAll, { color: colors.tint, fontFamily }]}>See all</Text>
-              </Pressable>
-            </Link>
           </View>
 
           {studies.map((study) => {
@@ -176,6 +198,7 @@ export default function HomeScreen() {
               </View>
             );
           })}
+          {showExploreStudies ? <ExploreMore href="/studies" label="Explore more studies" /> : null}
         </View>
       </Animated.ScrollView>
 
@@ -212,6 +235,25 @@ function QuickAction({ href, icon, color, title, subtitle }: QuickActionProps) {
           <Text style={[styles.cardTitle, { color: colors.text, fontFamily }]}>{title}</Text>
           <Text style={[styles.cardSub, { color: colors.mutedText, fontFamily }]}>{subtitle}</Text>
         </View>
+      </Pressable>
+    </Link>
+  );
+}
+
+function ExploreMore({ href, label }: { href: "/media" | "/studies"; label: string }) {
+  const { colors, fontFamily } = useAppTheme();
+  return (
+    <Link href={href} asChild>
+      <Pressable
+        accessibilityRole="link"
+        style={({ pressed }) => [
+          styles.exploreMore,
+          { backgroundColor: colors.card, borderColor: colors.border },
+          pressed && styles.exploreMorePressed,
+        ]}
+      >
+        <Text style={[styles.exploreMoreText, { color: colors.tint, fontFamily }]}>{label}</Text>
+        <Ionicons name="arrow-forward" size={18} color={colors.tint} />
       </Pressable>
     </Link>
   );
@@ -255,9 +297,16 @@ const styles = StyleSheet.create({
   verseActionText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
   verseReadText: { color: "#0B4AA6", fontSize: 13, fontWeight: "900" },
   section: { paddingHorizontal: 20, marginTop: 28 },
+  mediaSection: { marginTop: 28 },
+  mediaHeader: { paddingHorizontal: 20 },
   sectionHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   sectionTitle: { fontWeight: "800", letterSpacing: -0.2 },
-  seeAll: { fontWeight: "700" },
+  exploreMore: {
+    minHeight: 48, marginHorizontal: 20, marginTop: 6, borderRadius: 15, borderWidth: 1,
+    flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+  },
+  exploreMorePressed: { opacity: 0.72 },
+  exploreMoreText: { fontSize: 14, fontWeight: "800" },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", marginTop: 15 },
   actionCard: {
     width: "31.5%", minHeight: 122, borderRadius: 18, borderWidth: 1, padding: 10,

@@ -1,885 +1,125 @@
+import { Ionicons } from "@expo/vector-icons";
 import { Link, Stack } from "expo-router";
-import { Search, X } from "@/components/icons";
-import { useEffect, useRef, useState } from "react";
-import {
-    ActivityIndicator,
-    Animated,
-    FlatList,
-    NativeScrollEvent,
-    NativeSyntheticEvent,
-    Platform,
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
-} from "react-native";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
-import {
-    StudySummary,
-    getCategoriesWithCounts,
-    getCategoryColor,
-    getStudySummaries,
-    searchStudies,
-} from "@/src/services/studiesService";
-import { ShareIconButton } from "@/components/share-icon-button";
 import { shareStudyLink } from "@/src/services/shareService";
+import { getStudyDiscovery } from "@/src/services/studyDiscoveryService";
+import { getCategoriesWithCounts, getCategoryColor, getStudySummaries, searchStudies, type StudySummary } from "@/src/services/studiesService";
 
 export default function StudiesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const { reportScroll } = useQuickFooter();
-  const [studies, setStudies] = useState<StudySummary[]>([]);
+  const [allStudies, setAllStudies] = useState<StudySummary[]>([]);
+  const [forYou, setForYou] = useState<StudySummary[]>([]);
+  const [popular, setPopular] = useState<StudySummary[]>([]);
   const [categories, setCategories] = useState<{ category: string; count: number }[]>([]);
+  const [category, setCategory] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showSearchResults, setShowSearchResults] = useState(false);
-  const [showHeader, setShowHeader] = useState(true);
-  
-  const scrollY = useRef(new Animated.Value(0)).current;
-  const mainScrollViewRef = useRef<FlatList>(null);
-  const categoriesScrollViewRef = useRef<FlatList>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [studies, categoryList, tailored, trending] = await Promise.all([
+        getStudySummaries({ limit: 200 }), getCategoriesWithCounts(), getStudyDiscovery("for_you", 8), getStudyDiscovery("popular", 8),
+      ]);
+      setAllStudies(studies); setCategories(categoryList); setForYou(tailored); setPopular(trending);
+    } finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { void load(); }, [load]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadData = async () => {
-      try {
-        const [categoryList, studyList] = await Promise.all([
-          getCategoriesWithCounts(),
-          getStudySummaries({
-            category: selectedCategory || undefined,
-            limit: 100
-          })
-        ]);
-
-        if (isMounted) {
-          setCategories(categoryList);
-          setStudies(studyList);
-        }
-      } catch (error) {
-        console.error("Failed to load studies:", error);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    loadData();
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedCategory]);
-
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    
-    if (!query.trim()) {
-      setShowSearchResults(false);
+    const clean = query.trim();
+    if (!clean) {
+      void getStudySummaries({ limit: 200 }).then(setAllStudies);
       return;
     }
+    const timer = setTimeout(() => {
+      setSearching(true);
+      void searchStudies(clean).then((results) => setAllStudies(results.map((item) => ({ ...item, wordCount: 0, isFeatured: false })))).finally(() => setSearching(false));
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [query]);
 
-    setSearching(true);
-    setShowSearchResults(true);
-    
-    try {
-      const results = await searchStudies(query);
-      setStudies(results.map(r => ({
-        ...r,
-        excerpt: r.excerpt || '',
-        wordCount: 0,
-        isFeatured: false
-      })));
-    } catch (error) {
-      console.error("Search failed:", error);
-    } finally {
-      setSearching(false);
-    }
-  };
-
-  const clearSearch = () => {
-    setSearchQuery("");
-    setShowSearchResults(false);
-    setSelectedCategory(null);
-    
-    // Reload all studies
-    setLoading(true);
-    getStudySummaries({ limit: 100 }).then(data => {
-      setStudies(data);
-      setLoading(false);
-    });
-  };
-
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    reportScroll(offsetY);
-    setShowHeader(offsetY < 100);
-    scrollY.setValue(offsetY);
-  };
-
-  const renderCategoryItem = ({ item }: { item: {category: string, count: number} }) => {
-    const isSelected = selectedCategory === item.category;
-    const color = getCategoryColor(item.category);
-    
-    return (
-      <Pressable
-        onPress={() => {
-          setSelectedCategory(isSelected ? null : item.category);
-          setShowSearchResults(false);
-          
-          // Scroll to top when category changes
-          if (mainScrollViewRef.current) {
-            mainScrollViewRef.current.scrollToOffset({ offset: 0, animated: true });
-          }
-        }}
-        style={[
-          styles.categoryItem,
-          {
-            backgroundColor: isSelected 
-              ? color 
-              : darkMode ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.04)",
-            borderColor: isSelected ? color : colors.border,
-          }
-        ]}
-      >
-        <Text
-          style={[
-            styles.categoryText,
-            {
-              color: isSelected ? '#FFFFFF' : colors.text,
-              fontSize: size(14),
-              fontFamily,
-            }
-          ]}
-          numberOfLines={1}
-        >
-          {item.category}
-        </Text>
-        <View style={[
-          styles.categoryCount,
-          { backgroundColor: isSelected ? 'rgba(255,255,255,0.2)' : colors.border }
-        ]}>
-          <Text
-            style={[
-              styles.countText,
-              {
-                color: isSelected ? '#FFFFFF' : colors.mutedText,
-                fontSize: size(12),
-                fontFamily,
-              }
-            ]}
-          >
-            {item.count}
-          </Text>
-        </View>
-      </Pressable>
-    );
-  };
-
-  const renderStudyItem = ({ item }: { item: StudySummary }) => {
-    const color = getCategoryColor(item.category);
-    const wordCountText = item.wordCount > 0 
-      ? `${Math.ceil(item.wordCount / 250)} min read • ${item.wordCount.toLocaleString()} words`
-      : '';
-
-    return (
-      <View style={styles.studyCardContainer}>
-        <Link
-          href={{
-            pathname: "/studies/[id]",
-            params: { id: item.id },
-          }}
-          asChild
-        >
-          <Pressable
-            style={[
-              styles.studyCard,
-              {
-                borderColor: colors.border,
-                backgroundColor: colors.card,
-                shadowColor: darkMode ? "#000" : "#0f172a",
-              }
-            ]}
-          >
-            <View style={styles.studyContent}>
-              {/* Category Indicator */}
-              <View style={styles.categoryIndicator}>
-                <View style={[styles.categoryDot, { backgroundColor: color }]} />
-                <Text
-                  style={[
-                    styles.categoryLabel,
-                    {
-                      color: colors.mutedText,
-                      fontSize: size(13),
-                      fontFamily,
-                    }
-                  ]}
-                >
-                  {item.category}
-                </Text>
-              </View>
-
-              {/* Study Title */}
-              <Text
-                style={[
-                  styles.studyTitle,
-                  {
-                    color: colors.text,
-                    fontSize: size(18),
-                    fontFamily,
-                  }
-                ]}
-                numberOfLines={2}
-              >
-                {item.title}
-              </Text>
-
-              {/* Subtitle */}
-              {item.subtitle && (
-                <Text
-                  style={[
-                    styles.studySubtitle,
-                    {
-                      color: colors.mutedText,
-                      fontSize: size(15),
-                      fontFamily,
-                    }
-                  ]}
-                  numberOfLines={1}
-                >
-                  {item.subtitle}
-                </Text>
-              )}
-
-              {/* Excerpt */}
-              {item.excerpt && (
-                <Text
-                  style={[
-                    styles.excerpt,
-                    {
-                      color: colors.mutedText,
-                      fontSize: size(14),
-                      fontFamily,
-                    }
-                  ]}
-                  numberOfLines={3}
-                >
-                  {item.excerpt}
-                </Text>
-              )}
-
-              {/* Metadata */}
-              <View style={styles.metadata}>
-                {item.author && (
-                  <Text
-                    style={[
-                      styles.author,
-                      {
-                        color: colors.text,
-                        fontSize: size(13),
-                        fontFamily,
-                      }
-                    ]}
-                  >
-                    By {item.author}
-                  </Text>
-                )}
-
-                {wordCountText && (
-                  <Text
-                    style={[
-                      styles.wordCount,
-                      {
-                        color: colors.subtleText,
-                        fontSize: size(12),
-                        fontFamily,
-                      }
-                    ]}
-                  >
-                    {wordCountText}
-                  </Text>
-                )}
-              </View>
-            </View>
-          </Pressable>
-        </Link>
-
-        <ShareIconButton
-          color={colors.tint}
-          borderColor={colors.border}
-          backgroundColor={colors.card}
-          onPress={() =>
-            void shareStudyLink({
-              id: item.id,
-              title: item.title,
-              category: item.category,
-              author: item.author,
-              content: item.excerpt,
-            })
-          }
-          style={styles.shareButton}
-        />
-      </View>
-    );
-  };
-
-  // Animation values for floating elements
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, -200],
-    extrapolate: 'clamp',
-  });
-
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80, 100],
-    outputRange: [1, 0.5, 0],
-    extrapolate: 'clamp',
-  });
-
-  const searchBarTranslateY = scrollY.interpolate({
-    inputRange: [0, 50],
-    outputRange: [0, -60],
-    extrapolate: 'clamp',
-  });
-
-  const categoriesTranslateY = scrollY.interpolate({
-    inputRange: [0, 50],
-    outputRange: [0, -120],
-    extrapolate: 'clamp',
-  });
+  const visible = useMemo(() => category ? allStudies.filter((study) => study.category === category) : allStudies, [allStudies, category]);
+  const clearSearch = () => { setQuery(""); setCategory(null); void getStudySummaries({ limit: 200 }).then(setAllStudies); };
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Stack.Screen options={{ title: "Studies", headerShown: false }} />
-      <StatusBar
-        barStyle={darkMode ? "light-content" : "dark-content"}
-        backgroundColor={colors.background}
-      />
-
-      {/* Animated Header - Disappears on scroll */}
-      <Animated.View 
-        style={[
-          styles.headerContainer,
-          {
-            backgroundColor: colors.card,
-            borderBottomColor: colors.border,
-            transform: [{ translateY: headerTranslateY }],
-            opacity: headerOpacity,
-          }
-        ]}
-      >
-        <View style={styles.headerContent}>
-          <Text
-            style={[
-              styles.headerTitle,
-              {
-                color: colors.text,
-                fontSize: size(28),
-                fontFamily,
-              }
-            ]}
-          >
-            Studies
-          </Text>
-          <Text
-            style={[
-              styles.headerSubtitle,
-              {
-                color: colors.mutedText,
-                fontSize: size(15),
-                fontFamily,
-                marginTop: 4,
-              }
-            ]}
-          >
-            Comprehensive biblical research and studies
-          </Text>
+    <View style={[styles.screen, { backgroundColor: colors.background }]}>
+      <Stack.Screen options={{ headerShown: false }} />
+      <View style={[styles.fixedHeader, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+        <View style={styles.titleRow}>
+          <View><Text style={[styles.title, { color: colors.text, fontFamily, fontSize: size(24) }]}>Studies</Text><Text style={[styles.subtitle, { color: colors.mutedText, fontFamily }]}>Learn, reflect and grow</Text></View>
+          <View style={[styles.totalBadge, { backgroundColor: `${colors.tint}14` }]}><Text style={[styles.totalText, { color: colors.tint, fontFamily }]}>{visible.length}</Text></View>
         </View>
-      </Animated.View>
-
-      {/* Floating Search Bar */}
-      <Animated.View 
-        style={[
-          styles.searchContainer,
-          {
-            transform: [{ translateY: searchBarTranslateY }],
-            backgroundColor: colors.background,
-          }
-        ]}
-      >
-        <View style={[
-          styles.searchWrapper,
-          {
-            borderColor: colors.border,
-            backgroundColor: colors.card,
-          }
-        ]}>
-          <Search 
-            size={size(18)} 
-            color={colors.mutedText} 
-            style={styles.searchIcon}
-          />
-          <TextInput
-            placeholder="Search studies by title, content, or keywords..."
-            placeholderTextColor={colors.subtleText}
-            value={searchQuery}
-            onChangeText={handleSearch}
-            style={[
-              styles.searchInput,
-              {
-                color: colors.text,
-                fontSize: size(16),
-                fontFamily,
-              },
-            ]}
-            returnKeyType="search"
-          />
-          {searchQuery.length > 0 && (
-            <Pressable
-              onPress={clearSearch}
-              style={styles.clearButton}
-            >
-              <X size={size(18)} color={colors.mutedText} />
-            </Pressable>
-          )}
+        <View style={[styles.search, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <Ionicons name="search" size={19} color={colors.mutedText} />
+          <TextInput value={query} onChangeText={setQuery} placeholder="Search studies" placeholderTextColor={colors.mutedText} returnKeyType="search" style={[styles.searchInput, { color: colors.text, fontFamily }]} />
+          {searching ? <ActivityIndicator size="small" color={colors.tint} /> : query ? <Pressable onPress={clearSearch} hitSlop={8}><Ionicons name="close-circle" size={20} color={colors.mutedText} /></Pressable> : null}
         </View>
-        
-        {searching && (
-          <View style={styles.searchingIndicator}>
-            <ActivityIndicator size="small" color={colors.tint} />
-            <Text style={[styles.searchingText, { color: colors.mutedText, fontFamily }]}>
-              Searching...
-            </Text>
-          </View>
-        )}
-      </Animated.View>
-
-      {/* Floating Categories */}
-      <Animated.View 
-        style={[
-          styles.categoriesSection,
-          {
-            transform: [{ translateY: categoriesTranslateY }],
-            backgroundColor: colors.background,
-          }
-        ]}
-      >
-        <View style={styles.sectionHeader}>
-
-          
-          <Text
-            style={[
-              styles.sectionTitle,
-              {
-                color: colors.text,
-                fontSize: size(18),
-                fontFamily,
-              }
-            ]}
-          >
-            Topics
-          </Text>
-          {selectedCategory && (
-            <Pressable
-              onPress={() => setSelectedCategory(null)}
-              style={styles.clearFilter}
-            >
-              <Text
-                style={[
-                  styles.clearFilterText,
-                  {
-                    color: colors.mutedText,
-                    fontSize: size(14),
-                    fontFamily,
-                  }
-                ]}
-              >
-                Clear filter
-              </Text>
-            </Pressable>
-          )}
-
-           <Text
-            style={[
-              styles.sectionTitle,
-              {
-                color: colors.text,
-                fontSize: size(18),
-                fontFamily,
-              }
-            ]}
-          >
-            {showSearchResults 
-              ? `Search Results for "${searchQuery}"`
-              : selectedCategory 
-                ? `${selectedCategory} Studies`
-                : 'All Studies'
-            }
-            <Text
-              style={[
-                styles.studyCount,
-                {
-                  color: colors.mutedText,
-                  fontSize: size(14),
-                  fontFamily,
-                }
-              ]}
-            >
-              {' '}({studies.length})
-            </Text>
-          </Text>
-        </View>
-        <FlatList
-          ref={categoriesScrollViewRef}
-          data={categories}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesList}
-          renderItem={renderCategoryItem}
-          keyExtractor={(item) => item.category}
-        />
-      </Animated.View>
-
-      {/* Main Studies List */}
-      <View style={styles.studiesSection}>
-        
-        
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.tint} />
-            <Text style={[styles.loadingText, { color: colors.mutedText, fontFamily }]}>
-              Loading studies...
-            </Text>
-          </View>
-        ) : (
-          <FlatList
-            ref={mainScrollViewRef}
-            data={studies}
-            keyExtractor={(item) => item.id}
-            renderItem={renderStudyItem}
-            contentContainerStyle={[
-              styles.studiesList,
-              { paddingTop: Platform.OS === "ios" ? 220 : 200 }
-            ]}
-            showsVerticalScrollIndicator={false}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-            ListEmptyComponent={
-              <View style={styles.emptyContainer}>
-                <View
-                  style={[
-                    styles.emptyCard,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: colors.card,
-                    }
-                  ]}
-                >
-                  <Search size={size(40)} color={colors.mutedText} />
-                  <Text
-                    style={[
-                      styles.emptyTitle,
-                      {
-                        color: colors.text,
-                        fontSize: size(18),
-                        fontFamily,
-                        marginTop: 16,
-                      }
-                    ]}
-                  >
-                    {showSearchResults
-                      ? "No results found"
-                      : "No studies available"
-                    }
-                  </Text>
-                  <Text
-                    style={[
-                      styles.emptySubtitle,
-                      {
-                        color: colors.mutedText,
-                        fontSize: size(14),
-                        fontFamily,
-                        marginTop: 8,
-                        textAlign: "center",
-                      }
-                    ]}
-                  >
-                    {showSearchResults
-                      ? "Try different search terms"
-                      : selectedCategory
-                        ? `No studies in "${selectedCategory}" category`
-                        : "Studies will appear here once added"
-                    }
-                  </Text>
-                </View>
-              </View>
-            }
-          />
-        )}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
+          <Chip label="All" active={!category} onPress={() => setCategory(null)} />
+          {categories.map((item) => <Chip key={item.category} label={`${item.category}  ${item.count}`} active={category === item.category} onPress={() => setCategory(category === item.category ? null : item.category)} />)}
+        </ScrollView>
       </View>
 
-      {/* Floating Back to Top Button */}
-      {!showHeader && (
-        <Pressable
-          onPress={() => {
-            if (mainScrollViewRef.current) {
-              mainScrollViewRef.current.scrollToOffset({ offset: 0, animated: true });
-            }
-          }}
-          style={[
-            styles.floatingTopButton,
-            { 
-              backgroundColor: colors.card, 
-              borderColor: colors.border,
-              shadowColor: darkMode ? '#000' : '#000',
-            }
-          ]}
-        >
-          <Text style={[
-            styles.floatingTopText,
-            { color: colors.text, fontSize: size(14), fontFamily }
-          ]}>
-            ↑ Top
-          </Text>
-        </Pressable>
+      {loading ? <View style={styles.loading}><ActivityIndicator size="large" color={colors.tint} /><Text style={[styles.loadingCopy, { color: colors.mutedText, fontFamily }]}>Loading studies…</Text></View> : (
+        <FlatList
+          data={visible} keyExtractor={(item) => item.id} renderItem={({ item }) => <StudyCard study={item} />}
+          onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)} scrollEventThrottle={16}
+          contentContainerStyle={styles.list}
+          ListHeaderComponent={!query && !category ? <View>
+            <DiscoverySection title="For you" subtitle="Recommended from your interests" icon="sparkles" studies={forYou} />
+            <DiscoverySection title="Most popular" subtitle="What readers are exploring" icon="trending-up" studies={popular} />
+            <Text style={[styles.allTitle, { color: colors.text, fontFamily }]}>All studies</Text>
+          </View> : <Text style={[styles.resultsTitle, { color: colors.text, fontFamily }]}>{query ? `Results for “${query}”` : category}</Text>}
+          ListEmptyComponent={<View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}><Ionicons name="document-text-outline" size={42} color={colors.mutedText} /><Text style={[styles.emptyTitle, { color: colors.text, fontFamily }]}>No studies found</Text><Text style={[styles.emptyCopy, { color: colors.mutedText, fontFamily }]}>Try another topic or search phrase.</Text></View>}
+        />
       )}
     </View>
   );
+
+  function Chip({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
+    return <Pressable onPress={onPress} style={[styles.chip, { backgroundColor: active ? colors.primary : colors.card, borderColor: active ? colors.primary : colors.border }]}><Text style={[styles.chipText, { color: active ? colors.onPrimary : colors.text, fontFamily }]}>{label}</Text></Pressable>;
+  }
+
+  function StudyCard({ study, compact = false }: { study: StudySummary; compact?: boolean }) {
+    const accent = getCategoryColor(study.category);
+    return <View style={[compact ? styles.discoveryCardWrap : styles.cardWrap, compact && { width: 260 }]}>
+      <Link href={{ pathname: "/studies/[id]", params: { id: study.id } }} asChild>
+        <Pressable style={({ pressed }) => [styles.card, compact && styles.discoveryCard, { backgroundColor: colors.card, borderColor: colors.border, shadowColor: darkMode ? "#000" : "#0F172A" }, pressed && { opacity: .72 }]}>
+          <View style={styles.categoryRow}><View style={[styles.dot, { backgroundColor: accent }]} /><Text numberOfLines={1} style={[styles.category, { color: colors.mutedText, fontFamily }]}>{study.category}</Text></View>
+          <Text numberOfLines={compact ? 3 : 2} style={[styles.cardTitle, { color: colors.text, fontFamily, fontSize: size(compact ? 15 : 17) }]}>{study.title}</Text>
+          {!compact && study.excerpt ? <Text numberOfLines={2} style={[styles.excerpt, { color: colors.mutedText, fontFamily }]}>{study.excerpt}</Text> : null}
+          <View style={styles.cardMeta}><Text numberOfLines={1} style={[styles.author, { color: colors.mutedText, fontFamily }]}>{study.author ? `By ${study.author}` : "Advent Pro"}</Text>{study.wordCount ? <Text style={[styles.readTime, { color: colors.mutedText, fontFamily }]}>{Math.max(1, Math.ceil(study.wordCount / 250))} min</Text> : null}</View>
+        </Pressable>
+      </Link>
+      {!compact ? <ShareIconButton color={colors.tint} borderColor={colors.border} backgroundColor={colors.card} onPress={() => void shareStudyLink({ ...study, content: study.excerpt })} style={styles.share} /> : null}
+    </View>;
+  }
+
+  function DiscoverySection({ title, subtitle, icon, studies }: { title: string; subtitle: string; icon: keyof typeof Ionicons.glyphMap; studies: StudySummary[] }) {
+    if (!studies.length) return null;
+    return <View style={styles.discovery}>
+      <View style={styles.discoveryHeading}><View style={[styles.discoveryIcon, { backgroundColor: `${colors.tint}14` }]}><Ionicons name={icon} size={18} color={colors.tint} /></View><View><Text style={[styles.discoveryTitle, { color: colors.text, fontFamily }]}>{title}</Text><Text style={[styles.discoverySubtitle, { color: colors.mutedText, fontFamily }]}>{subtitle}</Text></View></View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.discoveryList}>{studies.map((study) => <StudyCard key={`${title}-${study.id}`} study={study} compact />)}</ScrollView>
+    </View>;
+  }
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
-  },
-  headerContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    backgroundColor: "#c41414",
-    right: 0,
-    zIndex: 100,
-    paddingTop: Platform.OS === "ios" ? 60 : 40,
-    paddingBottom: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-  },
-  headerContent: {
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontWeight: "700",
-    textAlign: "center",
-  },
-  headerSubtitle: {
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  searchContainer: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 140 : 120,
-    left: 0,
-    right: 0,
-    zIndex: 90,
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  searchWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    padding: 0,
-    fontWeight: "500",
-  },
-  clearButton: {
-    padding: 4,
-  },
-  searchingIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    gap: 8,
-  },
-  searchingText: {
-    fontSize: 14,
-  },
-  categoriesSection: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 200 : 180,
-    left: 0,
-    right: 0,
-    zIndex: 80,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  sectionHeaderRow: {
-    position: "absolute",
-    top: Platform.OS === "ios" ? 290 : 270,
-    left: 20,
-    right: 20,
-    zIndex: 70,
-  },
-  sectionTitle: {
-    fontWeight: "600",
-  },
-  clearFilter: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  clearFilterText: {
-    fontWeight: "500",
-  },
-  categoriesList: {
-    gap: 8,
-    paddingBottom: 16,
-  },
-  categoryItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    gap: 8,
-  },
-  categoryText: {
-    fontWeight: "500",
-  },
-  categoryCount: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  countText: {
-    fontWeight: "600",
-  },
-  studiesSection: {
-    flex: 1,
-  },
-  studyCount: {
-    fontWeight: "400",
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingTop: 100,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 14,
-  },
-  studiesList: {
-    paddingHorizontal: 20,
-    paddingBottom: 40,
-  },
-  studyCardContainer: {
-    marginBottom: 12,
-    position: "relative",
-  },
-  studyCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
-  studyContent: {
-    padding: 20,
-  },
-  categoryIndicator: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 8,
-  },
-  categoryDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  categoryLabel: {
-    fontWeight: "500",
-  },
-  studyTitle: {
-    fontWeight: "700",
-    lineHeight: 24,
-    marginBottom: 6,
-  },
-  studySubtitle: {
-    fontWeight: "500",
-    marginBottom: 12,
-  },
-  excerpt: {
-    lineHeight: 22,
-    marginBottom: 16,
-  },
-  metadata: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  author: {
-    fontWeight: "500",
-  },
-  wordCount: {
-    fontWeight: "500",
-  },
-  shareButton: {
-    position: "absolute",
-    top: 10,
-    right: 10,
-  },
-  emptyContainer: {
-    paddingTop: 40,
-  },
-  emptyCard: {
-    padding: 32,
-    borderRadius: 8,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  emptyTitle: {
-    fontWeight: "600",
-  },
-  emptySubtitle: {
-    lineHeight: 20,
-  },
-  floatingTopButton: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    zIndex: 200,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  floatingTopText: {
-    fontWeight: "600",
-  },
+  screen: { flex: 1 }, fixedHeader: { borderBottomWidth: StyleSheet.hairlineWidth, paddingTop: 12 },
+  titleRow: { paddingHorizontal: 18, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, title: { fontWeight: "900", letterSpacing: -.4 }, subtitle: { fontSize: 11, marginTop: 1 }, totalBadge: { minWidth: 34, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center" }, totalText: { fontSize: 12, fontWeight: "900" },
+  search: { height: 45, marginHorizontal: 18, marginTop: 12, borderRadius: 14, borderWidth: 1, flexDirection: "row", alignItems: "center", paddingHorizontal: 13, gap: 9 }, searchInput: { flex: 1, fontSize: 14, paddingVertical: 0 }, chips: { paddingHorizontal: 18, paddingVertical: 11, gap: 8 }, chip: { height: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: 1, alignItems: "center", justifyContent: "center" }, chipText: { fontSize: 12, fontWeight: "700" },
+  list: { paddingBottom: 110 }, loading: { flex: 1, alignItems: "center", justifyContent: "center" }, loadingCopy: { fontSize: 12, marginTop: 10 },
+  discovery: { marginTop: 22 }, discoveryHeading: { paddingHorizontal: 18, flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 11 }, discoveryIcon: { width: 36, height: 36, borderRadius: 12, alignItems: "center", justifyContent: "center" }, discoveryTitle: { fontSize: 17, fontWeight: "900" }, discoverySubtitle: { fontSize: 10, marginTop: 1 }, discoveryList: { paddingHorizontal: 18, gap: 11 }, discoveryCardWrap: { marginBottom: 2 }, discoveryCard: { minHeight: 150, padding: 15 },
+  allTitle: { fontSize: 19, fontWeight: "900", marginHorizontal: 18, marginTop: 30, marginBottom: 9 }, resultsTitle: { fontSize: 18, fontWeight: "900", marginHorizontal: 18, marginTop: 20, marginBottom: 9 },
+  cardWrap: { marginHorizontal: 18, marginVertical: 6, position: "relative" }, card: { borderWidth: 1, borderRadius: 18, padding: 17, elevation: 2, shadowOffset: { width: 0, height: 4 }, shadowOpacity: .06, shadowRadius: 9 }, categoryRow: { flexDirection: "row", alignItems: "center", gap: 7, paddingRight: 34 }, dot: { width: 8, height: 8, borderRadius: 4 }, category: { flex: 1, fontSize: 10, fontWeight: "800", textTransform: "uppercase" }, cardTitle: { fontWeight: "800", lineHeight: 23, marginTop: 9, paddingRight: 25 }, excerpt: { fontSize: 12, lineHeight: 18, marginTop: 7 }, cardMeta: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 13 }, author: { flex: 1, fontSize: 10 }, readTime: { fontSize: 10, fontWeight: "700" }, share: { position: "absolute", right: 9, top: 9 },
+  empty: { margin: 18, marginTop: 35, borderWidth: 1, borderRadius: 18, padding: 32, alignItems: "center" }, emptyTitle: { fontSize: 17, fontWeight: "900", marginTop: 12 }, emptyCopy: { fontSize: 12, marginTop: 4, textAlign: "center" },
 });

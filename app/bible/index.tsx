@@ -166,15 +166,15 @@ export default function BibleHome() {
                 style={[
                   styles.chip,
                   {
-                    backgroundColor: active ? colors.tint : "transparent",
-                    borderColor: active ? colors.tint : colors.border,
+                    backgroundColor: active ? colors.primary : "transparent",
+                    borderColor: active ? colors.primary : colors.border,
                   },
                 ]}
               >
                 <Text
                   style={[
                     styles.chipText,
-                    { color: active ? "#fff" : colors.text, fontFamily, fontSize: size(13) },
+                    { color: active ? colors.onPrimary : colors.text, fontFamily, fontSize: size(13) },
                   ]}
                 >
                   {v.abbreviation || v.name}
@@ -183,7 +183,7 @@ export default function BibleHome() {
                   <Ionicons
                     name="cloud-download-outline"
                     size={size(13)}
-                    color={active ? "#fff" : colors.mutedText}
+                    color={active ? colors.onPrimary : colors.mutedText}
                     style={{ marginLeft: 5 }}
                   />
                 )}
@@ -221,7 +221,7 @@ export default function BibleHome() {
                 <View
                   style={[
                     styles.progressFill,
-                    { backgroundColor: colors.tint, width: `${Math.round(progress * 100)}%` },
+                    { backgroundColor: colors.primary, width: `${Math.round(progress * 100)}%` },
                   ]}
                 />
               </View>
@@ -232,10 +232,10 @@ export default function BibleHome() {
           ) : (
             <Pressable
               onPress={handleInstall}
-              style={[styles.installBtn, { backgroundColor: colors.tint }]}
+              style={[styles.installBtn, { backgroundColor: colors.primary }]}
             >
-              <Ionicons name="download-outline" size={18} color="#fff" />
-              <Text style={[styles.installBtnText, { fontFamily, fontSize: size(15) }]}>
+              <Ionicons name="download-outline" size={18} color={colors.onPrimary} />
+              <Text style={[styles.installBtnText, { color: colors.onPrimary, fontFamily, fontSize: size(15) }]}>
                 {selected.source === "remote" ? "Download" : "Install"}
               </Text>
             </Pressable>
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 8,
   },
-  installBtnText: { color: "#fff", fontWeight: "700" },
+  installBtnText: { fontWeight: "700" },
   progressWrap: { width: "80%", alignItems: "center", gap: 8, marginTop: 8 },
   progressTrack: { width: "100%", height: 8, borderRadius: 999, overflow: "hidden" },
   progressFill: { height: 8, borderRadius: 999 },

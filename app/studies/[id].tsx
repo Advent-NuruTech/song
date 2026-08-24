@@ -1,8 +1,7 @@
 import { Link, Stack, router, useLocalSearchParams } from "expo-router";
-import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2, Trash2 } from "@/components/icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2 } from "@/components/icons";
+import { useCallback, useEffect, useState } from "react";
 import {
-  Animated,
   Alert,
   Linking,
   NativeScrollEvent,
@@ -13,7 +12,6 @@ import {
   StatusBar,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -22,6 +20,7 @@ import { ShareSheet } from "@/components/share-sheet";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { isRichStudyHtml, StudyRichContent } from "@/components/study-rich-content";
 import { Toast } from "@/components/toast";
+import { CommunityCommentsSheet, type CommunityComment } from "@/components/community-comments-sheet";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/src/auth/AuthContext";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
@@ -40,6 +39,7 @@ import {
   recordStudyShare,
   toggleStudyLike,
 } from "@/src/services/studyEngagementService";
+import { recordStudyView } from "@/src/services/studyDiscoveryService";
 
 const EMPTY_ENGAGEMENT: StudyEngagement = {
   likeCount: 0,
@@ -317,14 +317,12 @@ export default function StudyDetailScreen() {
   const auth = useAuth();
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showHeader, setShowHeader] = useState(true);
   const [shareOpen, setShareOpen] = useState(false);
   const [selectionOpen, setSelectionOpen] = useState(false);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [engagement, setEngagement] = useState<StudyEngagement>(EMPTY_ENGAGEMENT);
-  const [comment, setComment] = useState("");
   const [engagementBusy, setEngagementBusy] = useState(false);
-  const scrollY = useRef(new Animated.Value(0)).current;
 
   const loadEngagement = useCallback(async () => {
     if (!id) return;
@@ -351,6 +349,7 @@ export default function StudyDetailScreen() {
         const data = await getStudyById(id);
         if (isMounted) {
           setStudy(data);
+          if (data) void recordStudyView(data.id).catch(() => undefined);
         }
       } catch (error) {
         console.error("Failed to load study:", error);
@@ -392,25 +391,6 @@ export default function StudyDetailScreen() {
     }
   };
 
-  const handleAddComment = async () => {
-    if (!id) return;
-    if (!auth.user) return openAccount("Sign in or create a free account to share your thoughts.");
-    const body = comment.trim();
-    if (!body) return;
-    if (body.length > 2000) return Alert.alert("Comment is too long", "Keep your comment under 2,000 characters.");
-    setEngagementBusy(true);
-    try {
-      await addStudyComment(id, body);
-      setComment("");
-      await loadEngagement();
-      setToast("Comment posted");
-    } catch (error) {
-      Alert.alert("Couldn’t post comment", (error as Error).message);
-    } finally {
-      setEngagementBusy(false);
-    }
-  };
-
   const handleDeleteComment = (commentId: string) => Alert.alert(
     "Delete comment?",
     "This removes your comment from the conversation.",
@@ -439,8 +419,6 @@ export default function StudyDetailScreen() {
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetY = event.nativeEvent.contentOffset.y;
     reportScroll(offsetY);
-    setShowHeader(offsetY < 100);
-    scrollY.setValue(offsetY);
   };
 
   if (loading) {
@@ -506,18 +484,6 @@ export default function StudyDetailScreen() {
   const wordCount = study.wordCount || 0;
   const readingTime = Math.ceil(wordCount / 250);
 
-  const headerTranslateY = scrollY.interpolate({
-    inputRange: [0, 100],
-    outputRange: [0, -200],
-    extrapolate: "clamp",
-  });
-
-  const headerOpacity = scrollY.interpolate({
-    inputRange: [0, 80, 100],
-    outputRange: [1, 0.5, 0],
-    extrapolate: "clamp",
-  });
-
   return (
     <>
       <Stack.Screen
@@ -532,13 +498,11 @@ export default function StudyDetailScreen() {
         backgroundColor={colors.background}
       />
 
-      <Animated.View
+      <View
         style={[
           styles.headerContainer,
           {
             backgroundColor: colors.card,
-            transform: [{ translateY: headerTranslateY }],
-            opacity: headerOpacity,
             borderBottomColor: colors.border,
           },
         ]}
@@ -560,53 +524,10 @@ export default function StudyDetailScreen() {
         />
 
         <View style={styles.headerContent}>
-          <View style={styles.categoryRow}>
-            <View style={[styles.categoryDot, { backgroundColor: color }]} />
-            <Text
-              style={[
-                styles.categoryText,
-                {
-                  color: colors.mutedText,
-                  fontSize: size(14),
-                  fontFamily,
-                },
-              ]}
-            >
-              {study.category}
-            </Text>
-          </View>
-
-          <Text
-            style={[
-              styles.studyTitle,
-              {
-                color: colors.text,
-                fontSize: size(24),
-                fontFamily,
-              },
-            ]}
-            numberOfLines={2}
-          >
-            {study.title}
-          </Text>
-
-          {study.subtitle ? (
-            <Text
-              style={[
-                styles.studySubtitle,
-                {
-                  color: colors.mutedText,
-                  fontSize: size(16),
-                  fontFamily,
-                },
-              ]}
-              numberOfLines={2}
-            >
-              {study.subtitle}
-            </Text>
-          ) : null}
+          <Text style={[styles.studyTitle, { color: colors.text, fontSize: size(15), fontFamily }]} numberOfLines={1}>{study.title}</Text>
+          <View style={styles.categoryRow}><View style={[styles.categoryDot, { backgroundColor: color }]} /><Text style={[styles.categoryText, { color: colors.mutedText, fontSize: size(10), fontFamily }]} numberOfLines={1}>{study.category}</Text></View>
         </View>
-      </Animated.View>
+      </View>
 
       <ScrollView
         style={[styles.scrollContainer, { backgroundColor: colors.background }]}
@@ -655,52 +576,11 @@ export default function StudyDetailScreen() {
               <Text style={[styles.commentsTitle, { color: colors.text, fontFamily, fontSize: size(17) }]}>Reader comments</Text>
               <Text style={[styles.commentsCount, { color: colors.mutedText, fontFamily }]}>{engagement.commentCount}</Text>
             </View>
-
-            {auth.user ? (
-              <View style={[styles.composer, { borderColor: colors.border, backgroundColor: colors.background }]}>
-                <View style={[styles.commentAvatar, { backgroundColor: `${colors.tint}20` }]}>
-                  <Text style={[styles.commentAvatarText, { color: colors.tint }]}>{(auth.profile?.display_name || auth.user.email || "A").trim().charAt(0).toUpperCase()}</Text>
-                </View>
-                <View style={styles.composerBody}>
-                  <TextInput
-                    value={comment}
-                    onChangeText={setComment}
-                    placeholder="Share a thoughtful response…"
-                    placeholderTextColor={colors.subtleText}
-                    multiline
-                    maxLength={2000}
-                    style={[styles.commentInput, { color: colors.text, fontFamily, fontSize: size(14) }]}
-                  />
-                  <View style={styles.composerFooter}>
-                    <Text style={[styles.characterCount, { color: colors.subtleText, fontFamily }]}>{comment.length}/2000</Text>
-                    <Pressable disabled={engagementBusy || !comment.trim()} onPress={() => void handleAddComment()} style={[styles.postButton, { backgroundColor: colors.tint, opacity: engagementBusy || !comment.trim() ? 0.5 : 1 }]}>
-                      <Send size={15} color={darkMode ? "#0B1220" : "#FFFFFF"} />
-                      <Text style={[styles.postButtonText, { color: darkMode ? "#0B1220" : "#FFFFFF", fontFamily }]}>Post</Text>
-                    </Pressable>
-                  </View>
-                </View>
-              </View>
-            ) : (
-              <Pressable onPress={() => openAccount("Sign in or create a free account to share your thoughts.")} style={[styles.signInPrompt, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                <MessageCircle size={20} color={colors.tint} />
-                <View style={{ flex: 1 }}><Text style={[styles.signInPromptTitle, { color: colors.text, fontFamily }]}>Add to the discussion</Text><Text style={[styles.signInPromptCopy, { color: colors.mutedText, fontFamily }]}>Sign in to post a comment</Text></View>
-                <Text style={[styles.signInPromptAction, { color: colors.tint, fontFamily }]}>Sign in</Text>
-              </Pressable>
-            )}
-
-            <View style={styles.commentList}>
-              {engagement.comments.map((item) => (
-                <View key={item.id} style={[styles.commentRow, { borderTopColor: colors.border }]}>
-                  <View style={[styles.commentAvatar, { backgroundColor: `${colors.tint}18` }]}><Text style={[styles.commentAvatarText, { color: colors.tint }]}>{item.authorName.charAt(0).toUpperCase()}</Text></View>
-                  <View style={styles.commentBody}>
-                    <View style={styles.commentMeta}><Text style={[styles.commentAuthor, { color: colors.text, fontFamily }]}>{item.authorName}</Text><Text style={[styles.commentDate, { color: colors.subtleText, fontFamily }]}>{new Date(item.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: new Date(item.createdAt).getFullYear() === new Date().getFullYear() ? undefined : "numeric" })}</Text></View>
-                    <Text style={[styles.commentText, { color: colors.text, fontFamily, fontSize: size(14) }]}>{item.body}</Text>
-                  </View>
-                  {auth.user?.id === item.userId ? <Pressable accessibilityLabel="Delete your comment" hitSlop={10} onPress={() => handleDeleteComment(item.id)} style={styles.deleteComment}><Trash2 size={16} color={colors.mutedText} /></Pressable> : null}
-                </View>
-              ))}
-              {!engagement.comments.length ? <Text style={[styles.emptyComments, { color: colors.mutedText, fontFamily }]}>No comments yet. Start a thoughtful conversation.</Text> : null}
-            </View>
+            <Pressable onPress={() => setCommentsOpen(true)} style={[styles.openComments, { backgroundColor: colors.background, borderColor: colors.border }]}>
+              <View style={[styles.commentAvatar, { backgroundColor: `${colors.tint}18` }]}><MessageCircle size={18} color={colors.tint} /></View>
+              <View style={{ flex: 1 }}><Text style={[styles.signInPromptTitle, { color: colors.text, fontFamily }]}>Join the discussion</Text><Text style={[styles.signInPromptCopy, { color: colors.mutedText, fontFamily }]}>{engagement.commentCount ? `${engagement.commentCount} thoughtful responses` : "Be the first to comment"}</Text></View>
+              <Text style={[styles.signInPromptAction, { color: colors.tint, fontFamily }]}>Open</Text>
+            </Pressable>
           </View>
 
           <View style={[styles.footerMetadata, { borderTopColor: colors.border }]}> 
@@ -754,30 +634,17 @@ export default function StudyDetailScreen() {
         </View>
       </ScrollView>
 
-      {!showHeader && (
-        <Link href="/studies" asChild>
-          <Pressable
-            style={[
-              styles.floatingBackButton,
-              {
-                backgroundColor: colors.card,
-                borderColor: colors.border,
-                shadowColor: darkMode ? "#000" : "#000",
-              },
-            ]}
-          >
-            <ChevronLeft size={size(20)} color={colors.text} />
-            <Text
-              style={[
-                styles.floatingBackText,
-                { color: colors.text, fontSize: size(14), fontFamily },
-              ]}
-            >
-              Back
-            </Text>
-          </Pressable>
-        </Link>
-      )}
+      <CommunityCommentsSheet
+        visible={commentsOpen}
+        title="Study comments"
+        comments={engagement.comments}
+        currentUserId={auth.user?.id}
+        onClose={() => setCommentsOpen(false)}
+        onLoad={loadEngagement}
+        onPost={async (body) => { if (!id) return; await addStudyComment(id, body); await loadEngagement(); setToast("Comment posted"); }}
+        onDelete={(item: CommunityComment) => handleDeleteComment(item.id)}
+        onGuidelines={() => { setCommentsOpen(false); router.push("/terms"); }}
+      />
 
       <ShareSheet
         visible={shareOpen}
@@ -857,47 +724,44 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     zIndex: 100,
-    paddingTop: Platform.OS === "ios" ? 90 : 70,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
+    height: 64,
+    paddingHorizontal: 58,
+    justifyContent: "center",
     borderBottomWidth: 1,
   },
   backButton: {
     position: "absolute",
-    left: 20,
-    top: Platform.OS === "ios" ? 90 : 70,
+    left: 10,
+    top: 10,
     zIndex: 1,
     padding: 8,
   },
   shareButton: {
     position: "absolute",
-    right: 20,
-    top: Platform.OS === "ios" ? 90 : 70,
+    right: 12,
+    top: 14,
     zIndex: 1,
   },
   headerContent: {
-    alignItems: "center",
-    marginTop: 8,
+    justifyContent: "center",
   },
   categoryRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 16,
-    gap: 8,
+    marginTop: 3,
+    gap: 6,
   },
   categoryDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
   categoryText: {
     fontWeight: "600",
   },
   studyTitle: {
-    fontWeight: "700",
-    textAlign: "center",
-    marginBottom: 8,
-    lineHeight: 30,
+    fontWeight: "800",
+    lineHeight: 20,
   },
   studySubtitle: {
     textAlign: "center",
@@ -909,7 +773,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   contentContainer: {
-    paddingTop: Platform.OS === "ios" ? 200 : 250,
+    paddingTop: 84,
     paddingHorizontal: 20,
     paddingBottom: 120,
   },
@@ -993,6 +857,7 @@ const styles = StyleSheet.create({
   commentsHeader: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 25, marginBottom: 12 },
   commentsTitle: { fontWeight: "800" },
   commentsCount: { fontSize: 12, fontWeight: "800" },
+  openComments: { minHeight: 66, flexDirection: "row", alignItems: "center", gap: 11, borderWidth: 1, borderRadius: 16, padding: 13 },
   composer: { flexDirection: "row", alignItems: "flex-start", gap: 11, borderWidth: 1, borderRadius: 16, padding: 12 },
   composerBody: { flex: 1 },
   commentAvatar: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" },

@@ -18,7 +18,7 @@ import { formatMediaCount, getMediaLayout } from "@/src/features/media/utils";
 const TAB_KEY = "advent-pro:media-tab:v1";
 
 export default function MediaScreen() {
-  const { colors, fontFamily, size } = useAppTheme();
+  const { colors, fontFamily } = useAppTheme();
   const [tab, setTab] = useState<MediaType>("video");
 
   useEffect(() => { void AsyncStorage.getItem(TAB_KEY).then((value) => { if (value === "short") setTab("short"); }); }, []);
@@ -26,10 +26,6 @@ export default function MediaScreen() {
 
   return <View style={[styles.screen, { backgroundColor: colors.background }]}>
     <Stack.Screen options={{ headerShown: false }} />
-    <View style={styles.heading}>
-      <Text style={[styles.eyebrow, { color: colors.mutedText, fontFamily }]}>ADVENT PRO</Text>
-      <Text style={[styles.title, { color: colors.text, fontFamily, fontSize: size(28) }]}>Media</Text>
-    </View>
     <View accessibilityRole="tablist" style={[styles.tabs, { borderBottomColor: colors.border }]}>
       <Tab label="Videos" active={tab === "video"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("video")} />
       <Tab label="Shorts" active={tab === "short"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("short")} />
@@ -100,12 +96,16 @@ function ShortItem({ item, active, height, onComments, onPatch }: { item: MediaI
   return <View style={[styles.short, { height }]}>
     {active ? <EmbeddedYouTubePlayer item={item} active height={height} onViewCount={(viewCount) => onPatch({ viewCount })} /> : <Image source={{ uri: item.thumbnailUrl, cache: "force-cache" }} style={StyleSheet.absoluteFill} resizeMode="cover" />}
     <View pointerEvents="box-none" style={styles.shortOverlay}>
+      <View pointerEvents="none" style={styles.shortTop}>
+        <View style={styles.shortBrandMark}><Image source={require("@/assets/images/icon.png")} style={styles.shortBrandImage} /></View>
+        <View style={styles.shortBrandCopy}><Text numberOfLines={1} style={styles.shortBrandTitle}>{item.title}</Text><Text style={styles.shortBrandName}>Advent Pro</Text></View>
+      </View>
       <View style={styles.shortCopy}>
         <Text numberOfLines={2} style={styles.shortTitle}>{item.title}</Text>
         {!!item.description && <Text numberOfLines={2} style={styles.shortDescription}>{item.description}</Text>}
         <View style={styles.shortViews}><Ionicons name="play-circle-outline" size={15} color="#fff" /><Text style={styles.shortViewsText}>{formatMediaCount(item.viewCount)} views</Text></View>
       </View>
-      <View style={styles.shortActions}><MediaActions item={item} likedInitially={false} onComments={onComments} onChange={onPatch} /></View>
+      <View style={styles.shortActions}><MediaActions item={item} likedInitially={false} onComments={onComments} onChange={onPatch} variant="short" /></View>
     </View>
   </View>;
 }
@@ -121,9 +121,11 @@ function EmptyState({ icon, title, body }: { icon: keyof typeof Ionicons.glyphMa
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 }, flex: { flex: 1 }, heading: { paddingHorizontal: 18, paddingTop: 17, paddingBottom: 10 }, eyebrow: { fontSize: 10, fontWeight: "900", letterSpacing: 1.4 }, title: { fontWeight: "900", letterSpacing: -0.5, marginTop: 1 },
+  screen: { flex: 1 }, flex: { flex: 1 },
   tabs: { flexDirection: "row", borderBottomWidth: 1, paddingHorizontal: 16 }, tab: { flex: 1, height: 46, alignItems: "center", justifyContent: "center" }, tabText: { fontSize: 15, fontWeight: "800" }, tabLine: { position: "absolute", bottom: -1, height: 3, width: 52, borderRadius: 2 },
   videoList: { paddingTop: 7, paddingBottom: 100 }, banner: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 12, marginHorizontal: 16, marginTop: 8, padding: 10, gap: 8 }, bannerText: { flex: 1, fontSize: 12 }, retry: { fontSize: 12, fontWeight: "900" },
   footerLoader: { margin: 24 }, bottomSpace: { textAlign: "center", paddingTop: 20, paddingBottom: 90, fontSize: 11 }, empty: { minHeight: 300, alignItems: "center", justifyContent: "center", padding: 30 }, emptyTitle: { fontSize: 18, fontWeight: "900", marginTop: 12 }, emptyBody: { fontSize: 13, marginTop: 4 }, center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  short: { width: "100%", backgroundColor: "#000", overflow: "hidden" }, shortOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,.1)" }, shortCopy: { paddingHorizontal: 18, paddingBottom: 88, paddingRight: 78, backgroundColor: "rgba(0,0,0,.25)" }, shortTitle: { color: "#fff", fontSize: 18, lineHeight: 24, fontWeight: "900" }, shortDescription: { color: "rgba(255,255,255,.86)", fontSize: 13, lineHeight: 18, marginTop: 5 }, shortViews: { flexDirection: "row", gap: 5, alignItems: "center", marginTop: 8 }, shortViewsText: { color: "#fff", fontSize: 11, fontWeight: "700" }, shortActions: { position: "absolute", right: 5, bottom: 77, backgroundColor: "rgba(0,0,0,.38)", borderRadius: 22, overflow: "hidden" }, shortLoader: { position: "absolute", bottom: 80, alignSelf: "center" },
+  short: { width: "100%", backgroundColor: "#000", overflow: "hidden" }, shortOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,.05)" },
+  shortTop: { position: "absolute", top: 18, left: 16, right: 76, flexDirection: "row", alignItems: "center" }, shortBrandMark: { width: 38, height: 38, borderRadius: 19, backgroundColor: "rgba(0,0,0,.55)", overflow: "hidden" }, shortBrandImage: { width: 38, height: 38 }, shortBrandCopy: { flex: 1, marginLeft: 10 }, shortBrandTitle: { color: "#fff", fontSize: 14, fontWeight: "900", textShadowColor: "#000", textShadowRadius: 4 }, shortBrandName: { color: "rgba(255,255,255,.82)", fontSize: 11, fontWeight: "700", marginTop: 2 },
+  shortCopy: { paddingHorizontal: 16, paddingBottom: 24, paddingRight: 82, backgroundColor: "rgba(0,0,0,.30)" }, shortTitle: { color: "#fff", fontSize: 17, lineHeight: 23, fontWeight: "900" }, shortDescription: { color: "rgba(255,255,255,.88)", fontSize: 13, lineHeight: 18, marginTop: 5 }, shortViews: { flexDirection: "row", gap: 5, alignItems: "center", marginTop: 8 }, shortViewsText: { color: "#fff", fontSize: 11, fontWeight: "700" }, shortActions: { position: "absolute", right: 7, bottom: 18 }, shortLoader: { position: "absolute", bottom: 80, alignSelf: "center" },
 });
