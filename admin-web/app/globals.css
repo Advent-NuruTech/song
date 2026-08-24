@@ -33,6 +33,9 @@ body {
 .legal-page h2 { margin-top: 28px; margin-bottom: 6px; font-size: 1.25rem; }
 .legal-page p { margin: 0 0 12px; }
 .legal-date { color: #64748b; }
+.legal-page a { color: #0b4aa6; text-decoration: underline; text-underline-offset: 3px; }
+.legal-links { display: flex; flex-wrap: wrap; gap: 12px 20px; margin-top: 36px; padding-top: 20px; border-top: 1px solid #dbe3ef; }
+.legal-links a { font-weight: 700; }
 
 a {
   color: inherit;
