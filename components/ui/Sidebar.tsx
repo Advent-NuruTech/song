@@ -61,6 +61,20 @@ const NAV_ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/studies"),
   },
   {
+    key: "notes",
+    label: "My Notes",
+    icon: "document-text-outline",
+    path: "/notes",
+    match: (p) => p.startsWith("/notes"),
+  },
+  {
+    key: "playlists",
+    label: "Song Playlists",
+    icon: "list-circle-outline",
+    path: "/playlists",
+    match: (p) => p.startsWith("/playlists"),
+  },
+  {
     key: "bible",
     label: "Bible",
     icon: "book-outline",

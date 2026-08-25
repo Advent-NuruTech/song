@@ -9,6 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
+import BibleInsertDialog from "./BibleInsertDialog";
 import styles from "./RichTextEditor.module.css";
 
 export type RichTextEditorProps = {
@@ -184,6 +185,7 @@ export default function RichTextEditor({
   uploadImage,
   onBusyChange,
 }: RichTextEditorProps) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<HTMLDivElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const lastValueRef = useRef("");
@@ -191,6 +193,33 @@ export default function RichTextEditor({
   const [textColor, setTextColor] = useState("#111827");
   const [highlightColor, setHighlightColor] = useState("#fff59d");
   const [uploadingImages, setUploadingImages] = useState(0);
+  const [editorActive, setEditorActive] = useState(false);
+  const [bibleOpen, setBibleOpen] = useState(false);
+
+  useEffect(() => {
+    const updateViewportInset = () => {
+      const viewport = window.visualViewport;
+      const keyboardInset = viewport
+        ? Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop)
+        : 0;
+      rootRef.current?.style.setProperty("--editor-keyboard-inset", `${Math.round(keyboardInset)}px`);
+    };
+    const deactivateOutsideEditor = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setEditorActive(false);
+    };
+
+    updateViewportInset();
+    window.addEventListener("resize", updateViewportInset);
+    window.visualViewport?.addEventListener("resize", updateViewportInset);
+    window.visualViewport?.addEventListener("scroll", updateViewportInset);
+    document.addEventListener("pointerdown", deactivateOutsideEditor);
+    return () => {
+      window.removeEventListener("resize", updateViewportInset);
+      window.visualViewport?.removeEventListener("resize", updateViewportInset);
+      window.visualViewport?.removeEventListener("scroll", updateViewportInset);
+      document.removeEventListener("pointerdown", deactivateOutsideEditor);
+    };
+  }, []);
 
   useEffect(() => {
     onBusyChange?.(uploadingImages > 0);
@@ -252,6 +281,22 @@ export default function RichTextEditor({
     document.execCommand("insertHTML", false, sanitizeRichTextHtml(html));
     rememberSelection();
     emitChange();
+  };
+
+  const detectBibleCommand = () => {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount || !selection.isCollapsed || !editorRef.current?.contains(selection.anchorNode)) return;
+    const node = selection.anchorNode;
+    if (!node || node.nodeType !== Node.TEXT_NODE) return;
+    const offset = selection.anchorOffset;
+    const before = node.textContent?.slice(0, offset) ?? "";
+    const match = before.match(/(?:^|\s)(\/bible)$/i);
+    if (!match) return;
+    const range = document.createRange();
+    range.setStart(node, offset - match[1].length);
+    range.setEnd(node, offset);
+    savedRangeRef.current = range;
+    setBibleOpen(true);
   };
 
   const fileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
@@ -363,13 +408,18 @@ export default function RichTextEditor({
   };
 
   return (
-    <div className={styles.root}>
+    <div
+      ref={rootRef}
+      className={styles.root}
+      data-editor-active={editorActive ? "true" : "false"}
+      onFocusCapture={() => setEditorActive(true)}
+    >
       <div className={styles.toolbar} role="toolbar" aria-label="Document formatting">
-        <div className={styles.group}>
+        <div className={`${styles.group} ${styles.historyGroup}`}>
           <button type="button" className={styles.toolButton} title="Undo" aria-label="Undo" onMouseDown={stopMouseDown} onClick={() => command("undo")}>↶</button>
           <button type="button" className={styles.toolButton} title="Redo" aria-label="Redo" onMouseDown={stopMouseDown} onClick={() => command("redo")}>↷</button>
         </div>
-        <div className={styles.group}>
+        <div className={`${styles.group} ${styles.typeGroup}`}>
           <select className={`${styles.toolSelect} ${styles.blockSelect}`} defaultValue="p" aria-label="Paragraph style" title="Paragraph style" onMouseDown={rememberSelection} onChange={(e) => command("formatBlock", e.target.value)}>
             <option value="p">Normal text</option><option value="h1">Title</option><option value="h2">Heading 1</option><option value="h3">Heading 2</option><option value="blockquote">Quote</option>
           </select>
@@ -380,19 +430,20 @@ export default function RichTextEditor({
             <option value="1">10</option><option value="2">13</option><option value="3">16</option><option value="4">18</option><option value="5">24</option><option value="6">32</option><option value="7">48</option>
           </select>
         </div>
-        <div className={styles.group}>
+        <div className={`${styles.group} ${styles.inlineGroup}`}>
           <button type="button" className={styles.toolButton} title="Bold" aria-label="Bold" style={{ fontWeight: 800 }} onMouseDown={stopMouseDown} onClick={() => command("bold")}>B</button>
           <button type="button" className={styles.toolButton} title="Italic" aria-label="Italic" style={{ fontStyle: "italic" }} onMouseDown={stopMouseDown} onClick={() => command("italic")}>I</button>
           <button type="button" className={styles.toolButton} title="Underline" aria-label="Underline" style={{ textDecoration: "underline" }} onMouseDown={stopMouseDown} onClick={() => command("underline")}>U</button>
           <label className={styles.colorButton} title="Text color" aria-label="Text color">A<span className={styles.colorUnderline} style={{ background: textColor }} /><input type="color" value={textColor} onMouseDown={rememberSelection} onChange={(e) => { setTextColor(e.target.value); command("foreColor", e.target.value); }} /></label>
           <label className={styles.colorButton} title="Highlight color" aria-label="Highlight color">✎<span className={styles.colorUnderline} style={{ background: highlightColor }} /><input type="color" value={highlightColor} onMouseDown={rememberSelection} onChange={(e) => { setHighlightColor(e.target.value); command("hiliteColor", e.target.value); }} /></label>
         </div>
-        <div className={styles.group}>
+        <div className={`${styles.group} ${styles.insertGroup}`}>
           <button type="button" className={styles.toolButton} title="Insert link" aria-label="Insert link" onMouseDown={stopMouseDown} onClick={addLink}>🔗</button>
           <button type="button" className={styles.toolButton} title="Remove link" aria-label="Remove link" onMouseDown={stopMouseDown} onClick={() => command("unlink")}>⛓</button>
           <button type="button" className={styles.toolButton} title="Insert image" aria-label="Insert image" onMouseDown={stopMouseDown} onClick={() => imageInputRef.current?.click()}>▣</button>
+          <button type="button" className={styles.toolButton} title="Insert Bible passage" aria-label="Insert Bible passage" onMouseDown={stopMouseDown} onClick={() => setBibleOpen(true)}>Bible</button>
         </div>
-        <div className={styles.group}>
+        <div className={`${styles.group} ${styles.paragraphGroup}`}>
           <button type="button" className={styles.toolButton} title="Bulleted list" aria-label="Bulleted list" onMouseDown={stopMouseDown} onClick={() => command("insertUnorderedList")}>•≡</button>
           <button type="button" className={styles.toolButton} title="Numbered list" aria-label="Numbered list" onMouseDown={stopMouseDown} onClick={() => command("insertOrderedList")}>1≡</button>
           <button type="button" className={styles.toolButton} title="Align left" aria-label="Align left" onMouseDown={stopMouseDown} onClick={() => command("justifyLeft")}>☰</button>
@@ -411,13 +462,14 @@ export default function RichTextEditor({
         aria-multiline="true"
         data-placeholder={placeholder}
         style={{ minHeight }}
-        onInput={(_: FormEvent<HTMLDivElement>) => { rememberSelection(); emitChange(); }}
+        onInput={(_: FormEvent<HTMLDivElement>) => { rememberSelection(); detectBibleCommand(); emitChange(); }}
         onKeyUp={rememberSelection}
         onMouseUp={rememberSelection}
         onBlur={rememberSelection}
         onKeyDown={onEditorKeyDown}
         onPaste={handlePaste}
         onDrop={handleDrop}
+        onFocus={() => setEditorActive(true)}
       />
       <div className={styles.hint} role="status">
         {uploadingImages > 0
@@ -435,6 +487,11 @@ export default function RichTextEditor({
           if (file) void insertImageFile(file);
           event.target.value = "";
         }}
+      />
+      <BibleInsertDialog
+        open={bibleOpen}
+        onClose={() => { setBibleOpen(false); requestAnimationFrame(restoreSelection); }}
+        onInsert={(html) => insertHtml(html)}
       />
     </div>
   );

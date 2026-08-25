@@ -11,7 +11,9 @@ type MenuKind = "resources" | "profile" | null;
 const RESOURCE_LINKS = [
   { label: "Bible", detail: "Read Scripture", icon: "book-outline" as const, path: "/bible" },
   { label: "Songs", detail: "Hymns and worship", icon: "musical-notes-outline" as const, path: "/categories" },
+  { label: "Playlists", detail: "Your singing orders", icon: "list-circle-outline" as const, path: "/playlists" },
   { label: "Studies", detail: "Biblical research", icon: "library-outline" as const, path: "/studies" },
+  { label: "Notes", detail: "Write and sync", icon: "document-text-outline" as const, path: "/notes" },
 ];
 
 const PROFILE_LINKS = [
@@ -27,7 +29,7 @@ export default function QuickFooter() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const [menu, setMenu] = useState<MenuKind>(null);
 
-  const resourcesActive = ["/bible", "/categories", "/songs", "/song/", "/studies"].some((path) => pathname.startsWith(path));
+  const resourcesActive = ["/bible", "/categories", "/songs", "/song/", "/studies", "/notes", "/playlists"].some((path) => pathname.startsWith(path));
   const profileActive = ["/account", "/settings", "/about"].some((path) => pathname.startsWith(path));
   const links = menu === "resources" ? RESOURCE_LINKS : PROFILE_LINKS;
 

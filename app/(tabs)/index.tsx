@@ -135,6 +135,8 @@ export default function HomeScreen() {
             <QuickAction href="/categories" icon="musical-notes" color="#0EA5E9" title="Songs" subtitle="Hymns & Worship" />
             <QuickAction href="/studies" icon="library" color="#8B5CF6" title="Studies" subtitle="Bible Research" />
             <QuickAction href="/bible" icon="book" color="#10B981" title="Bible" subtitle="Read Scripture" />
+            <QuickAction href="/notes" icon="document-text" color="#F59E0B" title="My Notes" subtitle="Write & Sync" />
+            <QuickAction href="/playlists" icon="list-circle" color="#EC4899" title="Playlists" subtitle="Singing Orders" />
           </View>
         </View>
 
@@ -213,7 +215,7 @@ export default function HomeScreen() {
 }
 
 type QuickActionProps = {
-  href: "/categories" | "/studies" | "/bible";
+  href: "/categories" | "/studies" | "/bible" | "/notes" | "/playlists";
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   title: string;

@@ -20,6 +20,9 @@ if (existsSync(rootEnvPath)) {
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    outputFileTracingRoot: resolve(process.cwd(), ".."),
+  },
 };
 
 export default nextConfig;

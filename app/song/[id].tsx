@@ -1,4 +1,5 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import React, {
   memo,
   useCallback,
@@ -27,6 +28,7 @@ import { ShareIconButton } from "@/components/share-icon-button";
 import { ShareSheet } from "@/components/share-sheet";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
+import { AddToPlaylistSheet } from "@/components/add-to-playlist-sheet";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -45,6 +47,7 @@ import {
   shareChorus,
   shareStanza,
 } from "@/src/services/shareService";
+import { getPlaylistNeighbors } from "@/src/features/personal/personalService";
 
 type ParsedSong = {
   id: string;
@@ -243,9 +246,10 @@ SongContent.displayName =
 export default function SongScreen() {
   const router = useRouter();
 
-  const { id } =
+  const { id, playlist } =
     useLocalSearchParams<{
       id?: string;
+      playlist?: string;
     }>();
 
   const {
@@ -278,6 +282,9 @@ export default function SongScreen() {
   const [selectionOpen, setSelectionOpen] =
     useState(false);
 
+  const [playlistOpen, setPlaylistOpen] = useState(false);
+  const [playlistPosition, setPlaylistPosition] = useState<{ index: number; count: number } | null>(null);
+
   const [toast, setToast] =
     useState<string | null>(null);
 
@@ -290,7 +297,7 @@ export default function SongScreen() {
   }, []);
 
   const loadSong = useCallback(
-    async (songId: string) => {
+    async (songId: string, playlistId?: string) => {
       try {
         setLoading(true);
 
@@ -349,6 +356,16 @@ export default function SongScreen() {
 
         setSong(parsedSong);
 
+        if (playlistId) {
+          const neighbors = await getPlaylistNeighbors(playlistId, songId);
+          if (!mountedRef.current) return;
+          setPrevSongId(neighbors.previousId);
+          setNextSongId(neighbors.nextId);
+          setPlaylistPosition({ index: neighbors.index, count: neighbors.count });
+          return;
+        }
+
+        setPlaylistPosition(null);
         const [prevResult, nextResult] = await Promise.all([
           runQuery(
             `
@@ -394,8 +411,8 @@ export default function SongScreen() {
   useEffect(() => {
     if (!id) return;
 
-    loadSong(String(id));
-  }, [id, loadSong]);
+    loadSong(String(id), typeof playlist === "string" ? playlist : undefined);
+  }, [id, playlist, loadSong]);
 
   const primaryColor =
     useMemo(() => {
@@ -466,10 +483,11 @@ export default function SongScreen() {
             "/song/[id]",
           params: {
             id: targetId,
+            ...(typeof playlist === "string" ? { playlist } : {}),
           },
         });
       },
-      [router]
+      [playlist, router]
     );
 
   if (loading) {
@@ -652,7 +670,20 @@ export default function SongScreen() {
                   By {song.author}
                 </Text>
               )}
+              {playlistPosition && playlistPosition.index >= 0 && (
+                <Text style={[styles.playlistPosition, { color: primaryColor, fontFamily }]}>
+                  Playlist {playlistPosition.index + 1} of {playlistPosition.count}
+                </Text>
+              )}
             </View>
+
+            <Pressable
+              accessibilityLabel="Add song to playlist"
+              onPress={() => setPlaylistOpen(true)}
+              style={[styles.headerAction, { borderColor: colors.border, backgroundColor: colors.card }]}
+            >
+              <Ionicons name="list-circle-outline" size={20} color={primaryColor} />
+            </Pressable>
 
             <ShareIconButton
               color={primaryColor}
@@ -841,6 +872,13 @@ export default function SongScreen() {
       />
 
       <Toast message={toast} onHide={() => setToast(null)} />
+      <AddToPlaylistSheet
+        visible={playlistOpen}
+        songId={song.id}
+        songTitle={song.title}
+        onClose={() => setPlaylistOpen(false)}
+        onAdded={(title) => setToast(`Added to ${title}`)}
+      />
     </>
   );
 }
@@ -908,6 +946,22 @@ const styles = StyleSheet.create({
   author: {
     marginTop: 4,
     fontWeight: "500",
+  },
+
+  playlistPosition: {
+    marginTop: 4,
+    fontSize: 11,
+    fontWeight: "800",
+  },
+
+  headerAction: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 8,
   },
 
   navigationRow: {

@@ -13,8 +13,9 @@ import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
 import { Colors } from "@/constants/theme";
 import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
-import { AuthProvider } from "@/src/auth/AuthContext";
+import { AuthProvider, useAuth } from "@/src/auth/AuthContext";
 import { syncSupabaseContent } from "@/src/content/supabase";
+import { syncPersonalContent } from "@/src/features/personal/personalService";
 
 /* ================================
    Inner layout (can access context)
@@ -23,15 +24,19 @@ function AppLayout() {
   const { darkMode } = useSettings();
   const insets = useSafeAreaInsets();
   const backgroundColor = Colors[darkMode ? "dark" : "light"].background;
+  const auth = useAuth();
 
   useEffect(() => {
-    const sync = () => void syncSupabaseContent();
+    const sync = () => {
+      void syncSupabaseContent();
+      if (auth.user?.id) void syncPersonalContent(auth.user.id);
+    };
     const subscription = AppState.addEventListener("change", (state) => {
       if (state === "active") sync();
     });
     const interval = setInterval(sync, 5 * 60 * 1000);
     return () => { subscription.remove(); clearInterval(interval); };
-  }, []);
+  }, [auth.user?.id]);
 
   return (
     <QuickFooterProvider>

@@ -13,6 +13,7 @@ import { seedStudies } from "./seedStudies";
 export async function initSchema() {
   await applyPragmas();
   await createCoreTables();
+  await createPersonalTables();
   await ensureSongsSchema();
   await ensureStudiesSchema();
   await ensureSongsFts();
@@ -21,6 +22,46 @@ export async function initSchema() {
   await initBibleSchema();
   // Bundled Bible catalog only — never block startup on the network.
   await registerBibleVersions();
+}
+
+async function createPersonalTables() {
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS user_notes (
+      id TEXT PRIMARY KEY,
+      ownerId TEXT,
+      title TEXT NOT NULL DEFAULT 'Untitled note',
+      contentHtml TEXT NOT NULL DEFAULT '<p></p>',
+      plainText TEXT NOT NULL DEFAULT '',
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL,
+      deleted INTEGER NOT NULL DEFAULT 0,
+      syncState TEXT NOT NULL DEFAULT 'pending'
+    );
+
+    CREATE TABLE IF NOT EXISTS song_playlists (
+      id TEXT PRIMARY KEY,
+      ownerId TEXT,
+      title TEXT NOT NULL,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL,
+      deleted INTEGER NOT NULL DEFAULT 0,
+      syncState TEXT NOT NULL DEFAULT 'pending'
+    );
+
+    CREATE TABLE IF NOT EXISTS song_playlist_items (
+      playlistId TEXT NOT NULL,
+      songId TEXT NOT NULL,
+      position INTEGER NOT NULL,
+      addedAt INTEGER NOT NULL,
+      PRIMARY KEY (playlistId, songId),
+      FOREIGN KEY (playlistId) REFERENCES song_playlists(id) ON DELETE CASCADE,
+      FOREIGN KEY (songId) REFERENCES songs(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_notes_updated ON user_notes(updatedAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_song_playlists_updated ON song_playlists(updatedAt DESC);
+    CREATE INDEX IF NOT EXISTS idx_playlist_items_order ON song_playlist_items(playlistId, position);
+  `);
 }
 
 /**
