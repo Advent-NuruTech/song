@@ -61,6 +61,32 @@ async function createPersonalTables() {
     CREATE INDEX IF NOT EXISTS idx_user_notes_updated ON user_notes(updatedAt DESC);
     CREATE INDEX IF NOT EXISTS idx_song_playlists_updated ON song_playlists(updatedAt DESC);
     CREATE INDEX IF NOT EXISTS idx_playlist_items_order ON song_playlist_items(playlistId, position);
+
+    CREATE TABLE IF NOT EXISTS study_working_copies (
+      id TEXT PRIMARY KEY,
+      projectId TEXT,
+      sourceStudyId TEXT,
+      ownerId TEXT,
+      title TEXT NOT NULL,
+      subtitle TEXT NOT NULL DEFAULT '',
+      category TEXT NOT NULL DEFAULT 'Bible Study',
+      contentHtml TEXT NOT NULL,
+      plainText TEXT NOT NULL DEFAULT '',
+      authorName TEXT NOT NULL DEFAULT '',
+      baseRevisionId TEXT,
+      baseRevisionNumber INTEGER NOT NULL DEFAULT 0,
+      isOwner INTEGER NOT NULL DEFAULT 0,
+      dirty INTEGER NOT NULL DEFAULT 0,
+      submissionStatus TEXT,
+      createdAt INTEGER NOT NULL,
+      updatedAt INTEGER NOT NULL,
+      syncState TEXT NOT NULL DEFAULT 'local'
+    );
+
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_study_working_copy_source_owner
+      ON study_working_copies(sourceStudyId, COALESCE(ownerId, 'local'));
+    CREATE INDEX IF NOT EXISTS idx_study_working_copies_updated
+      ON study_working_copies(updatedAt DESC);
   `);
 }
 

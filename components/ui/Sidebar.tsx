@@ -68,6 +68,13 @@ const NAV_ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/notes"),
   },
   {
+    key: "workshop",
+    label: "Study Workshop",
+    icon: "people-outline",
+    path: "/collaboration",
+    match: (p) => p.startsWith("/collaboration"),
+  },
+  {
     key: "playlists",
     label: "Song Playlists",
     icon: "list-circle-outline",

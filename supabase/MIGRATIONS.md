@@ -13,6 +13,7 @@ Run migrations in numeric order. For a new project use:
 9. `009_study_discovery.sql`
 10. `010_media_authoring_and_search.sql`
 11. `011_personal_notes_and_playlists.sql`
+12. `012_study_collaboration.sql`
 
 With the Supabase CLI, link the production project once and run `supabase db push`.
 In the SQL Editor, open and run each file in order. Never put a service-role key

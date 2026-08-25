@@ -1,4 +1,5 @@
 import { Link, Stack, router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2 } from "@/components/icons";
 import { useCallback, useEffect, useState } from "react";
 import {
@@ -40,6 +41,7 @@ import {
   toggleStudyLike,
 } from "@/src/services/studyEngagementService";
 import { recordStudyView } from "@/src/services/studyDiscoveryService";
+import { saveStudyToLibrary } from "@/src/features/collaboration/studyCollaborationService";
 
 const EMPTY_ENGAGEMENT: StudyEngagement = {
   likeCount: 0,
@@ -323,6 +325,7 @@ export default function StudyDetailScreen() {
   const [toast, setToast] = useState<string | null>(null);
   const [engagement, setEngagement] = useState<StudyEngagement>(EMPTY_ENGAGEMENT);
   const [engagementBusy, setEngagementBusy] = useState(false);
+  const [savingToLibrary, setSavingToLibrary] = useState(false);
 
   const loadEngagement = useCallback(async () => {
     if (!id) return;
@@ -413,6 +416,19 @@ export default function StudyDetailScreen() {
       setEngagement((current) => ({ ...current, shareCount: total || current.shareCount + 1 }));
     } catch (error) {
       console.warn("Share completed but its count could not be updated:", error);
+    }
+  };
+
+  const handleSaveAndImprove = async () => {
+    if (!study || savingToLibrary) return;
+    setSavingToLibrary(true);
+    try {
+      const copyId = await saveStudyToLibrary(study, auth.user?.id ?? null, auth.profile?.display_name ?? "");
+      router.push(`/collaboration/${copyId}` as never);
+    } catch (error) {
+      Alert.alert("Couldn’t save this study", (error as Error).message);
+    } finally {
+      setSavingToLibrary(false);
     }
   };
 
@@ -547,6 +563,19 @@ export default function StudyDetailScreen() {
           ) : (
             renderStudyContent(study.content, colors, size, fontFamily)
           )}
+
+          <View style={[styles.improveCard, { backgroundColor: `${colors.tint}0D`, borderColor: `${colors.tint}45` }]}>
+            <View style={[styles.improveIcon, { backgroundColor: `${colors.tint}18` }]}>
+              <Ionicons name="create-outline" size={25} color={colors.tint} />
+            </View>
+            <View style={styles.improveCopy}>
+              <Text style={[styles.improveTitle, { color: colors.text, fontFamily }]}>Study it your way</Text>
+              <Text style={[styles.improveText, { color: colors.mutedText, fontFamily }]}>Save an offline copy, add insights, then send your improvements for review.</Text>
+            </View>
+            <Pressable disabled={savingToLibrary} onPress={() => void handleSaveAndImprove()} style={[styles.improveButton, { backgroundColor: colors.tint }, savingToLibrary && { opacity: .55 }]}>
+              <Text style={styles.improveButtonText}>{savingToLibrary ? "Saving…" : "Save and improve"}</Text>
+            </Pressable>
+          </View>
 
           <View style={[styles.engagementCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
             <Text style={[styles.engagementTitle, { color: colors.text, fontFamily, fontSize: size(20) }]}>Continue the conversation</Text>
@@ -718,6 +747,10 @@ const styles = StyleSheet.create({
   errorText: {
     fontWeight: "500",
   },
+  improveCard: { borderWidth: 1, borderRadius: 19, padding: 16, marginTop: 28, marginBottom: 18, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 12 },
+  improveIcon: { width: 48, height: 48, borderRadius: 15, alignItems: "center", justifyContent: "center" },
+  improveCopy: { flex: 1, minWidth: 190 }, improveTitle: { fontSize: 16, fontWeight: "900" }, improveText: { fontSize: 11, lineHeight: 17, marginTop: 3 },
+  improveButton: { minHeight: 42, borderRadius: 12, paddingHorizontal: 14, alignItems: "center", justifyContent: "center" }, improveButtonText: { color: "#fff", fontSize: 12, fontWeight: "900" },
   headerContainer: {
     position: "absolute",
     top: 0,
