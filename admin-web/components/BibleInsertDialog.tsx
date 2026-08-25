@@ -25,6 +25,7 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
   const [error, setError] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const [maximized, setMaximized] = useState(false);
+  const [exactExpanded, setExactExpanded] = useState(false);
   const sequence = useRef(0);
   const exactRef = useRef<HTMLTextAreaElement>(null);
 
@@ -88,12 +89,6 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
   }, [selected, verses]);
   const preview = useMemo(() => selectedRows.map((item) => item.text.trim()).join(" "), [selectedRows]);
   useEffect(() => setSelection({ start: 0, end: preview.length }), [preview]);
-  useEffect(() => {
-    const exact = exactRef.current;
-    if (!exact) return;
-    exact.style.height = "auto";
-    exact.style.height = `${Math.min(exact.scrollHeight + 2, window.innerHeight * (maximized ? .55 : .3))}px`;
-  }, [maximized, preview]);
   const currentBook = books.find((item) => item.book === book);
 
   const chooseHit = (hit: Hit) => {
@@ -149,7 +144,7 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
       </div>
       <input className={styles.search} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="John 3:16 or search verse text" aria-label="Search Bible" autoFocus />
       <div className={styles.body}>{error ? <div className={styles.status} role="alert">{error}</div> : loading && !(query ? hits : verses).length ? <div className={styles.status}>Loading Scripture…</div> : query ? hits.length ? hits.map((hit) => <button type="button" key={`${hit.book}-${hit.chapter}-${hit.verse}`} className={styles.verse} onClick={() => chooseHit(hit)}><span className={styles.number}>{hit.verse}</span><span><span className={styles.resultRef}>{hit.book} {hit.chapter}:{hit.verse}</span><span className={styles.resultText}>{hit.text}</span></span></button>) : <div className={styles.status}>No verses found.</div> : verses.map((verse) => { const isSelected = selected.includes(verse.verse); return <button type="button" key={verse.verse} className={`${styles.verse} ${isSelected ? styles.selected : ""}`} aria-pressed={isSelected} onClick={() => setSelected((current) => current.includes(verse.verse) ? current.filter((number) => number !== verse.verse) : [...current, verse.verse])}><span className={styles.number}>{verse.verse}</span><span>{verse.text}</span></button>; })}</div>
-      {selectedRows.length ? <footer className={styles.preview}><div className={styles.previewTop}><strong>Exact text</strong><span>Text grows with the selection. Drag the lower edge to resize it.</span></div><textarea ref={exactRef} className={styles.exact} readOnly value={preview} onSelect={(event) => setSelection({ start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd })} /><div className={styles.actions}><button type="button" className={styles.secondary} onClick={() => setSelected(verses.map((item) => item.verse))}>Select chapter</button><button type="button" className={styles.primary} disabled={!preview} onClick={insert}>Insert at cursor</button></div></footer> : null}
+      {selectedRows.length ? <footer className={`${styles.preview} ${exactExpanded ? styles.previewExpanded : ""}`}><div className={styles.previewTop}><div className={styles.previewCopy}><strong>Exact text</strong><span>{exactExpanded ? "Select the exact words to insert." : "Drag the lower edge to resize, or expand for more room."}</span></div><button type="button" className={styles.previewToggle} aria-expanded={exactExpanded} aria-controls="bible-exact-text" onClick={() => setExactExpanded((current) => !current)}>{exactExpanded ? "Minimize" : "Expand"}</button></div><textarea id="bible-exact-text" ref={exactRef} className={styles.exact} readOnly value={preview} onSelect={(event) => setSelection({ start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd })} /><div className={styles.actions}><button type="button" className={styles.secondary} onClick={() => setSelected(verses.map((item) => item.verse))}>Select chapter</button><button type="button" className={styles.primary} disabled={!preview} onClick={insert}>Insert at cursor</button></div></footer> : null}
     </section>
   </div>, document.body);
 }
