@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
 
     const { error: insertError } = await db.from("donations").insert({
       user_id: user?.id ?? null,
+      donor_email: email,
       paystack_reference: reference,
       amount: body.amountKes,
       currency: DONATION_CURRENCY,

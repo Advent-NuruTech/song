@@ -10,17 +10,19 @@ export default function UsersPage() {
   const [roles, setRoles] = useState<Role[]>([]);
   const [users, setUsers] = useState<Profile[]>([]);
   const [canManage, setCanManage] = useState(false);
+  const [canManageSeniorAdmins, setCanManageSeniorAdmins] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   const load = async () => {
     const supabase = getSupabase();
-    const [{ data: permission }, { data: roleRows }, { data: profiles, error }] = await Promise.all([
+    const [{ data: permission }, { data: seniorPermission }, { data: roleRows }, { data: profiles, error }] = await Promise.all([
       supabase.rpc("has_permission", { requested: "users.manage" }),
+      supabase.rpc("has_permission", { requested: "roles.manage" }),
       supabase.from("app_roles").select("name,display_name,description").order("display_name"),
       supabase.from("profiles").select("id,email,display_name,app_user_roles(role_name)").order("created_at", { ascending: false }),
     ]);
-    setCanManage(Boolean(permission)); setRoles((roleRows ?? []) as Role[]);
+    setCanManage(Boolean(permission)); setCanManageSeniorAdmins(Boolean(seniorPermission)); setRoles((roleRows ?? []) as Role[]);
     if (error) setMessage(error.message); else setUsers((profiles ?? []) as Profile[]);
   };
   useEffect(() => { void load(); }, []);
@@ -41,7 +43,8 @@ export default function UsersPage() {
       <div className="card" style={{ overflowX: "auto" }}><table><thead><tr><th>User</th>{roles.map(r=><th key={r.name} title={r.description}>{r.display_name}</th>)}</tr></thead>
       <tbody>{users.map(user=><tr key={user.id}><td><strong>{user.display_name || user.email}</strong><div className="sub">{user.email}</div></td>{roles.map(role=>{
         const checked=role.name==="reader" || user.app_user_roles.some(r=>r.role_name===role.name);
-        return <td key={role.name} style={{textAlign:"center"}}><input type="checkbox" checked={checked} disabled={role.name==="reader" || busy===user.id} onChange={e=>void toggle(user,role.name,e.target.checked)} aria-label={`${role.display_name} for ${user.email}`}/></td>;
+        const seniorRestricted = role.name === "super_admin" && !canManageSeniorAdmins;
+        return <td key={role.name} style={{textAlign:"center"}} title={seniorRestricted ? "Only a Super admin may change this role" : undefined}><input type="checkbox" checked={checked} disabled={role.name==="reader" || seniorRestricted || busy===user.id} onChange={e=>void toggle(user,role.name,e.target.checked)} aria-label={`${role.display_name} for ${user.email}`}/></td>;
       })}</tr>)}</tbody></table></div>}
   </div>;
 }

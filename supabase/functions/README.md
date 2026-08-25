@@ -8,7 +8,7 @@ These functions keep all privileged Paystack operations outside the Expo app:
 
 ## Deployment
 
-Apply migration `013_voluntary_donations.sql`, then set server-side secrets and deploy:
+Apply migrations `013_voluntary_donations.sql` and `014_senior_admin_donation_reporting.sql`, then set server-side secrets and deploy:
 
 ```sh
 supabase secrets set PAYSTACK_SECRET_KEY=... DONATION_CALLBACK_URL=https://adventnurutech.xyz/payments/paystack/callback

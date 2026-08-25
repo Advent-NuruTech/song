@@ -12,6 +12,7 @@ const NAV = [
   { href: "/categories", label: "Categories", icon: "M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" },
   { href: "/media", label: "Media", icon: "M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" },
   { href: "/users", label: "Users & roles", icon: "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 11a4 4 0 100-8 4 4 0 000 8zm14 10v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" },
+  { href: "/donations", label: "Donations", seniorOnly: true, icon: "M12 21C12 21 4 16.5 4 10.5A4.5 4.5 0 0112 7.7a4.5 4.5 0 018 2.8C20 16.5 12 21 12 21z" },
 ];
 
 const NavIcon = ({ d }: { d: string }) => (
@@ -31,6 +32,7 @@ export default function DashboardLayout({
   const [email, setEmail] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [canViewDonations, setCanViewDonations] = useState(false);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -49,9 +51,13 @@ export default function DashboardLayout({
         router.replace("/login");
         return;
       }
-      const { data: allowed } = await supabase.rpc("has_permission", { requested: "dashboard.access" });
+      const [{ data: allowed }, { data: donationAccess }] = await Promise.all([
+        supabase.rpc("has_permission", { requested: "dashboard.access" }),
+        supabase.rpc("has_permission", { requested: "donations.read" }),
+      ]);
       if (!allowed) { await supabase.auth.signOut(); router.replace("/login?denied=1"); return; }
       setEmail(data.session.user.email ?? null);
+      setCanViewDonations(Boolean(donationAccess));
       setReady(true);
     });
 
@@ -122,7 +128,7 @@ export default function DashboardLayout({
         {/* Sidebar */}
         <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
           <nav className="sidebar-nav">
-            {NAV.map((item) => (
+            {NAV.filter((item) => !("seniorOnly" in item) || canViewDonations).map((item) => (
               <Link
                 key={item.href}
                 href={item.href}

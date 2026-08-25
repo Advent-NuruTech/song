@@ -195,6 +195,21 @@ export default function RichTextEditor({
   const [uploadingImages, setUploadingImages] = useState(0);
   const [editorActive, setEditorActive] = useState(false);
   const [bibleOpen, setBibleOpen] = useState(false);
+  const [maximized, setMaximized] = useState(false);
+
+  useEffect(() => {
+    if (!maximized) return;
+    const previousOverflow = document.body.style.overflow;
+    const exitMaximized = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && !bibleOpen) setMaximized(false);
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", exitMaximized);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", exitMaximized);
+    };
+  }, [bibleOpen, maximized]);
 
   useEffect(() => {
     const updateViewportInset = () => {
@@ -295,7 +310,11 @@ export default function RichTextEditor({
     const range = document.createRange();
     range.setStart(node, offset - match[1].length);
     range.setEnd(node, offset);
-    savedRangeRef.current = range;
+    range.deleteContents();
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    savedRangeRef.current = range.cloneRange();
     setBibleOpen(true);
   };
 
@@ -410,7 +429,7 @@ export default function RichTextEditor({
   return (
     <div
       ref={rootRef}
-      className={styles.root}
+      className={`${styles.root} ${maximized ? styles.maximized : ""}`}
       data-editor-active={editorActive ? "true" : "false"}
       onFocusCapture={() => setEditorActive(true)}
     >
@@ -449,6 +468,9 @@ export default function RichTextEditor({
           <button type="button" className={styles.toolButton} title="Align left" aria-label="Align left" onMouseDown={stopMouseDown} onClick={() => command("justifyLeft")}>☰</button>
           <button type="button" className={styles.toolButton} title="Align center" aria-label="Align center" onMouseDown={stopMouseDown} onClick={() => command("justifyCenter")}>≡</button>
           <button type="button" className={styles.toolButton} title="Clear formatting" aria-label="Clear formatting" onMouseDown={stopMouseDown} onClick={() => command("removeFormat")}>Tx</button>
+        </div>
+        <div className={styles.group}>
+          <button type="button" className={styles.toolButton} title={maximized ? "Restore editor size" : "Maximize editor"} aria-label={maximized ? "Restore editor size" : "Maximize editor"} onMouseDown={stopMouseDown} onClick={() => setMaximized((current) => !current)}>{maximized ? "Restore" : "Expand"}</button>
         </div>
       </div>
 

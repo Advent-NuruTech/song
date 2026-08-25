@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "./BibleInsertDialog.module.css";
 
 type Version = { id: string; name: string; abbreviation?: string };
@@ -17,13 +18,15 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
   const [book, setBook] = useState("");
   const [chapter, setChapter] = useState(1);
   const [verses, setVerses] = useState<Verse[]>([]);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const [selected, setSelected] = useState<number[]>([]);
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<Hit[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const [maximized, setMaximized] = useState(false);
   const sequence = useRef(0);
+  const exactRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -38,7 +41,7 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
 
   useEffect(() => {
     if (!open || !versionId) return;
-    setLoading(true); setError(""); setBook(""); setVerses([]); setSelected(new Set());
+    setLoading(true); setError(""); setBook(""); setVerses([]); setSelected([]);
     void fetch(`/api/bible?action=books&version=${encodeURIComponent(versionId)}`).then(async (response) => {
       if (!response.ok) throw new Error("Could not load Bible books.");
       const payload = await response.json() as { books: Book[] };
@@ -55,7 +58,7 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
     void fetch(`/api/bible?action=chapter&version=${encodeURIComponent(versionId)}&book=${encodeURIComponent(book)}&chapter=${chapter}`).then(async (response) => {
       if (!response.ok) throw new Error("Could not load this chapter.");
       const payload = await response.json() as { verses: Verse[] };
-      if (current === sequence.current) { setVerses(payload.verses); setSelected(new Set()); }
+      if (current === sequence.current) { setVerses(payload.verses); setSelected([]); }
     }).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
   }, [book, chapter, open, query, versionId]);
 
@@ -79,9 +82,18 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
     return () => document.removeEventListener("keydown", listener);
   }, [onClose, open]);
 
-  const selectedRows = useMemo(() => verses.filter((item) => selected.has(item.verse)), [selected, verses]);
+  const selectedRows = useMemo(() => {
+    const rowsByNumber = new Map(verses.map((item) => [item.verse, item]));
+    return selected.map((number) => rowsByNumber.get(number)).filter((item): item is Verse => Boolean(item));
+  }, [selected, verses]);
   const preview = useMemo(() => selectedRows.map((item) => item.text.trim()).join(" "), [selectedRows]);
   useEffect(() => setSelection({ start: 0, end: preview.length }), [preview]);
+  useEffect(() => {
+    const exact = exactRef.current;
+    if (!exact) return;
+    exact.style.height = "auto";
+    exact.style.height = `${Math.min(exact.scrollHeight + 2, window.innerHeight * (maximized ? .55 : .3))}px`;
+  }, [maximized, preview]);
   const currentBook = books.find((item) => item.book === book);
 
   const chooseHit = (hit: Hit) => {
@@ -95,9 +107,9 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
         setVerses(payload.verses);
         const start = directReference?.[3] ? Number(directReference[3]) : undefined;
         const end = directReference?.[4] ? Number(directReference[4]) : start;
-        setSelected(new Set(directReference
+        setSelected(directReference
           ? payload.verses.filter((item) => start === undefined || (item.verse >= start && item.verse <= (end ?? start))).map((item) => item.verse)
-          : [hit.verse]));
+          : [hit.verse]);
       }
     }).catch((reason) => setError(reason.message)).finally(() => setLoading(false));
   };
@@ -115,7 +127,10 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
     const flush = () => parts.push(rangeStart === previous ? String(rangeStart) : `${rangeStart}–${previous}`);
     numbers.slice(1).forEach((number) => { if (number === previous + 1) previous = number; else { flush(); rangeStart = previous = number; } });
     flush();
-    const fullChapter = selectedRows.length === verses.length && start === 0 && end === preview.length;
+    const fullChapter = selectedRows.length === verses.length
+      && selectedRows.every((item, index) => item.verse === verses[index]?.verse)
+      && start === 0
+      && end === preview.length;
     const reference = fullChapter ? `${book} ${chapter}` : `${book} ${chapter}:${parts.join(", ")}`;
     const version = versions.find((item) => item.id === versionId);
     const citation = `${reference} (${version?.abbreviation || version?.name || versionId})`;
@@ -124,17 +139,17 @@ export default function BibleInsertDialog({ open, onClose, onInsert }: { open: b
   };
 
   if (!open) return null;
-  return <div className={styles.backdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
-    <section className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby="bible-dialog-title">
-      <header className={styles.header}><div className={styles.heading}><h2 id="bible-dialog-title">Insert Scripture</h2><p>Search a reference or verse text, then select exact words.</p></div><button type="button" className={styles.close} aria-label="Close Bible picker" onClick={onClose}>×</button></header>
+  return createPortal(<div className={styles.backdrop} role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+    <section className={`${styles.dialog} ${maximized ? styles.maximized : ""}`} role="dialog" aria-modal="true" aria-labelledby="bible-dialog-title">
+      <header className={styles.header}><div className={styles.heading}><h2 id="bible-dialog-title">Insert Scripture</h2><p>Search a reference or verse text, then select exact words.</p></div><button type="button" className={styles.close} aria-label={maximized ? "Restore Bible picker size" : "Maximize Bible picker"} title={maximized ? "Restore size" : "Maximize"} onClick={() => setMaximized((current) => !current)}>{maximized ? "−" : "□"}</button><button type="button" className={styles.close} aria-label="Close Bible picker" onClick={onClose}>×</button></header>
       <div className={styles.controls}>
         <select className={styles.control} aria-label="Bible version" value={versionId} onChange={(event) => setVersionId(event.target.value)}>{versions.map((item) => <option key={item.id} value={item.id}>{item.abbreviation || item.name}</option>)}</select>
         <select className={styles.control} aria-label="Bible book" value={book} onChange={(event) => { setBook(event.target.value); setChapter(1); setQuery(""); }}>{books.map((item) => <option key={item.book} value={item.book}>{item.book}</option>)}</select>
         <select className={styles.control} aria-label="Bible chapter" value={chapter} onChange={(event) => { setChapter(Number(event.target.value)); setQuery(""); }}>{Array.from({ length: currentBook?.chapterCount || 0 }, (_, index) => index + 1).map((number) => <option key={number}>{number}</option>)}</select>
       </div>
       <input className={styles.search} value={query} onChange={(event) => setQuery(event.target.value)} placeholder="John 3:16 or search verse text" aria-label="Search Bible" autoFocus />
-      <div className={styles.body}>{error ? <div className={styles.status} role="alert">{error}</div> : loading && !(query ? hits : verses).length ? <div className={styles.status}>Loading Scripture…</div> : query ? hits.length ? hits.map((hit) => <button type="button" key={`${hit.book}-${hit.chapter}-${hit.verse}`} className={styles.verse} onClick={() => chooseHit(hit)}><span className={styles.number}>{hit.verse}</span><span><span className={styles.resultRef}>{hit.book} {hit.chapter}:{hit.verse}</span><span className={styles.resultText}>{hit.text}</span></span></button>) : <div className={styles.status}>No verses found.</div> : verses.map((verse) => <button type="button" key={verse.verse} className={`${styles.verse} ${selected.has(verse.verse) ? styles.selected : ""}`} aria-pressed={selected.has(verse.verse)} onClick={() => setSelected((current) => { const next = new Set(current); if (next.has(verse.verse)) next.delete(verse.verse); else next.add(verse.verse); return next; })}><span className={styles.number}>{verse.verse}</span><span>{verse.text}</span></button>)}</div>
-      {selectedRows.length ? <footer className={styles.preview}><div className={styles.previewTop}><strong>Exact text</strong><span>Long-press and drag the selection handles to choose an excerpt.</span></div><textarea className={styles.exact} readOnly value={preview} onSelect={(event) => setSelection({ start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd })} /><div className={styles.actions}><button type="button" className={styles.secondary} onClick={() => setSelected(new Set(verses.map((item) => item.verse)))}>Select chapter</button><button type="button" className={styles.primary} disabled={!preview} onClick={insert}>Insert at cursor</button></div></footer> : null}
+      <div className={styles.body}>{error ? <div className={styles.status} role="alert">{error}</div> : loading && !(query ? hits : verses).length ? <div className={styles.status}>Loading Scripture…</div> : query ? hits.length ? hits.map((hit) => <button type="button" key={`${hit.book}-${hit.chapter}-${hit.verse}`} className={styles.verse} onClick={() => chooseHit(hit)}><span className={styles.number}>{hit.verse}</span><span><span className={styles.resultRef}>{hit.book} {hit.chapter}:{hit.verse}</span><span className={styles.resultText}>{hit.text}</span></span></button>) : <div className={styles.status}>No verses found.</div> : verses.map((verse) => { const isSelected = selected.includes(verse.verse); return <button type="button" key={verse.verse} className={`${styles.verse} ${isSelected ? styles.selected : ""}`} aria-pressed={isSelected} onClick={() => setSelected((current) => current.includes(verse.verse) ? current.filter((number) => number !== verse.verse) : [...current, verse.verse])}><span className={styles.number}>{verse.verse}</span><span>{verse.text}</span></button>; })}</div>
+      {selectedRows.length ? <footer className={styles.preview}><div className={styles.previewTop}><strong>Exact text</strong><span>Text grows with the selection. Drag the lower edge to resize it.</span></div><textarea ref={exactRef} className={styles.exact} readOnly value={preview} onSelect={(event) => setSelection({ start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd })} /><div className={styles.actions}><button type="button" className={styles.secondary} onClick={() => setSelected(verses.map((item) => item.verse))}>Select chapter</button><button type="button" className={styles.primary} disabled={!preview} onClick={insert}>Insert at cursor</button></div></footer> : null}
     </section>
-  </div>;
+  </div>, document.body);
 }

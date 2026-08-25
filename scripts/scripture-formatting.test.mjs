@@ -59,3 +59,12 @@ test("does not misrepresent non-contiguous verses as one range", () => {
   });
   assert.equal(result?.reference, "John 3:1, 3–4");
 });
+
+test("keeps the verse order supplied by the picker", () => {
+  const result = formatScriptureSelection({
+    book: "John", chapter: 3, versionLabel: "KJV",
+    verses: [{ verse: 5, text: "Fifth." }, { verse: 2, text: "Second." }, { verse: 4, text: "Fourth." }],
+  });
+  assert.equal(result?.selectedText, "Fifth. Second. Fourth.");
+  assert.equal(result?.reference, "John 3:5, 2, 4");
+});

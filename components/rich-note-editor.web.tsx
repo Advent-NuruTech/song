@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { BibleInsertPicker, type BibleInsertion } from "./bible-insert-picker";
@@ -13,6 +13,21 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("https://");
   const [bibleOpen, setBibleOpen] = useState(false);
+  const [maximized, setMaximized] = useState(false);
+
+  useEffect(() => {
+    if (!maximized) return;
+    const previousOverflow = document.body.style.overflow;
+    const onKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape" && !bibleOpen && !linkOpen) setMaximized(false);
+    };
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [bibleOpen, linkOpen, maximized]);
 
   const remember = () => {
     const selection = window.getSelection();
@@ -39,7 +54,11 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
     const range = document.createRange();
     range.setStart(node, offset - match[1].length);
     range.setEnd(node, offset);
-    savedRange.current = range;
+    range.deleteContents();
+    range.collapse(true);
+    selection.removeAllRanges();
+    selection.addRange(range);
+    savedRange.current = range.cloneRange();
     setBibleOpen(true);
   };
   const insertBible = (passage: BibleInsertion) => {
@@ -77,12 +96,13 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   ];
 
   return (
-    <View style={[styles.shell, { borderColor: props.borderColor, backgroundColor: props.cardColor }]}>
+    <View style={[styles.shell, maximized && styles.maximizedShell, { borderColor: props.borderColor, backgroundColor: props.cardColor }]}>
       <View style={[styles.toolbar, { borderBottomColor: props.borderColor }]}>
         {tools.map((tool) => <Pressable key={tool.label} accessibilityLabel={tool.label} onPress={tool.action} style={styles.tool}><Ionicons name={tool.icon} size={19} color={props.textColor} /></Pressable>)}
         <Pressable accessibilityLabel="Insert a named link" onPress={() => { remember(); setLinkOpen(true); }} style={styles.tool}><Ionicons name="link" size={20} color={props.tint} /></Pressable>
         <Pressable accessibilityLabel="Insert an image" onPress={() => { remember(); void insertImage(); }} style={styles.tool}><Ionicons name="image-outline" size={20} color={props.tint} /></Pressable>
         <Pressable accessibilityLabel="Insert Bible passage" onPress={() => { remember(); setBibleOpen(true); }} style={styles.tool}><Ionicons name="book-outline" size={20} color={props.tint} /></Pressable>
+        <Pressable accessibilityLabel={maximized ? "Restore editor size" : "Maximize editor"} onPress={() => setMaximized((current) => !current)} style={styles.tool}><Ionicons name={maximized ? "contract-outline" : "expand-outline"} size={20} color={props.tint} /></Pressable>
       </View>
       <div
         ref={editor}
@@ -93,7 +113,7 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
         onMouseUp={remember}
         dangerouslySetInnerHTML={{ __html: props.initialHtml || "<p></p>" }}
         data-placeholder="Start writing your note..."
-        style={{ minHeight: 445, padding: 18, outline: "none", color: props.textColor, background: props.cardColor, fontFamily: "system-ui, sans-serif", fontSize: 17, lineHeight: 1.65 }}
+        style={{ minHeight: maximized ? 0 : 270, flex: maximized ? 1 : undefined, padding: 18, outline: "none", overflowY: maximized ? "auto" : "visible", color: props.textColor, background: props.cardColor, fontFamily: "system-ui, sans-serif", fontSize: 17, lineHeight: 1.65 }}
       />
       <Modal visible={linkOpen} transparent animationType="fade" onRequestClose={() => setLinkOpen(false)}>
         <Pressable style={styles.backdrop} onPress={() => setLinkOpen(false)}>
@@ -113,6 +133,6 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
 }
 
 const styles = StyleSheet.create({
-  shell: { borderWidth: 1, borderRadius: 16, overflow: "hidden", minHeight: 500 }, toolbar: { minHeight: 49, borderBottomWidth: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingHorizontal: 5 }, tool: { width: 39, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 9 },
+  shell: { borderWidth: 1, borderRadius: 16, overflow: "hidden", minHeight: 320 }, maximizedShell: { position: "fixed", top: 10, right: 10, bottom: 10, left: 10, zIndex: 9000, borderRadius: 16 }, toolbar: { minHeight: 49, borderBottomWidth: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingHorizontal: 5 }, tool: { width: 39, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 9 },
   backdrop: { flex: 1, justifyContent: "center", padding: 22, backgroundColor: "rgba(2,6,23,.58)" }, dialog: { borderWidth: 1, borderRadius: 20, padding: 18 }, dialogTitle: { fontSize: 20, fontWeight: "800", marginBottom: 14 }, label: { fontSize: 12, fontWeight: "700", marginTop: 9, marginBottom: 6 }, input: { borderWidth: 1, borderRadius: 11, paddingHorizontal: 12, minHeight: 46 }, actions: { flexDirection: "row", justifyContent: "flex-end", gap: 9, marginTop: 18 }, action: { minHeight: 42, paddingHorizontal: 16, borderRadius: 11, alignItems: "center", justifyContent: "center" }, primaryText: { color: "#fff", fontWeight: "800" },
 });

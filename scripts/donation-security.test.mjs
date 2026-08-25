@@ -49,3 +49,13 @@ test("Paystack secret is never referenced from shipped application code", () => 
     assert.equal(readFileSync(new URL(`../${file}`, import.meta.url), "utf8").includes("PAYSTACK_SECRET_KEY"), false, file);
   }
 });
+
+test("donation reporting is database-gated to the senior administrator permission", () => {
+  const baseMigration = readFileSync(new URL("../supabase/migrations/013_voluntary_donations.sql", import.meta.url), "utf8");
+  const reportMigration = readFileSync(new URL("../supabase/migrations/014_senior_admin_donation_reporting.sql", import.meta.url), "utf8");
+  assert.match(baseMigration, /revoke all on table public\.donations from anon, authenticated/i);
+  assert.match(reportMigration, /values \('super_admin', 'donations\.read'\)/i);
+  assert.match(reportMigration, /if not has_permission\('donations\.read'\)/gi);
+  assert.doesNotMatch(reportMigration, /\('(reader|contributor|editor|publisher|moderator|media_manager|user_manager)', 'donations\.read'\)/i);
+  assert.match(reportMigration, /only a super admin may grant or remove the super admin role/i);
+});

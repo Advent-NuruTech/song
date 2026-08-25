@@ -1,0 +1,158 @@
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.summaryGrid :global(.num) {
+  font-size: clamp(20px, 2.5vw, 28px);
+}
+
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.dateField {
+  min-width: 170px;
+}
+
+.dateField label {
+  margin-top: 0;
+}
+
+.statusTabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 12px;
+}
+
+.statusTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--muted);
+  padding: 8px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.statusTab strong {
+  color: var(--text);
+}
+
+.activeTab {
+  border-color: var(--brand);
+  background: rgba(11, 74, 166, 0.09);
+  color: var(--brand);
+}
+
+.tableCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.tableHeader,
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.tableHeader {
+  border-bottom: 1px solid var(--border);
+}
+
+.tableHeader span,
+.pagination span,
+.secondary {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.tableScroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+
+.table th,
+.table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.table th {
+  color: var(--muted);
+  background: #f8fafc;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.secondary {
+  display: block;
+  margin-top: 3px;
+}
+
+.amount {
+  font-weight: 800;
+}
+
+.status {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.successful { background: #dcfce7; color: #047857; }
+.pending { background: #fef3c7; color: #92400e; }
+.failed { background: #fee2e2; color: #b91c1c; }
+.cancelled { background: #e2e8f0; color: #475569; }
+
+.reference {
+  font-size: 11px;
+  color: #334155;
+}
+
+.empty {
+  padding: 36px !important;
+  color: var(--muted);
+  text-align: center !important;
+}
+
+.pagination {
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 640px) {
+  .filters {
+    align-items: stretch;
+  }
+  .dateField {
+    width: 100%;
+  }
+  .pagination {
+    flex-wrap: wrap;
+  }
+}

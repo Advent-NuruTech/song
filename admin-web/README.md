@@ -5,6 +5,9 @@ to Supabase. Published content syncs into the mobile app's local SQLite cache
 automatically — no app-store update needed. The app stays fully offline-first;
 sync only layers published changes on top of the bundled starter content.
 
+The dashboard also includes a Super-admin-only Donations tab with paginated
+Support the Work totals and transaction-status reporting.
+
 ## How it fits together
 
 ```
@@ -98,7 +101,11 @@ public; they do not require sign-in.
 - Content security relies on RLS: anonymous clients can read only published rows
   and tombstones; writes require the relevant role permission.
 - Role assignment uses the protected `set_user_roles` database function, records
-  an audit event, and supports multiple roles per account.
+  an audit event, supports multiple roles per account, and prevents ordinary user
+  managers from granting or removing the Super admin role.
+- Donation rows remain inaccessible to browser clients directly. Permission-checked
+  reporting functions expose accounting fields only through `donations.read`, which
+  migration 014 grants exclusively to the Super admin role.
 
 ## Google Play account deletion
 
