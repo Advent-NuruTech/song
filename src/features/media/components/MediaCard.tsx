@@ -3,11 +3,12 @@ import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import type { MediaItem, MediaLayout } from "../types";
-import { formatDuration, formatMediaCount } from "../utils";
+import { formatDuration, formatMediaCount, mediaDescriptionToPlainText } from "../utils";
 
 export function MediaCard({ item, layout, onPress }: { item: MediaItem; layout: MediaLayout; onPress: () => void }) {
   const { colors, fontFamily, size, darkMode } = useAppTheme();
   const duration = formatDuration(item.durationSeconds);
+  const description = mediaDescriptionToPlainText(item.description);
   const image = (
     <View style={layout === "compact" ? styles.compactImageWrap : styles.fullImageWrap}>
       <Image
@@ -52,7 +53,7 @@ export function MediaCard({ item, layout, onPress }: { item: MediaItem; layout: 
       {image}
       <View style={styles.fullCopy}>
         <Text numberOfLines={2} style={[styles.fullTitle, { color: colors.text, fontFamily, fontSize: size(17) }]}>{item.title}</Text>
-        {!!item.description && <Text numberOfLines={2} style={[styles.description, { color: colors.mutedText, fontFamily }]}>{item.description}</Text>}
+        {!!description && <Text numberOfLines={2} style={[styles.description, { color: colors.mutedText, fontFamily }]}>{description}</Text>}
         <View style={styles.fullMeta}>
           <Meta icon="play-circle-outline" value={`${formatMediaCount(item.viewCount)} views`} color={colors.mutedText} fontFamily={fontFamily} />
           <Meta icon="heart-outline" value={formatMediaCount(item.likeCount)} color={colors.mutedText} fontFamily={fontFamily} />

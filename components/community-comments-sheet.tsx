@@ -25,8 +25,8 @@ export function CommunityCommentsSheet({ visible, comments, currentUserId, loadi
     try { await onPost(clean); setText(""); } catch (error) { Alert.alert("Comment failed", (error as Error)?.message || "Please try again."); } finally { setPosting(false); }
   };
 
-  return <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.overlay}>
+  return <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} keyboardVerticalOffset={0} style={styles.overlay}>
       <View style={[styles.sheet, { backgroundColor: colors.background, borderColor: colors.border }]}>
         <View style={[styles.header, { borderBottomColor: colors.border }]}>
           <View><Text style={[styles.title, { color: colors.text, fontFamily }]}>{title}</Text>{onGuidelines ? <Pressable onPress={onGuidelines}><Text style={[styles.guidelines, { color: colors.tint, fontFamily }]}>Community Guidelines</Text></Pressable> : null}</View>
@@ -43,7 +43,7 @@ export function CommunityCommentsSheet({ visible, comments, currentUserId, loadi
           ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.tint} /> : null}
         />}
         <View style={[styles.composer, { borderTopColor: colors.border }]}>
-          <TextInput value={text} onChangeText={setText} maxLength={1000} placeholder={currentUserId ? "Add a respectful comment…" : "Sign in to comment"} placeholderTextColor={colors.mutedText} editable={Boolean(currentUserId) && !posting} multiline style={[styles.input, { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, fontFamily }]} />
+          <TextInput value={text} onChangeText={setText} maxLength={1000} placeholder={currentUserId ? "Add a respectful comment…" : "Sign in to comment"} placeholderTextColor={colors.mutedText} editable={Boolean(currentUserId) && !posting} multiline scrollEnabled textAlignVertical="top" returnKeyType="default" blurOnSubmit={false} style={[styles.input, { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, fontFamily }]} />
           <Pressable accessibilityLabel="Post comment" onPress={() => void post()} disabled={!text.trim() || posting} style={[styles.send, { backgroundColor: colors.tint, opacity: !text.trim() || posting ? .45 : 1 }]}>{posting ? <ActivityIndicator color="#fff" /> : <Ionicons name="send" size={19} color="#fff" />}</Pressable>
         </View>
       </View>
@@ -56,5 +56,5 @@ const styles = StyleSheet.create({
   header: { minHeight: 70, paddingHorizontal: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1 }, title: { fontSize: 19, fontWeight: "900" }, guidelines: { fontSize: 11, fontWeight: "700", marginTop: 3 }, loader: { flex: 1 }, list: { paddingHorizontal: 18 },
   comment: { flexDirection: "row", gap: 10, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth }, avatar: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" }, avatarText: { fontSize: 13, fontWeight: "900" }, commentCopy: { flex: 1 }, author: { fontSize: 12, fontWeight: "800" }, body: { fontSize: 14, lineHeight: 20, marginTop: 3 }, date: { fontSize: 10, marginTop: 5 },
   empty: { paddingVertical: 55, alignItems: "center" }, emptyTitle: { fontSize: 15, fontWeight: "900", marginTop: 10 }, emptyCopy: { fontSize: 11, marginTop: 4 },
-  composer: { padding: 12, paddingBottom: Platform.OS === "ios" ? 28 : 12, borderTopWidth: 1, flexDirection: "row", alignItems: "flex-end", gap: 8 }, input: { flex: 1, minHeight: 44, maxHeight: 100, borderWidth: 1, borderRadius: 15, paddingHorizontal: 13, paddingVertical: 10 }, send: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  composer: { flexShrink: 0, padding: 12, paddingBottom: Platform.OS === "ios" ? 28 : 12, borderTopWidth: 1, flexDirection: "row", alignItems: "flex-end", gap: 8 }, input: { flex: 1, minHeight: 44, maxHeight: 120, borderWidth: 1, borderRadius: 15, paddingHorizontal: 13, paddingVertical: 10 }, send: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
 });

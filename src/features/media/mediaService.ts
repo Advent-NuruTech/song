@@ -49,6 +49,19 @@ export async function listMediaPage(type: MediaType, cursor: MediaCursor | null 
   return { items, nextCursor: items.length === PAGE_SIZE && last ? { featured: last.isFeatured, sortOrder: last.sortOrder, publishedAt: last.publishedAt, id: last.id } : null };
 }
 
+export async function searchMedia(type: MediaType, query: string): Promise<MediaItem[]> {
+  if (!authConfigured) return [];
+  const term = query.trim();
+  if (!term) return [];
+  const { data, error } = await supabase.rpc("search_media", {
+    p_media_type: type,
+    p_query: term,
+    p_limit: 50,
+  });
+  if (error) throw error;
+  return ((data ?? []) as MediaRow[]).map(mapMedia);
+}
+
 export async function getCachedMedia(type: MediaType): Promise<MediaItem[]> {
   try {
     const raw = await AsyncStorage.getItem(`${CACHE_PREFIX}${type}`);

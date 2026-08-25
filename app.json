@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.adventpro"
     },
     "android": {
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
         "foregroundImage": "./assets/images/android-icon-foreground-v1.2.png"

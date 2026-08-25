@@ -65,6 +65,24 @@ export function formatDuration(seconds: number | null): string | null {
     : `${minutes}:${String(remainder).padStart(2, "0")}`;
 }
 
+export function mediaDescriptionToPlainText(value: string): string {
+  return value
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/(?:p|div|h[1-6]|li|blockquote)>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([\da-f]+);/gi, (_, code) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
 export function stripUnsafeComment(value: string): string {
   return value.replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim().slice(0, 1000);
 }

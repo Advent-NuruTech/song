@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { getCachedMedia, listMediaPage } from "./mediaService";
+import { getCachedMedia, listMediaPage, searchMedia } from "./mediaService";
 import type { MediaCursor, MediaItem, MediaType } from "./types";
 import { rankMediaForViewer } from "./recommendations";
+import { mediaDescriptionToPlainText } from "./utils";
 
-export function useMediaFeed(type: MediaType) {
+export function useMediaFeed(type: MediaType, searchQuery = "") {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [cursor, setCursor] = useState<MediaCursor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -18,13 +19,21 @@ export function useMediaFeed(type: MediaType) {
     else setLoading(true);
     setError(null);
     try {
+      const term = searchQuery.trim();
+      if (term) {
+        setItems(await searchMedia(type, term));
+        setCursor(null);
+        setOfflineCache(false);
+        return;
+      }
       const page = await listMediaPage(type);
       setItems(await rankMediaForViewer(page.items));
       setCursor(page.nextCursor);
       setOfflineCache(false);
     } catch (reason) {
       const cached = await getCachedMedia(type);
-      setItems(cached);
+      const term = searchQuery.trim().toLocaleLowerCase();
+      setItems(term ? cached.filter((item) => `${item.title} ${item.category} ${mediaDescriptionToPlainText(item.description)}`.toLocaleLowerCase().includes(term)) : cached);
       setCursor(null);
       setOfflineCache(cached.length > 0);
       setError((reason as Error)?.message || "Unable to load media.");
@@ -32,12 +41,12 @@ export function useMediaFeed(type: MediaType) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [type]);
+  }, [searchQuery, type]);
 
   useEffect(() => { void loadFirst(); }, [loadFirst]);
 
   const loadMore = useCallback(async () => {
-    if (!cursor || loadingMore || offlineCache) return;
+    if (searchQuery.trim() || !cursor || loadingMore || offlineCache) return;
     setLoadingMore(true);
     try {
       const page = await listMediaPage(type, cursor);
@@ -51,7 +60,7 @@ export function useMediaFeed(type: MediaType) {
     } finally {
       setLoadingMore(false);
     }
-  }, [cursor, loadingMore, offlineCache, type]);
+  }, [cursor, loadingMore, offlineCache, searchQuery, type]);
 
   const patchItem = useCallback((id: string, patch: Partial<MediaItem>) => {
     setItems((current) => current.map((item) => item.id === id ? { ...item, ...patch } : item));

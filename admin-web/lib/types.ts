@@ -48,6 +48,11 @@ export type Media = {
   media_type: "video" | "short";
   category: string;
   thumbnail_url: string;
+  thumbnail_public_id: string | null;
+  thumbnail_width: number | null;
+  thumbnail_height: number | null;
+  thumbnail_bytes: number | null;
+  thumbnail_format: string | null;
   duration_seconds: number | null;
   view_count: number;
   like_count: number;

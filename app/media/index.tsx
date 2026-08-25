@@ -3,7 +3,7 @@ import { FlashList, type ViewToken } from "@shopify/flash-list";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, RefreshControl, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { CommentsSheet } from "@/src/features/media/components/CommentsSheet";
@@ -13,15 +13,18 @@ import { MediaCard } from "@/src/features/media/components/MediaCard";
 import { MediaSkeleton } from "@/src/features/media/components/MediaSkeleton";
 import type { MediaItem, MediaType } from "@/src/features/media/types";
 import { useMediaFeed } from "@/src/features/media/useMediaFeed";
-import { formatMediaCount, getMediaLayout } from "@/src/features/media/utils";
+import { formatMediaCount, getMediaLayout, mediaDescriptionToPlainText } from "@/src/features/media/utils";
 
 const TAB_KEY = "advent-pro:media-tab:v1";
 
 export default function MediaScreen() {
   const { colors, fontFamily } = useAppTheme();
   const [tab, setTab] = useState<MediaType>("video");
+  const [searchInput, setSearchInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => { void AsyncStorage.getItem(TAB_KEY).then((value) => { if (value === "short") setTab("short"); }); }, []);
+  useEffect(() => { const timer = setTimeout(() => setSearchQuery(searchInput.trim()), 300); return () => clearTimeout(timer); }, [searchInput]);
   const choose = (value: MediaType) => { setTab(value); void AsyncStorage.setItem(TAB_KEY, value); };
 
   return <View style={[styles.screen, { backgroundColor: colors.background }]}>
@@ -30,7 +33,24 @@ export default function MediaScreen() {
       <Tab label="Videos" active={tab === "video"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("video")} />
       <Tab label="Shorts" active={tab === "short"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("short")} />
     </View>
-    {tab === "video" ? <VideosFeed /> : <ShortsFeed />}
+    <View style={[styles.searchWrap, { backgroundColor: colors.background }]}>
+      <View style={[styles.searchBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
+        <Ionicons name="search" size={20} color={colors.mutedText} />
+        <TextInput
+          value={searchInput}
+          onChangeText={setSearchInput}
+          placeholder={`Search ${tab === "video" ? "videos" : "Shorts"}`}
+          placeholderTextColor={colors.mutedText}
+          returnKeyType="search"
+          autoCapitalize="none"
+          autoCorrect={false}
+          style={[styles.searchInput, { color: colors.text, fontFamily }]}
+          accessibilityLabel="Search media"
+        />
+        {!!searchInput && <Pressable accessibilityLabel="Clear search" hitSlop={8} onPress={() => setSearchInput("")}><Ionicons name="close-circle" size={20} color={colors.mutedText} /></Pressable>}
+      </View>
+    </View>
+    {tab === "video" ? <VideosFeed searchQuery={searchQuery} /> : <ShortsFeed searchQuery={searchQuery} />}
   </View>;
 }
 
@@ -41,10 +61,10 @@ function Tab({ label, active, color, textColor, fontFamily, onPress }: { label: 
   </Pressable>;
 }
 
-function VideosFeed() {
+function VideosFeed({ searchQuery }: { searchQuery: string }) {
   const { colors, fontFamily } = useAppTheme();
   const router = useRouter();
-  const feed = useMediaFeed("video");
+  const feed = useMediaFeed("video", searchQuery);
   if (feed.loading) return <MediaSkeleton />;
   return <View style={styles.flex}>
     {(feed.error || feed.offlineCache) && <StatusBanner cached={feed.offlineCache} onRetry={() => void feed.refresh()} />}
@@ -58,15 +78,15 @@ function VideosFeed() {
       onEndReached={() => void feed.loadMore()}
       onEndReachedThreshold={0.5}
       renderItem={({ item, index }) => <MediaCard item={item} layout={getMediaLayout(index)} onPress={() => router.push({ pathname: "/media/[id]", params: { id: item.id } })} />}
-      ListEmptyComponent={<EmptyState icon="videocam-off-outline" title="No videos available yet" body="Check back soon." />}
+      ListEmptyComponent={<EmptyState icon={searchQuery ? "search-outline" : "videocam-off-outline"} title={searchQuery ? "No matching videos" : "No videos available yet"} body={searchQuery ? "Try another title, category, or word." : "Check back soon."} />}
       ListFooterComponent={feed.loadingMore ? <ActivityIndicator color={colors.tint} style={styles.footerLoader} /> : <Text style={[styles.bottomSpace, { color: colors.mutedText, fontFamily }]}>{feed.items.length ? "You're all caught up" : ""}</Text>}
     />
   </View>;
 }
 
-function ShortsFeed() {
+function ShortsFeed({ searchQuery }: { searchQuery: string }) {
   const { colors } = useAppTheme();
-  const feed = useMediaFeed("short");
+  const feed = useMediaFeed("short", searchQuery);
   const [height, setHeight] = useState(500);
   const [activeIndex, setActiveIndex] = useState(0);
   const [commentItem, setCommentItem] = useState<MediaItem | null>(null);
@@ -85,7 +105,7 @@ function ShortsFeed() {
       onViewableItemsChanged={onViewableItemsChanged} viewabilityConfig={viewabilityConfig}
       overrideItemLayout={(layout) => { (layout as { size?: number }).size = height; }}
       renderItem={({ item, index }) => <ShortItem item={item} active={index === activeIndex} height={height} onComments={() => setCommentItem(item)} onPatch={(patch) => feed.patchItem(item.id, patch)} />}
-      ListEmptyComponent={<EmptyState icon="phone-portrait-outline" title="No Shorts available yet" body="Check back soon." />}
+      ListEmptyComponent={<EmptyState icon={searchQuery ? "search-outline" : "phone-portrait-outline"} title={searchQuery ? "No matching Shorts" : "No Shorts available yet"} body={searchQuery ? "Try another title, category, or word." : "Check back soon."} />}
     />
     {feed.loadingMore && <ActivityIndicator color="#fff" style={styles.shortLoader} />}
     {commentItem && <CommentsSheet visible item={commentItem} onClose={() => setCommentItem(null)} onCountChange={(commentCount) => feed.patchItem(commentItem.id, { commentCount })} />}
@@ -93,6 +113,7 @@ function ShortsFeed() {
 }
 
 function ShortItem({ item, active, height, onComments, onPatch }: { item: MediaItem; active: boolean; height: number; onComments: () => void; onPatch: (patch: Partial<MediaItem>) => void }) {
+  const description = mediaDescriptionToPlainText(item.description);
   return <View style={[styles.short, { height }]}>
     {active ? <EmbeddedYouTubePlayer item={item} active height={height} onViewCount={(viewCount) => onPatch({ viewCount })} /> : <Image source={{ uri: item.thumbnailUrl, cache: "force-cache" }} style={StyleSheet.absoluteFill} resizeMode="cover" />}
     <View pointerEvents="box-none" style={styles.shortOverlay}>
@@ -102,7 +123,7 @@ function ShortItem({ item, active, height, onComments, onPatch }: { item: MediaI
       </View>
       <View style={styles.shortCopy}>
         <Text numberOfLines={2} style={styles.shortTitle}>{item.title}</Text>
-        {!!item.description && <Text numberOfLines={2} style={styles.shortDescription}>{item.description}</Text>}
+        {!!description && <Text numberOfLines={2} style={styles.shortDescription}>{description}</Text>}
         <View style={styles.shortViews}><Ionicons name="play-circle-outline" size={15} color="#fff" /><Text style={styles.shortViewsText}>{formatMediaCount(item.viewCount)} views</Text></View>
       </View>
       <View style={styles.shortActions}><MediaActions item={item} likedInitially={false} onComments={onComments} onChange={onPatch} variant="short" /></View>
@@ -123,6 +144,7 @@ function EmptyState({ icon, title, body }: { icon: keyof typeof Ionicons.glyphMa
 const styles = StyleSheet.create({
   screen: { flex: 1 }, flex: { flex: 1 },
   tabs: { flexDirection: "row", borderBottomWidth: 1, paddingHorizontal: 16 }, tab: { flex: 1, height: 46, alignItems: "center", justifyContent: "center" }, tabText: { fontSize: 15, fontWeight: "800" }, tabLine: { position: "absolute", bottom: -1, height: 3, width: 52, borderRadius: 2 },
+  searchWrap: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 4 }, searchBox: { minHeight: 44, borderWidth: 1, borderRadius: 14, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", gap: 8 }, searchInput: { flex: 1, minHeight: 42, paddingVertical: 8, fontSize: 14 },
   videoList: { paddingTop: 7, paddingBottom: 100 }, banner: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderRadius: 12, marginHorizontal: 16, marginTop: 8, padding: 10, gap: 8 }, bannerText: { flex: 1, fontSize: 12 }, retry: { fontSize: 12, fontWeight: "900" },
   footerLoader: { margin: 24 }, bottomSpace: { textAlign: "center", paddingTop: 20, paddingBottom: 90, fontSize: 11 }, empty: { minHeight: 300, alignItems: "center", justifyContent: "center", padding: 30 }, emptyTitle: { fontSize: 18, fontWeight: "900", marginTop: 12 }, emptyBody: { fontSize: 13, marginTop: 4 }, center: { flex: 1, alignItems: "center", justifyContent: "center" },
   short: { width: "100%", backgroundColor: "#000", overflow: "hidden" }, shortOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,.05)" },
