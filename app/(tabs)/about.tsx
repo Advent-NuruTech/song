@@ -6,6 +6,7 @@ import {
   setAdminModeEnabled,
 } from "@/src/admin/adminAccess";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
+import { useDonationReturnState } from "@/hooks/useDonationReturnState";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { Link, router } from "expo-router";
@@ -23,7 +24,6 @@ import Animated, {
 } from "react-native-reanimated";
 
 const NURUTECH_URL = "https://adventnurutech.xyz";
-const DONATE_PAGE_URL = "https://adventnurutech.xyz/donate";
 const NURUTECH_ABOUT_URL = "https://adventnurutech.xyz/about";
 const APP_VERSION = "1.2.0";
 
@@ -36,6 +36,7 @@ const WHATSAPP_MESSAGE = "Hello, I'm using Advent Pro app and would like to get 
 export default function AboutScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const { reportScroll } = useQuickFooter();
+  const { openSupport } = useDonationReturnState();
 
   const [whatsappAvailable, setWhatsappAvailable] = useState(true);
   const [adminEnabled, setAdminEnabled] = useState(false);
@@ -144,7 +145,7 @@ export default function AboutScreen() {
 
   // Handlers
   const openNurutech = () => Linking.openURL(NURUTECH_URL);
-  const openDonatePage = () => Linking.openURL(DONATE_PAGE_URL);
+  const openDonatePage = () => void openSupport();
   const openNurutechAbout = () => Linking.openURL(NURUTECH_ABOUT_URL);
   const openAdminDashboard = () => router.push("/admin/AdminDashboard");
 
@@ -339,43 +340,30 @@ export default function AboutScreen() {
           </View>
         </Animated.View>
 
-        {/* Support Development */}
+        {/* Voluntary mission support */}
         <Animated.View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }, supportCardStyle]}>
           <View style={styles.cardHeader}>
             <Ionicons name="heart" size={size(24)} color="#DC2626" />
             <Text style={[styles.sectionTitle, { color: colors.text, fontSize: size(18), fontFamily, marginLeft: 8 }]}>
-              Support Development
+              Support the Work
             </Text>
           </View>
           <Text style={[styles.bodyText, { color: colors.text, fontSize: size(15), fontFamily }]}>
-            Your support helps us maintain, update, and add new features to Advent Pro.
+            Present Truth Mission Support helps with server costs, app maintenance, content infrastructure, development, and future improvements.
+          </Text>
+          <Text style={[styles.bodyText, { color: colors.mutedText, fontSize: size(13), fontFamily }]}>
+            This is completely voluntary and does not unlock or restrict any Advent Pro feature or content.
           </Text>
 
           <View style={styles.donationOptions}>
             <Pressable onPress={openDonatePage} style={styles.donationButton}>
-              <Ionicons name="logo-paypal" size={size(24)} color="#0070BA" />
+              <Ionicons name="heart-outline" size={size(24)} color={colors.tint} />
               <View style={styles.donationButtonTextContainer}>
-                <Text style={[styles.donationButtonTitle, { color: colors.text, fontFamily }]}>PayPal Donation</Text>
-                <Text style={[styles.donationButtonDesc, { color: colors.mutedText, fontFamily }]}>One-time or recurring donations</Text>
+                <Text style={[styles.donationButtonTitle, { color: colors.text, fontFamily }]}>Proceed to Support</Text>
+                <Text style={[styles.donationButtonDesc, { color: colors.mutedText, fontFamily }]}>Give any amount from KES 20 through Paystack</Text>
               </View>
               <Ionicons name="chevron-forward" size={size(20)} color={colors.mutedText} />
             </Pressable>
-
-            <View style={styles.localDonation}>
-              <Text style={[styles.localDonationTitle, { color: colors.text, fontFamily }]}>Local Donation Option</Text>
-              <View style={styles.paymentMethod}>
-                <Ionicons name="phone-portrait" size={size(18)} color={colors.tint} />
-                <Text style={[styles.paymentMethodTitle, { color: colors.text, fontFamily }]}>M-Pesa TILL NUMBER</Text>
-              </View>
-              <View style={styles.paymentDetails}>
-                <Text style={[styles.paymentDetail, { color: colors.mutedText, fontFamily }]}>
-                  <Text style={[styles.paymentLabel, { color: colors.text }]}>TILL NUMBER:</Text> 5340329
-                </Text>
-                <Text style={[styles.paymentDetail, { color: colors.mutedText, fontFamily }]}>
-                  <Text style={[styles.paymentLabel, { color: colors.text }]}>Account Name:</Text> ADVENT NURUTECH
-                </Text>
-              </View>
-            </View>
           </View>
         </Animated.View>
 

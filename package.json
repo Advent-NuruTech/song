@@ -24,7 +24,8 @@
     "lint": "expo lint",
     "validate:content": "node ./scripts/validate-content-json.js",
     "test:media": "node --experimental-strip-types ./scripts/validate-media.mjs",
-    "test:scripture": "node --test --experimental-strip-types ./scripts/scripture-formatting.test.mjs"
+    "test:scripture": "node --test --experimental-strip-types ./scripts/scripture-formatting.test.mjs",
+    "test:donations": "node --test --experimental-strip-types ./scripts/donation-security.test.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

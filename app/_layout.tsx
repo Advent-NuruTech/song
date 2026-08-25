@@ -1,7 +1,8 @@
 import Sidebar from "@/components/ui/Sidebar";
 import QuickFooter from "@/components/ui/QuickFooter";
+import { MonthlySupportPrompt } from "@/components/support/MonthlySupportPrompt";
 import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
-import { Stack } from "expo-router";
+import { Stack, usePathname } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import "react-native-reanimated";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -16,6 +17,8 @@ import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
 import { AuthProvider, useAuth } from "@/src/auth/AuthContext";
 import { syncSupabaseContent } from "@/src/content/supabase";
 import { syncPersonalContent } from "@/src/features/personal/personalService";
+import { useMonthlySupportPrompt } from "@/hooks/useMonthlySupportPrompt";
+import { useDonationReturnState } from "@/hooks/useDonationReturnState";
 
 /* ================================
    Inner layout (can access context)
@@ -25,6 +28,9 @@ function AppLayout() {
   const insets = useSafeAreaInsets();
   const backgroundColor = Colors[darkMode ? "dark" : "light"].background;
   const auth = useAuth();
+  const pathname = usePathname();
+  const supportPrompt = useMonthlySupportPrompt(pathname);
+  const { openSupport } = useDonationReturnState();
 
   useEffect(() => {
     const sync = () => {
@@ -47,6 +53,8 @@ function AppLayout() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="account" options={{ headerShown: false }} />
+              <Stack.Screen name="support/index" options={{ headerShown: false }} />
+              <Stack.Screen name="support/checkout" options={{ headerShown: false, gestureEnabled: false }} />
               <Stack.Screen
                 name="modal"
                 options={{ presentation: "modal", title: "Modal" }}
@@ -55,6 +63,14 @@ function AppLayout() {
           </View>
           <QuickFooter />
         </View>
+        <MonthlySupportPrompt
+          visible={supportPrompt.visible}
+          onDismiss={supportPrompt.dismiss}
+          onProceed={() => {
+            supportPrompt.dismiss();
+            void openSupport();
+          }}
+        />
         <StatusBar style={darkMode ? "light" : "dark"} />
       </ThemeProvider>
     </QuickFooterProvider>
