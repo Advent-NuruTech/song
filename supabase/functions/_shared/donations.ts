@@ -38,6 +38,46 @@ export async function authenticatedUser(req: Request) {
   return error ? null : data.user;
 }
 
+/**
+ * Allows trusted server-side reconciliation without weakening donor access.
+ * The service-role key is only available inside Supabase Edge Functions and
+ * trusted maintenance clients; mobile clients never receive it.
+ */
+export function isServiceRoleRequest(req: Request) {
+  const authorization = req.headers.get("Authorization");
+  if (!authorization?.startsWith("Bearer ")) return false;
+
+  const token = authorization.slice(7);
+  const supplied = new TextEncoder().encode(token);
+  const expected = new TextEncoder().encode(requiredEnv("SUPABASE_SERVICE_ROLE_KEY"));
+  if (supplied.length === expected.length) {
+    let difference = 0;
+    for (let index = 0; index < supplied.length; index += 1) {
+      difference |= supplied[index] ^ expected[index];
+    }
+    if (difference === 0) return true;
+  }
+
+  // Supabase can expose a rotated service key to maintenance clients while an
+  // Edge Function still sees its platform-provided legacy key. The gateway
+  // verifies this JWT before invocation (verify_jwt=true); we additionally
+  // scope its signed claims to this project and the service_role.
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return false;
+    const base64 = parts[1].replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(parts[1].length / 4) * 4, "=");
+    const claims = JSON.parse(atob(base64)) as { role?: unknown; ref?: unknown; iss?: unknown; exp?: unknown };
+    const projectRef = new URL(requiredEnv("SUPABASE_URL")).hostname.split(".")[0];
+    return claims.role === "service_role"
+      && claims.ref === projectRef
+      && claims.iss === "supabase"
+      && typeof claims.exp === "number"
+      && claims.exp * 1000 > Date.now();
+  } catch {
+    return false;
+  }
+}
+
 export function validEmail(value: unknown): value is string {
   return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }

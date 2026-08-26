@@ -1,4 +1,7 @@
 project_id = "advent-pro"
 
+[functions.verify-donation]
+verify_jwt = true
+
 [functions.paystack-webhook]
 verify_jwt = false

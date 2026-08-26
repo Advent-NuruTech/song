@@ -12,6 +12,11 @@ import { WebView } from "react-native-webview";
 
 type State = "checkout" | "verifying" | "success" | "failure";
 type RetryMode = "payment" | "verification";
+const VERIFICATION_RETRY_DELAYS_MS = [0, 1_500, 3_000, 5_000];
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
 
 export default function SupportCheckoutScreen() {
   const { colors, fontFamily } = useAppTheme();
@@ -31,17 +36,28 @@ export default function SupportCheckoutScreen() {
     verifying.current = true;
     setState("verifying");
     try {
-      const result = await verifyDonation(reference);
-      if (result.status === "successful") {
-        setState("success");
-      } else {
-        setRetryMode(result.status === "pending" ? "verification" : "payment");
-        setMessage("Payment was not completed. You can retry or continue using Advent Pro normally.");
-        setState("failure");
+      for (const delay of VERIFICATION_RETRY_DELAYS_MS) {
+        if (delay) await wait(delay);
+        const result = await verifyDonation(reference);
+        if (result.status === "successful") {
+          setState("success");
+          return;
+        }
+        if (result.status === "failed") {
+          setRetryMode("payment");
+          setMessage("Paystack reports that this payment was not completed. You can return and start a new payment.");
+          setState("failure");
+          return;
+        }
       }
+
+      setRetryMode("verification");
+      setMessage("Your payment is still awaiting confirmation. If M-Pesa charged you, do not pay again. Retry verification in a moment.");
+      setState("failure");
     } catch (cause) {
       setRetryMode("verification");
-      setMessage(cause instanceof Error ? cause.message : "We could not verify the payment yet. Please try again.");
+      console.warn("Donation verification is temporarily unavailable", cause instanceof Error ? cause.message : "unknown");
+      setMessage("We could not confirm the payment with Paystack yet. If M-Pesa charged you, do not pay again. Retry verification in a moment.");
       setState("failure");
     } finally {
       verifying.current = false;
@@ -61,6 +77,7 @@ export default function SupportCheckoutScreen() {
     return (
       <View style={[styles.result, { backgroundColor: colors.background }]}>
         <DonationFailure
+          title={retryMode === "verification" ? "Payment Confirmation Pending" : undefined}
           message={message || undefined}
           retryLabel={retryMode === "verification" ? "Retry Verification" : valid ? "Retry Payment" : "Back to Amount"}
           onRetry={() => retryMode === "verification" ? void verify() : router.back()}

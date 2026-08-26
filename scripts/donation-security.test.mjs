@@ -60,14 +60,14 @@ test("Paystack secret is never referenced from shipped application code", () => 
   }
 });
 
-test("the permanent donation page and sidebar destination stay wired", () => {
+test("the permanent donation page and navigation destination stay wired", () => {
   const donationRoute = readFileSync(new URL("../app/donate.tsx", import.meta.url), "utf8");
-  const sidebar = readFileSync(new URL("../components/ui/Sidebar.tsx", import.meta.url), "utf8");
+  const navigation = readFileSync(new URL("../components/ui/QuickFooter.tsx", import.meta.url), "utf8");
   const service = readFileSync(new URL("../src/services/donations/donationService.ts", import.meta.url), "utf8");
   assert.match(donationRoute, /support\/index/);
   assert.match(donationRoute, /export default DonationScreen/);
-  assert.match(sidebar, /label:\s*"Donate"/);
-  assert.match(sidebar, /path:\s*"\/donate"/);
+  assert.match(navigation, /label:\s*"Donate"/);
+  assert.match(navigation, /path:\s*"\/donate"/);
   assert.match(service, /Donations are not configured on the server yet/);
 });
 
@@ -79,4 +79,27 @@ test("donation reporting is database-gated to the senior administrator permissio
   assert.match(reportMigration, /if not has_permission\('donations\.read'\)/gi);
   assert.doesNotMatch(reportMigration, /\('(reader|contributor|editor|publisher|moderator|media_manager|user_manager)', 'donations\.read'\)/i);
   assert.match(reportMigration, /only a super admin may grant or remove the super admin role/i);
+});
+
+test("verification supports secure server reconciliation and warns charged donors not to repay", () => {
+  const sharedFunction = readFileSync(new URL("../supabase/functions/_shared/donations.ts", import.meta.url), "utf8");
+  const verifier = readFileSync(new URL("../supabase/functions/verify-donation/index.ts", import.meta.url), "utf8");
+  const config = readFileSync(new URL("../supabase/config.toml", import.meta.url), "utf8");
+  const checkout = readFileSync(new URL("../app/support/checkout.tsx", import.meta.url), "utf8");
+  assert.match(sharedFunction, /isServiceRoleRequest/);
+  assert.match(sharedFunction, /SUPABASE_SERVICE_ROLE_KEY/);
+  assert.match(verifier, /trustedServer/);
+  assert.match(verifier, /paystack_verify_http_/);
+  assert.match(config, /\[functions\.verify-donation\][\s\S]*verify_jwt\s*=\s*true/);
+  assert.match(checkout, /Payment Confirmation Pending/);
+  assert.match(checkout, /do not pay again/i);
+});
+
+test("donation aggregate decrements update existing totals before inserting", () => {
+  const migration = readFileSync(new URL("../supabase/migrations/018_fix_donation_daily_totals_decrement.sql", import.meta.url), "utf8");
+  const negativeBranch = migration.match(/if p_count_delta < 0[\s\S]*?else/i)?.[0] || "";
+  assert.match(negativeBranch, /update public\.donation_daily_totals/i);
+  assert.doesNotMatch(negativeBranch, /insert into public\.donation_daily_totals/i);
+  assert.match(migration, /record_count \+ p_count_delta >= 0/i);
+  assert.match(migration, /amount_total \+ p_amount_delta >= 0/i);
 });

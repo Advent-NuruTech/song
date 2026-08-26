@@ -14,11 +14,13 @@ const RESOURCE_LINKS = [
   { label: "Playlists", detail: "Your singing orders", icon: "list-circle-outline" as const, path: "/playlists" },
   { label: "Studies", detail: "Biblical research", icon: "library-outline" as const, path: "/studies" },
   { label: "Notes", detail: "Write and sync", icon: "document-text-outline" as const, path: "/notes" },
+  { label: "Contribute Study", detail: "Improve and review studies", icon: "create-outline" as const, path: "/collaboration" },
 ];
 
 const PROFILE_LINKS = [
   { label: "Profile", detail: "Account and sign in", icon: "person-circle-outline" as const, path: "/account" },
   { label: "Settings", detail: "Theme, language and reading", icon: "settings-outline" as const, path: "/settings" },
+  { label: "Donate", detail: "Support Advent Pro", icon: "heart-outline" as const, path: "/donate" },
   { label: "About", detail: "About Advent Pro", icon: "information-circle-outline" as const, path: "/about" },
 ];
 
@@ -29,8 +31,8 @@ export default function QuickFooter() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const [menu, setMenu] = useState<MenuKind>(null);
 
-  const resourcesActive = ["/bible", "/categories", "/songs", "/song/", "/studies", "/notes", "/playlists"].some((path) => pathname.startsWith(path));
-  const profileActive = ["/account", "/settings", "/about"].some((path) => pathname.startsWith(path));
+  const resourcesActive = ["/bible", "/categories", "/songs", "/song/", "/studies", "/notes", "/playlists", "/collaboration"].some((path) => pathname.startsWith(path));
+  const profileActive = ["/account", "/settings", "/donate", "/support", "/about"].some((path) => pathname.startsWith(path));
   const links = menu === "resources" ? RESOURCE_LINKS : PROFILE_LINKS;
 
   const go = (path: string) => {

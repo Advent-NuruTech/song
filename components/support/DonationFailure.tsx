@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type Props = {
+  title?: string;
   message?: string;
   retryLabel?: string;
   onRetry: () => void;
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export function DonationFailure({
+  title = "Support Payment Not Completed",
   message = "Payment was not completed. You can continue using Advent Pro normally.",
   retryLabel = "Retry",
   onRetry,
@@ -19,7 +21,7 @@ export function DonationFailure({
   return (
     <View style={styles.container}>
       <Ionicons name="information-circle-outline" size={58} color={colors.tint} />
-      <Text style={[styles.title, { color: colors.text, fontFamily, fontSize: size(22) }]}>Support Payment Not Completed</Text>
+      <Text style={[styles.title, { color: colors.text, fontFamily, fontSize: size(22) }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.text, fontFamily }]}>{message}</Text>
       <Pressable onPress={onRetry} style={[styles.retry, { backgroundColor: colors.primary }]}>
         <Text style={[styles.retryText, { color: colors.onPrimary, fontFamily }]}>{retryLabel}</Text>

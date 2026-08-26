@@ -1,21 +1,21 @@
 import { Link, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    FlatList,
-    Platform,
-    Pressable,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
+  FlatList,
+  Platform,
+  Pressable,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import {
-    formatLanguageLabel,
-    getLanguageColor,
-    getLanguagesWithCounts,
-    type LanguageSummary,
+  formatLanguageLabel,
+  getLanguageColor,
+  getLanguagesWithCounts,
+  type LanguageSummary,
 } from "@/src/services/languageService";
 
 export default function CategoriesScreen() {
@@ -188,18 +188,7 @@ export default function CategoriesScreen() {
         }
       ]}>
         <View style={styles.headerCenter}>
-          <Text
-            style={[
-              styles.headerTitle,
-              { 
-                color: colors.text, 
-                fontSize: size(32), 
-                fontFamily,
-              }
-            ]}
-          >
-            Languages
-          </Text>
+         
           <Text
             style={[
               styles.headerSubtitle,

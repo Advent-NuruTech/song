@@ -142,9 +142,7 @@ export default function BibleHome() {
           { backgroundColor: colors.card, borderBottomColor: colors.border },
         ]}
       >
-        <Text style={[styles.headerTitle, { color: colors.text, fontSize: size(28), fontFamily }]}>
-          Holy Bible
-        </Text>
+       
         <Text style={[styles.headerSub, { color: colors.mutedText, fontSize: size(14), fontFamily }]}>
           {selected ? selected.name : "No versions available"}
         </Text>
