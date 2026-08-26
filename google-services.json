@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "649836948818",
+    "project_id": "adventpro-cc85f",
+    "storage_bucket": "adventpro-cc85f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:649836948818:android:b5952e9294fd63e608de8b",
+        "android_client_info": {
+          "package_name": "com.adventpro"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC5SnQg7DCvv5BXKI6sP7DxWk9TkqjVrZc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

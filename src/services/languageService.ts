@@ -40,8 +40,14 @@ export function formatLanguageName(value: string) {
     en: "English",
     eng: "English",
     swahili: "Swahili",
+    swa: "Swahili",
     luo: "Luo",
     ki: "Kikuyu",
+    kikuyu: "Kikuyu",
+    kisii: "Kisii",
+    guz: "Kisii",
+    french: "French",
+    fra: "French",
   };
   if (knownNames[normalized]) {
     return knownNames[normalized];

@@ -3,6 +3,8 @@ import Constants from "expo-constants";
 import { router } from "expo-router";
 import {
   Alert,
+  Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,6 +16,8 @@ import {
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { useSettings } from "@/src/context/SettingsContext";
+import { useNotifications } from "@/src/context/NotificationsContext";
+import type { NotificationPreferenceKey } from "@/src/features/notifications/types";
 
 export default function SettingsScreen() {
   const { reportScroll } = useQuickFooter();
@@ -21,6 +25,7 @@ export default function SettingsScreen() {
     useSettings();
 
   const { colors, size, fontFamily } = useAppTheme();
+  const notificationSettings = useNotifications();
 
   const appVersion =
     Constants.expoConfig?.version || Constants.manifest?.version || "1.0.0";
@@ -30,6 +35,29 @@ export default function SettingsScreen() {
       { text: "Cancel", style: "cancel" },
       { text: "Reset", onPress: resetSettings },
     ]);
+  };
+
+  const toggleNotifications = async (enabled: boolean) => {
+    if (!enabled) {
+      await notificationSettings.disable();
+      return;
+    }
+    try {
+      const granted = await notificationSettings.enable();
+      if (!granted) {
+        Alert.alert(
+          "Notifications are off",
+          "Allow notifications in Android settings to receive the 6:00 AM verse and important updates.",
+          [
+            { text: "Not now", style: "cancel" },
+            { text: "Open settings", onPress: () => void Linking.openSettings() },
+          ]
+        );
+      }
+    } catch (error) {
+      console.warn("Unable to enable notifications", error);
+      Alert.alert("Couldn’t enable notifications", "Please check your connection and try again.");
+    }
   };
 
   return (
@@ -116,6 +144,33 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {Platform.OS !== "web" ? (
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          <View style={styles.notificationHeader}>
+            <View style={[styles.notificationIcon, { backgroundColor: `${colors.tint}15` }]}>
+              <MaterialIcons name="notifications-active" size={24} color={colors.tint} />
+            </View>
+            <View style={styles.notificationHeaderCopy}>
+              <Text style={[styles.sectionTitle, { fontSize: size(16), color: colors.text, fontFamily, marginBottom: 3 }]}>Notifications</Text>
+              <Text style={[styles.helperText, { color: colors.mutedText, fontFamily }]}>Useful reminders only—never an alert for every action.</Text>
+            </View>
+            <Switch
+              value={notificationSettings.preferences.masterEnabled && notificationSettings.permission === "granted"}
+              onValueChange={(value) => void toggleNotifications(value)}
+              disabled={!notificationSettings.ready}
+            />
+          </View>
+
+          <View style={[styles.innerDivider, { backgroundColor: colors.border }]} />
+          <NotificationToggle label="Daily Bible verse" detail="Every day at 6:00 AM" settingKey="dailyVerse" disabled={!notificationSettings.preferences.masterEnabled} />
+          <NotificationToggle label="New studies & videos" detail="One thoughtfully bundled alert per day" settingKey="newContent" disabled={!notificationSettings.preferences.masterEnabled} />
+          <NotificationToggle label="Replies" detail="Important replies can arrive immediately" settingKey="replies" disabled={!notificationSettings.preferences.masterEnabled} />
+          <NotificationToggle label="Community activity" detail="Likes are grouped into a helpful summary" settingKey="engagementDigest" disabled={!notificationSettings.preferences.masterEnabled} />
+          <NotificationToggle label="Donation receipts" detail="A private thank-you after confirmed support" settingKey="donations" disabled={!notificationSettings.preferences.masterEnabled} />
+          <NotificationToggle label="App updates" detail="Know when a verified Play Store release is live" settingKey="appUpdates" disabled={!notificationSettings.preferences.masterEnabled} last />
+        </View>
+      ) : null}
+
       {/* Reset Settings */}
       <View
         style={[
@@ -200,6 +255,36 @@ export default function SettingsScreen() {
   );
 }
 
+function NotificationToggle({
+  label,
+  detail,
+  settingKey,
+  disabled,
+  last = false,
+}: {
+  label: string;
+  detail: string;
+  settingKey: NotificationPreferenceKey;
+  disabled: boolean;
+  last?: boolean;
+}) {
+  const { colors, fontFamily } = useAppTheme();
+  const notifications = useNotifications();
+  return (
+    <View style={[styles.preferenceRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, disabled && styles.disabled]}>
+      <View style={styles.preferenceCopy}>
+        <Text style={[styles.preferenceLabel, { color: colors.text, fontFamily }]}>{label}</Text>
+        <Text style={[styles.helperText, { color: colors.mutedText, fontFamily }]}>{detail}</Text>
+      </View>
+      <Switch
+        value={notifications.preferences[settingKey]}
+        onValueChange={(value) => void notifications.setPreference(settingKey, value)}
+        disabled={disabled}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -250,4 +335,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
   },
+  notificationHeader: { flexDirection: "row", alignItems: "center", gap: 12 },
+  notificationIcon: { width: 44, height: 44, borderRadius: 14, alignItems: "center", justifyContent: "center" },
+  notificationHeaderCopy: { flex: 1 },
+  helperText: { fontSize: 11, lineHeight: 16 },
+  innerDivider: { height: StyleSheet.hairlineWidth, marginTop: 15 },
+  preferenceRow: { minHeight: 66, flexDirection: "row", alignItems: "center", gap: 12 },
+  preferenceCopy: { flex: 1, paddingVertical: 10 },
+  preferenceLabel: { fontSize: 14, fontWeight: "700", marginBottom: 2 },
+  disabled: { opacity: 0.45 },
 });

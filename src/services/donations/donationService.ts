@@ -22,10 +22,10 @@ async function edgeFunctionMessage(error: unknown, fallback: string) {
   if (context?.json) {
     try {
       const body = await context.json();
-      if (typeof body?.error === "string" && body.error.length <= 200) return body.error;
       if (context.status === 404 || body?.code === "NOT_FOUND") {
-        return "Payments are temporarily unavailable. Please try again later.";
+        return "Donations are not configured on the server yet. Please contact Advent Pro support.";
       }
+      if (typeof body?.error === "string" && body.error.length <= 200) return body.error;
     } catch {
       // Use the safe fallback below.
     }

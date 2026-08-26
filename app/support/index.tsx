@@ -48,10 +48,10 @@ export default function SupportScreen() {
   return (
     <KeyboardAvoidingView style={[styles.screen, { backgroundColor: colors.background }]} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Pressable accessibilityLabel="Close support" onPress={() => void returnToPreviousContent()} style={styles.headerButton}>
-          <Ionicons name="close" size={25} color={colors.text} />
+        <Pressable accessibilityLabel="Leave donation page" onPress={() => void returnToPreviousContent()} style={styles.headerButton}>
+          <Ionicons name="arrow-back" size={24} color={colors.text} />
         </Pressable>
-        <Text style={[styles.headerTitle, { color: colors.text, fontFamily }]}>Support the Work</Text>
+        <Text style={[styles.headerTitle, { color: colors.text, fontFamily }]}>Donate</Text>
         <View style={styles.headerButton} />
       </View>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
@@ -60,6 +60,10 @@ export default function SupportScreen() {
           <Text style={[styles.title, { color: colors.text, fontFamily, fontSize: size(24) }]}>Support the Work</Text>
           <Text style={[styles.subtitle, { color: colors.tint, fontFamily }]}>Present Truth Mission Support</Text>
           <Text style={[styles.intro, { color: colors.text, fontFamily }]}>Advent Pro remains freely available to everyone. If it has been a blessing to you, you may voluntarily help with server costs, app maintenance, content infrastructure, development, and future improvements.</Text>
+          <View style={[styles.assurance, { backgroundColor: colors.inputBackground, borderColor: colors.border }]}>
+            <Ionicons name="shield-checkmark-outline" size={21} color={colors.tint} />
+            <Text style={[styles.assuranceText, { color: colors.mutedText, fontFamily }]}>Secure checkout is handled by Paystack. You can give any whole amount from KES 3 and receive a receipt by email.</Text>
+          </View>
           <DonationAmountForm
             initialEmail={user?.email ?? ""}
             emailLocked={Boolean(user?.email)}
@@ -83,5 +87,7 @@ const styles = StyleSheet.create({
   icon: { width: 58, height: 58, borderRadius: 29, alignSelf: "center", alignItems: "center", justifyContent: "center" },
   title: { textAlign: "center", fontWeight: "800", marginTop: 14 },
   subtitle: { textAlign: "center", fontSize: 14, fontWeight: "700", marginTop: 4 },
-  intro: { fontSize: 14, lineHeight: 21, textAlign: "center", marginVertical: 22 },
+  intro: { fontSize: 14, lineHeight: 21, textAlign: "center", marginTop: 22 },
+  assurance: { flexDirection: "row", alignItems: "center", gap: 10, borderWidth: 1, borderRadius: 14, padding: 13, marginVertical: 20 },
+  assuranceText: { flex: 1, fontSize: 12, lineHeight: 18 },
 });

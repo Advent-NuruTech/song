@@ -124,7 +124,7 @@ export default function HomeScreen() {
             <View style={styles.verseActions}>
               <Pressable onPress={() => setVerseShareOpen(true)} style={styles.verseActionSecondary}>
                 <Ionicons name="share-social-outline" size={17} color="#FFFFFF" />
-                <Text style={[styles.verseActionText, { fontFamily }]}>Share image</Text>
+                <Text style={[styles.verseActionText, { fontFamily }]}>Share with friends</Text>
               </Pressable>
               <Pressable onPress={dismissDailyVerse} style={styles.verseActionPrimary}>
                 <Ionicons name="checkmark" size={18} color="#0B4AA6" />

@@ -60,6 +60,17 @@ test("Paystack secret is never referenced from shipped application code", () => 
   }
 });
 
+test("the permanent donation page and sidebar destination stay wired", () => {
+  const donationRoute = readFileSync(new URL("../app/donate.tsx", import.meta.url), "utf8");
+  const sidebar = readFileSync(new URL("../components/ui/Sidebar.tsx", import.meta.url), "utf8");
+  const service = readFileSync(new URL("../src/services/donations/donationService.ts", import.meta.url), "utf8");
+  assert.match(donationRoute, /support\/index/);
+  assert.match(donationRoute, /export default DonationScreen/);
+  assert.match(sidebar, /label:\s*"Donate"/);
+  assert.match(sidebar, /path:\s*"\/donate"/);
+  assert.match(service, /Donations are not configured on the server yet/);
+});
+
 test("donation reporting is database-gated to the senior administrator permission", () => {
   const baseMigration = readFileSync(new URL("../supabase/migrations/013_voluntary_donations.sql", import.meta.url), "utf8");
   const reportMigration = readFileSync(new URL("../supabase/migrations/014_senior_admin_donation_reporting.sql", import.meta.url), "utf8");

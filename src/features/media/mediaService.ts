@@ -105,10 +105,15 @@ export async function listMediaComments(mediaId: string, cursor: CommentCursor |
   return { items, nextCursor: items.length === 20 && last ? { createdAt: last.createdAt } : null };
 }
 
-export async function addMediaComment(mediaId: string, value: string): Promise<void> {
+export async function addMediaComment(mediaId: string, value: string, parentId?: string): Promise<void> {
   const content = stripUnsafeComment(value);
   if (!content) throw new Error("Write a comment first.");
-  const { error } = await supabase.rpc("add_media_comment", { p_media_id: mediaId, p_content: content });
+  const params: { p_media_id: string; p_content: string; p_parent_id?: string } = {
+    p_media_id: mediaId,
+    p_content: content,
+  };
+  if (parentId) params.p_parent_id = parentId;
+  const { error } = await supabase.rpc("add_media_comment", params);
   if (error) throw error;
 }
 

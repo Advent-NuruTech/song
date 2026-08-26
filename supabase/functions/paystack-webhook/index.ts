@@ -1,5 +1,6 @@
 import { jsonResponse, methodNotAllowed } from "../_shared/http.ts";
 import { DonationRow, requiredEnv, serviceClient, validReference } from "../_shared/donations.ts";
+import { createAndDispatchNotification } from "../_shared/notifications.ts";
 
 type PaystackEvent = {
   event?: string;
@@ -66,6 +67,26 @@ Deno.serve(async (req) => {
       last_error_code: null,
     }).eq("id", donation.id).neq("status", "successful");
     if (updateError) throw new Error("donation_update_failed");
+    if (donation.user_id) {
+      try {
+        await createAndDispatchNotification(db, {
+          recipientUserId: donation.user_id,
+          kind: "donation_receipt",
+          title: "Thank you for supporting Advent Pro ❤️",
+          body: "Your contribution has been received. May God bless you for helping make these resources available.",
+          route: "/support",
+          data: { donationId: donation.id },
+          dedupeKey: `donation-receipt:${donation.id}`,
+        });
+      } catch (notificationError) {
+        // Payment processing must remain successful. The durable notification
+        // row is retried by dispatch-notifications if push delivery was interrupted.
+        console.error("Donation notification dispatch failed", {
+          code: notificationError instanceof Error ? notificationError.message : "unknown",
+          donationId: donation.id,
+        });
+      }
+    }
     return jsonResponse({ received: true });
   } catch (error) {
     console.error("Paystack webhook processing failed", { code: error instanceof Error ? error.message : "unknown" });

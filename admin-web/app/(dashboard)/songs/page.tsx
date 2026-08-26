@@ -7,12 +7,30 @@ import type { Song } from "@/lib/types";
 
 const PAGE_SIZE = 50;
 
+function formatLang(value: string) {
+  return value.replace(/[_-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
 export default function SongsPage() {
   const [songs, setSongs] = useState<Song[]>([]);
   const [search, setSearch] = useState("");
   const [language, setLanguage] = useState("");
+  const [existingLanguages, setExistingLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getSupabase()
+      .from("songs")
+      .select("language")
+      .eq("deleted", false)
+      .then(({ data }) => {
+        if (data) {
+          const langs = [...new Set(data.map((r: { language: string }) => r.language))].sort();
+          setExistingLanguages(langs);
+        }
+      });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -27,7 +45,7 @@ export default function SongsPage() {
         .limit(PAGE_SIZE);
 
       if (search.trim()) q = q.ilike("title", `%${search.trim()}%`);
-      if (language) q = q.eq("language", language);
+      if (language.trim()) q = q.eq("language", language.trim().toLowerCase());
 
       const { data, error } = await q;
       if (error) throw error;
@@ -64,12 +82,18 @@ export default function SongsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-          <option value="">All languages</option>
-          <option value="english">English</option>
-          <option value="swahili">Swahili</option>
-          <option value="luo">Luo</option>
-        </select>
+        <input
+          list="lang-options"
+          placeholder="All languages"
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          style={{ minWidth: 180 }}
+        />
+        <datalist id="lang-options">
+          {existingLanguages.map((l) => (
+            <option key={l} value={l} label={formatLang(l)} />
+          ))}
+        </datalist>
       </div>
 
       {error && <div className="error">{error}</div>}

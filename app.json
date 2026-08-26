@@ -12,6 +12,7 @@
       "bundleIdentifier": "com.adventpro"
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "backgroundColor": "#FFFFFF",
@@ -40,6 +41,14 @@
       ],
       "expo-sqlite",
       "expo-font",
+      [
+        "expo-notifications",
+        {
+          "color": "#0B4AA6",
+          "defaultChannel": "advent-pro-updates"
+        }
+      ],
+      "./plugins/with-google-services-version",
       [
         "expo-image-picker",
         {

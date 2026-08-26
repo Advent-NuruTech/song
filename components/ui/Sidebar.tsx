@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/src/auth/AuthContext";
+import { useNotifications } from "@/src/context/NotificationsContext";
 
 const PANEL_WIDTH = 286;
 
@@ -96,6 +97,20 @@ const NAV_ITEMS: NavItem[] = [
     match: (p) => p.startsWith("/media"),
   },
   {
+    key: "donate",
+    label: "Donate",
+    icon: "heart-outline",
+    path: "/donate",
+    match: (p) => p.startsWith("/donate") || p.startsWith("/support"),
+  },
+  {
+    key: "notifications",
+    label: "Notifications",
+    icon: "notifications-outline",
+    path: "/notifications",
+    match: (p) => p.startsWith("/notifications"),
+  },
+  {
     key: "search",
     label: "Search",
     icon: "search-outline",
@@ -124,6 +139,7 @@ export default function Sidebar() {
   const insets = useSafeAreaInsets();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const auth = useAuth();
+  const { unreadCount } = useNotifications();
 
   const [open, setOpen] = useState(false);
 
@@ -200,6 +216,31 @@ export default function Sidebar() {
         </View>
 
         <View style={styles.headerActions}>
+          <Pressable
+            accessibilityLabel={unreadCount ? `Notifications, ${unreadCount} unread` : "Notifications"}
+            onPress={() => router.push("/notifications" as never)}
+            android_ripple={{ color: "#d1d5db", borderless: true }}
+            style={[
+              styles.headerButton,
+              {
+                backgroundColor: pathname.startsWith("/notifications")
+                  ? `${colors.tint}14`
+                  : darkMode ? "#111827" : "#FFFFFF",
+                borderColor: pathname.startsWith("/notifications") ? colors.tint : colors.border,
+              },
+            ]}
+          >
+            <Ionicons
+              name={pathname.startsWith("/notifications") ? "notifications" : "notifications-outline"}
+              size={size(20)}
+              color={pathname.startsWith("/notifications") ? colors.tint : colors.text}
+            />
+            {unreadCount > 0 ? (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount > 99 ? "99+" : unreadCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
           <Pressable
             accessibilityLabel="Global search for songs, Bible verses, and studies"
             onPress={() => router.replace("/search" as never)}
@@ -414,6 +455,12 @@ const styles = StyleSheet.create({
       android: { elevation: 5 },
     }),
   },
+  notificationBadge: {
+    position: "absolute", top: -5, right: -5, minWidth: 19, height: 19,
+    paddingHorizontal: 4, borderRadius: 10, backgroundColor: "#DC2626",
+    alignItems: "center", justifyContent: "center", borderWidth: 2, borderColor: "#FFFFFF",
+  },
+  notificationBadgeText: { color: "#FFFFFF", fontSize: 9, lineHeight: 11, fontWeight: "900" },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "#000",

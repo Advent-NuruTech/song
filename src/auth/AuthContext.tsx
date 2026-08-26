@@ -1,6 +1,7 @@
 import type { Session, User } from "@supabase/supabase-js";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authConfigured, supabase } from "./supabaseClient";
+import { disableCurrentPushDevice } from "@/src/features/notifications/notificationService";
 
 type Profile = { id: string; email: string; display_name: string };
 type AuthValue = {
@@ -70,7 +71,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error } = await supabase.auth.updateUser({ password });
       if (error) throw error;
     },
-    async signOut() { const { error } = await supabase.auth.signOut(); if (error) throw error; },
+    async signOut() {
+      try { await disableCurrentPushDevice(); }
+      catch (error) { console.warn("Unable to disable this device before sign out", error); }
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    },
     refreshAccess,
   }), [loading, session, profile, roles, permissions, refreshAccess]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

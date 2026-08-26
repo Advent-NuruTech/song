@@ -19,6 +19,7 @@ import { syncSupabaseContent } from "@/src/content/supabase";
 import { syncPersonalContent } from "@/src/features/personal/personalService";
 import { useMonthlySupportPrompt } from "@/hooks/useMonthlySupportPrompt";
 import { useDonationReturnState } from "@/hooks/useDonationReturnState";
+import { NotificationsProvider } from "@/src/context/NotificationsContext";
 
 /* ================================
    Inner layout (can access context)
@@ -53,6 +54,8 @@ function AppLayout() {
             <Stack>
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="account" options={{ headerShown: false }} />
+              <Stack.Screen name="notifications" options={{ headerShown: false }} />
+              <Stack.Screen name="donate" options={{ headerShown: false }} />
               <Stack.Screen name="support/index" options={{ headerShown: false }} />
               <Stack.Screen name="support/checkout" options={{ headerShown: false, gestureEnabled: false }} />
               <Stack.Screen
@@ -130,7 +133,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <SettingsProvider>
-          <AppLayout />
+          <NotificationsProvider>
+            <AppLayout />
+          </NotificationsProvider>
         </SettingsProvider>
       </AuthProvider>
     </SafeAreaProvider>

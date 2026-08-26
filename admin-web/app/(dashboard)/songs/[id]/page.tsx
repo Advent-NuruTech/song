@@ -24,11 +24,25 @@ export default function SongEditor() {
 
   const [hymnNumber, setHymnNumber] = useState(0);
   const [title, setTitle] = useState("");
-  const [language, setLanguage] = useState("english");
+  const [language, setLanguage] = useState("");
   const [author, setAuthor] = useState("");
   const [stanzasText, setStanzasText] = useState("");
   const [chorusText, setChorusText] = useState("");
   const [isPublished, setIsPublished] = useState(false);
+  const [existingLanguages, setExistingLanguages] = useState<string[]>([]);
+
+  useEffect(() => {
+    getSupabase()
+      .from("songs")
+      .select("language")
+      .eq("deleted", false)
+      .then(({ data }) => {
+        if (data) {
+          const langs = [...new Set(data.map((r: { language: string }) => r.language))].sort();
+          setExistingLanguages(langs);
+        }
+      });
+  }, []);
 
   useEffect(() => {
     if (isNew) return;
@@ -143,11 +157,17 @@ export default function SongEditor() {
           </div>
           <div>
             <label>Language</label>
-            <select value={language} onChange={(e) => setLanguage(e.target.value)}>
-              <option value="english">English</option>
-              <option value="swahili">Swahili</option>
-              <option value="luo">Luo</option>
-            </select>
+            <input
+              list="editor-lang-options"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              placeholder="e.g. english, swahili, kikuyu"
+            />
+            <datalist id="editor-lang-options">
+              {existingLanguages.map((l) => (
+                <option key={l} value={l} />
+              ))}
+            </datalist>
           </div>
         </div>
 

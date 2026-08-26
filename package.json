@@ -25,7 +25,8 @@
     "validate:content": "node ./scripts/validate-content-json.js",
     "test:media": "node --experimental-strip-types ./scripts/validate-media.mjs",
     "test:scripture": "node --test --experimental-strip-types ./scripts/scripture-formatting.test.mjs",
-    "test:donations": "node --test --experimental-strip-types ./scripts/donation-security.test.mjs"
+    "test:donations": "node --test --experimental-strip-types ./scripts/donation-security.test.mjs",
+    "test:notifications": "node --test ./scripts/notification-security.test.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
@@ -34,12 +35,15 @@
     "@shopify/flash-list": "2.0.2",
     "@supabase/supabase-js": "^2.45.4",
     "expo": "~54.0.37",
+    "expo-application": "~7.0.8",
     "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.14",
+    "expo-device": "~8.0.10",
     "expo-file-system": "~19.0.24",
     "expo-font": "~14.0.12",
     "expo-image-picker": "~17.0.11",
     "expo-linking": "~8.0.12",
+    "expo-notifications": "~0.32.17",
     "expo-print": "~15.0.8",
     "expo-router": "~6.0.22",
     "expo-sharing": "~14.0.8",

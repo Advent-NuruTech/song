@@ -4,6 +4,9 @@ const LANG_PREFIX: Record<string, string> = {
   english: "ENG",
   swahili: "SWA",
   luo: "LUO",
+  kikuyu: "KKY",
+  kisii: "KSI",
+  french: "FRN",
 };
 
 /** Song id like ENG_006 (zero-padded to 3). Falls back to language code. */
