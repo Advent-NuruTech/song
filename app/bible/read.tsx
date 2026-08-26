@@ -18,7 +18,6 @@ import { ShareSheet } from "@/components/share-sheet";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { Toast } from "@/components/toast";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   copyScripture,
   shareScripture,
@@ -33,7 +32,6 @@ import {
 
 export default function BibleReader() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const router = useRouter();
   const params = useLocalSearchParams<{ version: string; book: string; chapter: string }>();
 
@@ -183,8 +181,6 @@ export default function BibleReader() {
           ref={scrollRef}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-          onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
-          scrollEventThrottle={16}
         >
           {verses.map((v) => {
             const isSelected = selected.has(v.verse);

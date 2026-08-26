@@ -5,7 +5,6 @@ import {
   isAdminModeEnabled,
   setAdminModeEnabled,
 } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { useDonationReturnState } from "@/hooks/useDonationReturnState";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
@@ -15,7 +14,6 @@ import { Alert, Linking, Pressable, Share, StyleSheet, Text, View } from "react-
 import Animated, {
   Extrapolate,
   interpolate,
-  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -35,7 +33,6 @@ const WHATSAPP_MESSAGE = "Hello, I'm using Advent Pro app and would like to get 
 
 export default function AboutScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { openSupport } = useDonationReturnState();
 
   const [whatsappAvailable, setWhatsappAvailable] = useState(true);
@@ -251,8 +248,6 @@ export default function AboutScreen() {
   const handleScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
-      runOnJS(reportScroll)(event.contentOffset.y);
-
       headerOpacity.value = interpolate(
         event.contentOffset.y,
         [0, 100],

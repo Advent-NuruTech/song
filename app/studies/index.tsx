@@ -5,14 +5,12 @@ import { ActivityIndicator, FlatList, Modal, Pressable, ScrollView, StyleSheet, 
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { shareStudyLink, stripStudyMarkup } from "@/src/services/shareService";
 import { getStudyDiscovery } from "@/src/services/studyDiscoveryService";
 import { getCategoriesWithCounts, getCategoryColor, getStudySummaries, searchStudies, type StudySummary } from "@/src/services/studiesService";
 
 export default function StudiesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const [allStudies, setAllStudies] = useState<StudySummary[]>([]);
   const [forYou, setForYou] = useState<StudySummary[]>([]);
   const [popular, setPopular] = useState<StudySummary[]>([]);
@@ -113,7 +111,6 @@ export default function StudiesScreen() {
       {loading ? <View style={styles.loading}><ActivityIndicator size="large" color={colors.tint} /><Text style={[styles.loadingCopy, { color: colors.mutedText, fontFamily }]}>Loading studies…</Text></View> : (
         <FlatList
           data={visible} keyExtractor={(item) => item.id} renderItem={({ item }) => <StudyCard study={item} />}
-          onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)} scrollEventThrottle={16}
           contentContainerStyle={styles.list}
           ListHeaderComponent={!query && !category ? <View>
             <DiscoverySection title="For you" subtitle="Recommended from your interests" icon="sparkles" studies={forYou} />

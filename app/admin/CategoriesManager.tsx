@@ -18,7 +18,6 @@ import {
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   CategoryUpsertInput,
   StudyCategoryRow,
@@ -38,7 +37,6 @@ const EMPTY_FORM: CategoryUpsertInput = {
 
 export default function CategoriesManager() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { enabled, loading, refresh } = useAdminMode();
 
   const [categories, setCategories] = useState<StudyCategoryRow[]>([]);
@@ -190,8 +188,6 @@ export default function CategoriesManager() {
         style={styles.formContainer}
         contentContainerStyle={styles.formContent}
         keyboardShouldPersistTaps="handled"
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
       >
         <Text
           style={[

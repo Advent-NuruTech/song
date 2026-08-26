@@ -1,7 +1,6 @@
 import { Stack } from "expo-router";
 import { Platform, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 
 const sections = [
   ["Account information", "You can read core resources without an account. If you create one, we process your email address, display name, account identifier, roles, authentication and session records, and account-security events. Supabase handles passwords and authentication tokens; Advent Pro does not receive your plaintext password."],
@@ -21,9 +20,9 @@ const sections = [
 ];
 
 export default function PrivacyPolicyScreen() {
-  const { colors, size, fontFamily, darkMode } = useAppTheme(); const { reportScroll } = useQuickFooter();
+  const { colors, size, fontFamily, darkMode } = useAppTheme();
   return <View style={[styles.container,{backgroundColor:colors.background}]}><Stack.Screen options={{headerShown:false}}/><StatusBar barStyle={darkMode?"light-content":"dark-content"} backgroundColor={colors.background}/>
-    <ScrollView contentContainerStyle={styles.content} onScroll={e=>reportScroll(e.nativeEvent.contentOffset.y)} scrollEventThrottle={16}>
+    <ScrollView contentContainerStyle={styles.content}>
       <Text style={[styles.heading,{color:colors.text,fontSize:size(30),fontFamily}]}>Privacy Policy</Text>
       <Text style={[styles.date,{color:colors.mutedText,fontFamily}]}>Effective: August 25, 2026</Text>
       <Text style={[styles.paragraph,{color:colors.text,fontSize:size(15),fontFamily}]}>This policy explains how Advent Pro and Advent Nuru Tech process information when you use the mobile application, website, and administration services.</Text>

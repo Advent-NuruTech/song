@@ -10,7 +10,6 @@ import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-cont
 import { useEffect, useState } from "react";
 import { AppState, Image, StyleSheet, View } from "react-native";
 
-import { QuickFooterProvider } from "@/src/context/QuickFooterContext";
 import { SettingsProvider, useSettings } from "@/src/context/SettingsContext";
 import { Colors } from "@/constants/theme";
 import { initSchema, isFreshInstall, seedContent } from "@/src/db/initDb";
@@ -46,42 +45,40 @@ function AppLayout() {
   }, [auth.user?.id]);
 
   return (
-    <QuickFooterProvider>
-      <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
-        <View style={[styles.appShell, { backgroundColor }]}>
-          <Sidebar />
-          <View style={[styles.routeContent, { paddingBottom: insets.bottom + 72, backgroundColor }]}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="account" options={{ headerShown: false }} />
-              <Stack.Screen name="notifications" options={{ headerShown: false }} />
-              <Stack.Screen name="donate" options={{ headerShown: false }} />
-              <Stack.Screen name="support/index" options={{ headerShown: false }} />
-              <Stack.Screen name="support/checkout" options={{ headerShown: false, gestureEnabled: false }} />
-              <Stack.Screen
-                name="modal"
-                options={{ presentation: "modal", title: "Modal" }}
-              />
-            </Stack>
-          </View>
-          <QuickFooter />
+    <ThemeProvider value={darkMode ? DarkTheme : DefaultTheme}>
+      <View style={[styles.appShell, { backgroundColor }]}>
+        <Sidebar />
+        <View style={[styles.routeContent, { paddingBottom: insets.bottom + 72, backgroundColor }]}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="account" options={{ headerShown: false }} />
+            <Stack.Screen name="notifications" options={{ headerShown: false }} />
+            <Stack.Screen name="donate" options={{ headerShown: false }} />
+            <Stack.Screen name="support/index" options={{ headerShown: false }} />
+            <Stack.Screen name="support/checkout" options={{ headerShown: false, gestureEnabled: false }} />
+            <Stack.Screen
+              name="modal"
+              options={{ presentation: "modal", title: "Modal" }}
+            />
+          </Stack>
         </View>
-        <MonthlySupportPrompt
-          visible={supportPrompt.visible}
-          onDismiss={supportPrompt.dismiss}
-          onProceed={() => {
-            supportPrompt.dismiss();
-            void openSupport();
-          }}
-        />
-        <StatusBar style={darkMode ? "light" : "dark"} />
-      </ThemeProvider>
-    </QuickFooterProvider>
+        <QuickFooter />
+      </View>
+      <MonthlySupportPrompt
+        visible={supportPrompt.visible}
+        onDismiss={supportPrompt.dismiss}
+        onProceed={() => {
+          supportPrompt.dismiss();
+          void openSupport();
+        }}
+      />
+      <StatusBar style={darkMode ? "light" : "dark"} />
+    </ThemeProvider>
   );
 }
 
 /* ================================
-   Root layout (wrap provider ONCE)
+   Root layout
    ================================ */
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);

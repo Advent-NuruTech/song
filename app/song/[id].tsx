@@ -11,8 +11,6 @@ import React, {
 
 import {
   ActivityIndicator,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -32,7 +30,6 @@ import { AddToPlaylistSheet } from "@/components/add-to-playlist-sheet";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 
 import { runQuery } from "@/src/db/runQuery";
 
@@ -110,7 +107,6 @@ const SongContent = memo(
     fontFamily,
     darkMode,
     primaryColor,
-    onScroll,
   }: any) => {
     return (
       <ScrollView
@@ -120,8 +116,6 @@ const SongContent = memo(
         }
         showsVerticalScrollIndicator={false}
         removeClippedSubviews
-        scrollEventThrottle={16}
-        onScroll={onScroll}
       >
         {song.parsedStanzas.map(
           (
@@ -258,9 +252,6 @@ export default function SongScreen() {
     fontFamily,
     darkMode,
   } = useAppTheme();
-
-  const { reportScroll } =
-    useQuickFooter();
 
   const mountedRef = useRef(true);
 
@@ -422,19 +413,6 @@ export default function SongScreen() {
           )
         : colors.tint;
     }, [song, colors.tint]);
-
-  const handleScroll =
-    useCallback(
-      (
-        event: NativeSyntheticEvent<NativeScrollEvent>
-      ) => {
-        reportScroll(
-          event.nativeEvent
-            .contentOffset.y
-        );
-      },
-      [reportScroll]
-    );
 
   const shareableSong =
     useMemo<ShareableSong | null>(() => {
@@ -807,7 +785,6 @@ export default function SongScreen() {
           primaryColor={
             primaryColor
           }
-          onScroll={handleScroll}
         />
       </View>
 

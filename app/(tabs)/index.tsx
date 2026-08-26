@@ -8,7 +8,6 @@ import { DailyVerseCard } from "@/components/daily-verse-card";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { MediaCard } from "@/src/features/media/components/MediaCard";
 import { listMediaPage } from "@/src/features/media/mediaService";
 import type { MediaItem } from "@/src/features/media/types";
@@ -35,7 +34,6 @@ const HOME_SECTION_LIMIT = 20;
 export default function HomeScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const router = useRouter();
-  const { reportScroll } = useQuickFooter();
   const [studies, setStudies] = useState<StudySummary[]>([]);
   const [videos, setVideos] = useState<MediaItem[]>([]);
   const [showExploreStudies, setShowExploreStudies] = useState(false);
@@ -109,8 +107,6 @@ export default function HomeScreen() {
       />
 
       <Animated.ScrollView
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
       >

@@ -14,13 +14,11 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { useSettings } from "@/src/context/SettingsContext";
 import { useNotifications } from "@/src/context/NotificationsContext";
 import type { NotificationPreferenceKey } from "@/src/features/notifications/types";
 
 export default function SettingsScreen() {
-  const { reportScroll } = useQuickFooter();
   const { darkMode, fontSize, setDarkMode, setFontSize, resetSettings } =
     useSettings();
 
@@ -64,8 +62,6 @@ export default function SettingsScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
       contentContainerStyle={{ paddingBottom: 40 }}
-      onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-      scrollEventThrottle={16}
     >
       <Text
         style={[

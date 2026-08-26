@@ -17,7 +17,6 @@ import {
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   ADMIN_PAGE_SIZE,
   SongAdminRow,
@@ -28,7 +27,6 @@ import {
 
 export default function SongsManager() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { enabled, loading, refresh } = useAdminMode();
 
   const [songs, setSongs] = useState<SongAdminRow[]>([]);
@@ -319,8 +317,6 @@ export default function SongsManager() {
         <FlatList
           data={songs}
           keyExtractor={(item) => item.id}
-          onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-          scrollEventThrottle={16}
           contentContainerStyle={styles.listContent}
           onRefresh={onRefresh}
           refreshing={refreshing}

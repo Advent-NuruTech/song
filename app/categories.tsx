@@ -11,7 +11,6 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
     formatLanguageLabel,
     getLanguageColor,
@@ -21,7 +20,6 @@ import {
 
 export default function CategoriesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const [languages, setLanguages] = useState<LanguageSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -223,8 +221,6 @@ export default function CategoriesScreen() {
         data={languages}
         keyExtractor={(item) => item.value}
         renderItem={renderLanguageItem}
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={

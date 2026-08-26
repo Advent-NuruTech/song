@@ -14,7 +14,6 @@ import {
 } from "react-native";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   type BibleBook,
   type BibleVersionRow,
@@ -27,7 +26,6 @@ import {
 
 export default function BibleHome() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const router = useRouter();
 
   const [versions, setVersions] = useState<BibleVersionRow[]>([]);
@@ -248,8 +246,6 @@ export default function BibleHome() {
           numColumns={2}
           columnWrapperStyle={styles.bookRow}
           contentContainerStyle={styles.bookList}
-          onScroll={(e) => reportScroll(e.nativeEvent.contentOffset.y)}
-          scrollEventThrottle={16}
           renderItem={({ item }) => (
             <Pressable
               onPress={() => openBook(item)}

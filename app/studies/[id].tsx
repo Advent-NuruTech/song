@@ -5,8 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   Linking,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -24,7 +22,6 @@ import { Toast } from "@/components/toast";
 import { CommunityCommentsSheet, type CommunityComment } from "@/components/community-comments-sheet";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/src/auth/AuthContext";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   copyStudy,
   shareStudy,
@@ -315,7 +312,6 @@ function renderStudyContent(
 export default function StudyDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const auth = useAuth();
   const [study, setStudy] = useState<Study | null>(null);
   const [loading, setLoading] = useState(true);
@@ -432,11 +428,6 @@ export default function StudyDetailScreen() {
     }
   };
 
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const offsetY = event.nativeEvent.contentOffset.y;
-    reportScroll(offsetY);
-  };
-
   if (loading) {
     return (
       <>
@@ -549,8 +540,6 @@ export default function StudyDetailScreen() {
         style={[styles.scrollContainer, { backgroundColor: colors.background }]}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.contentContainer}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
       >
         <View style={styles.content}>
           {isRichStudyHtml(study.content) ? (

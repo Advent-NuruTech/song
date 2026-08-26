@@ -16,7 +16,6 @@ import {
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   getSongForEdit,
   songChorusToEditorText,
@@ -29,7 +28,6 @@ export default function EditSong() {
   const isCreate = mode === "create" || !id;
 
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { enabled, loading } = useAdminMode();
 
   const [songId, setSongId] = useState("");
@@ -174,8 +172,6 @@ export default function EditSong() {
       <ScrollView
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
       >
         <FormField
           label="Song ID"

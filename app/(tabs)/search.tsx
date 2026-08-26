@@ -13,7 +13,6 @@ import {
 
 import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { runQuery } from "@/src/db/runQuery";
 import {
   formatLanguageName,
@@ -84,7 +83,6 @@ function stripTags(input: string) {
 
 export default function SearchScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const [query, setQuery] = useState("");
   const [songResults, setSongResults] = useState<SongRow[]>([]);
   const [songLoading, setSongLoading] = useState(false);
@@ -279,8 +277,6 @@ export default function SearchScreen() {
 
       <SectionList
         sections={sections}
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
         keyExtractor={(item, index) =>
           item.type === "song"
             ? `${item.song.id}-${index}`

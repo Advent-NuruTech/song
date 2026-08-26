@@ -17,7 +17,6 @@ import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   exportDatabaseBackup,
   getAdminDashboardSummary,
@@ -43,7 +42,6 @@ function isCancelError(error: unknown) {
 
 export default function AdminDashboard() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { enabled, loading, refresh, setEnabled } = useAdminMode();
 
   const [summary, setSummary] = useState<DashboardSummary>(INITIAL_SUMMARY);
@@ -207,8 +205,6 @@ export default function AdminDashboard() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
       >
         <Animated.View
           entering={FadeInDown.springify().damping(16)}

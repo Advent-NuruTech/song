@@ -10,8 +10,6 @@ import React, {
 } from "react";
 
 import {
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   StatusBar,
@@ -24,7 +22,6 @@ import {
 import { FlashList } from "@shopify/flash-list";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import { runQuery } from "@/src/db/runQuery";
 
 import {
@@ -179,7 +176,6 @@ export default function SongsScreen() {
     darkMode,
   } = useAppTheme();
 
-  const { reportScroll } = useQuickFooter();
 
   const [query, setQuery] = useState("");
   const [songs, setSongs] = useState<Song[]>([]);
@@ -301,17 +297,6 @@ export default function SongsScreen() {
     ]
   );
 
-  const handleScroll = useCallback(
-    (
-      event: NativeSyntheticEvent<NativeScrollEvent>
-    ) => {
-      reportScroll(
-        event.nativeEvent.contentOffset.y
-      );
-    },
-    [reportScroll]
-  );
-
   return (
     <View
       style={[
@@ -400,8 +385,6 @@ export default function SongsScreen() {
         removeClippedSubviews
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         drawDistance={400}
         getItemType={() => "song"}
         overrideItemLayout={(layout) => {

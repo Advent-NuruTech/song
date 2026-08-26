@@ -18,7 +18,6 @@ import {
 
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
-import { useQuickFooter } from "@/src/context/QuickFooterContext";
 import {
   getCategoryNames,
   getStudiesCategories,
@@ -31,7 +30,6 @@ export default function EditStudy() {
   const isCreate = mode === "create" || !id;
 
   const { colors, size, fontFamily, darkMode } = useAppTheme();
-  const { reportScroll } = useQuickFooter();
   const { enabled, loading } = useAdminMode();
 
   const [studyId, setStudyId] = useState("");
@@ -207,8 +205,6 @@ export default function EditStudy() {
       <ScrollView
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
-        onScroll={(event) => reportScroll(event.nativeEvent.contentOffset.y)}
-        scrollEventThrottle={16}
       >
         <FormField
           label="Study ID"
