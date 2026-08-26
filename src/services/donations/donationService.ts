@@ -18,11 +18,14 @@ export type DonationVerification = {
 };
 
 async function edgeFunctionMessage(error: unknown, fallback: string) {
-  const context = (error as { context?: { json?: () => Promise<{ error?: string }> } })?.context;
+  const context = (error as { context?: { json?: () => Promise<{ code?: string; error?: string; message?: string }>; status?: number } })?.context;
   if (context?.json) {
     try {
       const body = await context.json();
       if (typeof body?.error === "string" && body.error.length <= 200) return body.error;
+      if (context.status === 404 || body?.code === "NOT_FOUND") {
+        return "Payments are temporarily unavailable. Please try again later.";
+      }
     } catch {
       // Use the safe fallback below.
     }
@@ -32,7 +35,7 @@ async function edgeFunctionMessage(error: unknown, fallback: string) {
 
 export async function initializeDonation(input: InitializeDonationInput): Promise<InitializedDonation> {
   const { data, error } = await supabase.functions.invoke("initialize-donation", { body: input });
-  if (error) throw new Error(await edgeFunctionMessage(error, "Unable to start the secure payment. Please try again."));
+  if (error) throw new Error(await edgeFunctionMessage(error, "Payments are temporarily unavailable. Please try again later."));
   if (!data?.authorizationUrl || !data?.reference || !data?.callbackUrl) throw new Error("The payment service returned an incomplete response.");
   return data as InitializedDonation;
 }

@@ -6,13 +6,23 @@ import { isSupportPromptContentRoute, supportMonthKey } from "../src/services/do
 import { isDonationCallbackUrl, isTrustedPaystackCheckoutUrl, isValidDonationReference } from "../src/services/donations/paystackService.ts";
 
 test("donation amount accepts whole KES values within policy", () => {
+  assert.equal(parseDonationAmount("1"), null);
+  assert.equal(parseDonationAmount("3"), 3);
+  assert.equal(parseDonationAmount("10"), 10);
   assert.equal(parseDonationAmount("20"), 20);
   assert.equal(parseDonationAmount("2000"), 2000);
-  assert.equal(parseDonationAmount("19"), null);
+  assert.equal(parseDonationAmount("0"), null);
   assert.equal(parseDonationAmount("-20"), null);
   assert.equal(parseDonationAmount("20.5"), null);
   assert.equal(parseDonationAmount("abc"), null);
   assert.equal(parseDonationAmount("10000001"), null);
+});
+
+test("mobile, Edge Function, and database use Paystack's KES 3 minimum", () => {
+  const sharedFunction = readFileSync(new URL("../supabase/functions/_shared/donations.ts", import.meta.url), "utf8");
+  const minimumMigration = readFileSync(new URL("../supabase/migrations/016_donation_minimum_three_kes.sql", import.meta.url), "utf8");
+  assert.match(sharedFunction, /MIN_DONATION_KES\s*=\s*3/);
+  assert.match(minimumMigration, /amount between 3 and 10000000/i);
 });
 
 test("monthly prompt policy is calendar based and content-only", () => {

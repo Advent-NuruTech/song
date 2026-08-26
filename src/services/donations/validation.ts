@@ -1,4 +1,4 @@
-export const MIN_DONATION_KES = 20;
+export const MIN_DONATION_KES = 3;
 export const MAX_DONATION_KES = 10_000_000;
 
 export function parseDonationAmount(value: string): number | null {

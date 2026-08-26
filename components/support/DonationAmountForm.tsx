@@ -17,7 +17,7 @@ export function DonationAmountForm({ initialEmail = "", emailLocked, loading, er
   const [email, setEmail] = useState(initialEmail);
   const amountKes = useMemo(() => parseDonationAmount(amount), [amount]);
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const localError = amount.length > 0 && amountKes === null ? "Enter a whole amount from KES 20 to KES 10,000,000." : null;
+  const localError = amount.length > 0 && amountKes === null ? "Enter a whole amount from KES 3 to KES 10,000,000." : null;
 
   return (
     <View>
@@ -37,7 +37,7 @@ export function DonationAmountForm({ initialEmail = "", emailLocked, loading, er
         />
       </View>
       <Text style={[styles.guidanceTitle, { color: colors.mutedText, fontFamily }]}>Suggested support (guidance only)</Text>
-      <Text style={[styles.guidance, { color: colors.text, fontFamily }]}>20–200  |  300–600  |  700–2,000  |  2,000+</Text>
+      <Text style={[styles.guidance, { color: colors.text, fontFamily }]}>10–200  |  300–600  |  700–2,000  |  2,000+</Text>
       {localError ? <Text style={styles.error}>{localError}</Text> : null}
 
       <Text style={[styles.label, styles.emailLabel, { color: colors.text, fontFamily, fontSize: size(15) }]}>Email for Paystack receipt</Text>
@@ -55,7 +55,7 @@ export function DonationAmountForm({ initialEmail = "", emailLocked, loading, er
         style={[styles.emailInput, { color: colors.text, backgroundColor: colors.inputBackground, borderColor: colors.border, fontFamily }]}
       />
       <Text style={[styles.summary, { color: colors.mutedText, fontFamily }]}>
-        {amountKes ? `You are choosing to give KES ${amountKes.toLocaleString()}.` : "Minimum voluntary support: KES 20."}
+        {amountKes ? `You are choosing to give KES ${amountKes.toLocaleString()}.` : "Minimum voluntary support: KES 3."}
       </Text>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Pressable

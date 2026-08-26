@@ -1,4 +1,5 @@
 import { Check, Copy, Share2, X } from "@/components/icons";
+import { DailyVerseCard } from "@/components/daily-verse-card";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,9 +11,15 @@ import {
   TextInput,
   View,
 } from "react-native";
+import ViewShot from "react-native-view-shot";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { copyScriptureExcerpt, shareScriptureExcerpt } from "@/src/services/shareService";
+import type { DailyVerseTemplate } from "@/src/services/dailyVerseTemplateService";
+import {
+  copyScriptureExcerpt,
+  shareImageFile,
+  shareScriptureExcerpt,
+} from "@/src/services/shareService";
 
 type Selection = { start: number; end: number };
 
@@ -21,6 +28,7 @@ type ScriptureShareEditorProps = {
   onClose: () => void;
   reference: string;
   text: string;
+  template?: DailyVerseTemplate;
   onCopied?: () => void;
 };
 
@@ -29,22 +37,25 @@ export function ScriptureShareEditor({
   onClose,
   reference,
   text,
+  template,
   onCopied,
 }: ScriptureShareEditorProps) {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const inputRef = useRef<TextInput>(null);
+  const shotRef = useRef<ViewShot>(null);
   const [draft, setDraft] = useState(text);
   const [selection, setSelection] = useState<Selection>({ start: 0, end: text.length });
   const [copied, setCopied] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     if (!visible) return;
     setDraft(text);
     setSelection({ start: 0, end: text.length });
     setCopied(false);
-    const timer = setTimeout(() => inputRef.current?.focus(), 250);
+    const timer = template ? undefined : setTimeout(() => inputRef.current?.focus(), 250);
     return () => clearTimeout(timer);
-  }, [text, visible]);
+  }, [template, text, visible]);
 
   const excerpt = useMemo(() => {
     const start = Math.min(selection.start, selection.end);
@@ -63,9 +74,21 @@ export function ScriptureShareEditor({
     onCopied?.();
   };
 
-  const share = () => {
+  const share = async () => {
     if (!excerpt) return;
-    void shareScriptureExcerpt(reference, excerpt);
+    if (!template || Platform.OS === "web") {
+      await shareScriptureExcerpt(reference, excerpt);
+      return;
+    }
+
+    setSharing(true);
+    try {
+      const uri = await shotRef.current?.capture?.();
+      const shared = uri ? await shareImageFile(uri, `${reference} — Advent Pro`) : false;
+      if (!shared) await shareScriptureExcerpt(reference, excerpt);
+    } finally {
+      setSharing(false);
+    }
   };
 
   return (
@@ -103,8 +126,20 @@ export function ScriptureShareEditor({
           </View>
 
           <Text style={[styles.help, { color: colors.mutedText, fontFamily, fontSize: size(13) }]}>
-            Drag the selection handles to choose a word, part of a verse, or several verses. You can also edit the text.
+            {template
+              ? "Your verse will be shared exactly as this square image. You can edit the wording before sharing."
+              : "Drag the selection handles to choose a word, part of a verse, or several verses. You can also edit the text."}
           </Text>
+
+          {template ? (
+            <ViewShot
+              ref={shotRef}
+              style={styles.sharePreview}
+              options={{ format: "jpg", quality: 1, result: "tmpfile", width: 1080, height: 1080 }}
+            >
+              <DailyVerseCard reference={reference} text={excerpt} template={template} />
+            </ViewShot>
+          ) : null}
 
           <TextInput
             ref={inputRef}
@@ -117,6 +152,7 @@ export function ScriptureShareEditor({
             textAlignVertical="top"
             style={[
               styles.editor,
+              template && styles.imageEditor,
               {
                 color: colors.text,
                 backgroundColor: colors.background,
@@ -142,7 +178,7 @@ export function ScriptureShareEditor({
 
           <View style={styles.actions}>
             <Pressable
-              disabled={!excerpt}
+              disabled={!excerpt || sharing}
               onPress={() => void copy()}
               style={[styles.action, { borderColor: colors.border, opacity: excerpt ? 1 : 0.45 }]}
             >
@@ -152,12 +188,12 @@ export function ScriptureShareEditor({
               </Text>
             </Pressable>
             <Pressable
-              disabled={!excerpt}
-              onPress={share}
+              disabled={!excerpt || sharing}
+              onPress={() => void share()}
               style={[
                 styles.action,
                 styles.primaryAction,
-                { backgroundColor: colors.tint, opacity: excerpt ? 1 : 0.45 },
+                { backgroundColor: colors.tint, opacity: excerpt && !sharing ? 1 : 0.45 },
               ]}
             >
               <Share2 size={18} color={darkMode ? "#0B1220" : "#FFFFFF"} />
@@ -167,7 +203,7 @@ export function ScriptureShareEditor({
                   { color: darkMode ? "#0B1220" : "#FFFFFF", fontFamily },
                 ]}
               >
-                {hasHighlight ? "Share selected" : "Share all"}
+                {sharing ? "Preparing image…" : template ? "Share image" : hasHighlight ? "Share selected" : "Share all"}
               </Text>
             </Pressable>
           </View>
@@ -199,6 +235,7 @@ const styles = StyleSheet.create({
   title: { fontWeight: "800" },
   close: { width: 40, height: 40, alignItems: "center", justifyContent: "center" },
   help: { lineHeight: 19, marginTop: 12, marginBottom: 14 },
+  sharePreview: { width: 270, aspectRatio: 1, alignSelf: "center", marginBottom: 14 },
   editor: {
     minHeight: 180,
     maxHeight: 380,
@@ -206,6 +243,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 16,
   },
+  imageEditor: { minHeight: 92, maxHeight: 130 },
   selectionRow: {
     minHeight: 42,
     flexDirection: "row",

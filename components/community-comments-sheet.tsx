@@ -1,11 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { FlashList } from "@shopify/flash-list";
-import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { BibleInsertPicker, type BibleInsertion } from "@/components/bible-insert-picker";
+import RichTextEditor from "@/components/rich-text-editor";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { findBibleSlashCommand, replaceTextSelection, type TextSelection } from "@/src/features/scripture/scriptureFormatting";
 
 export type CommunityComment = { id: string; userId: string; authorName: string; body: string; createdAt: string };
 
@@ -16,47 +15,16 @@ export function CommunityCommentsSheet({ visible, comments, currentUserId, loadi
 }) {
   const { colors, fontFamily } = useAppTheme();
   const [text, setText] = useState("");
+  const [editorKey, setEditorKey] = useState(0);
   const [posting, setPosting] = useState(false);
-  const [bibleOpen, setBibleOpen] = useState(false);
-  const [selection, setSelection] = useState<TextSelection>({ start: 0, end: 0 });
-  const insertionRange = useRef<TextSelection>({ start: 0, end: 0 });
-  const inputRef = useRef<TextInput>(null);
   useEffect(() => { if (visible) void onLoad(); }, [visible, onLoad]);
-
-  const updateText = (next: string) => {
-    const predictedCursor = Math.max(0, Math.min(next.length, selection.end + next.length - text.length));
-    const slashRange = findBibleSlashCommand(next, predictedCursor);
-    setText(next);
-    if (slashRange) {
-      insertionRange.current = slashRange;
-      setSelection({ start: slashRange.end, end: slashRange.end });
-      setBibleOpen(true);
-    }
-  };
-
-  const openBible = () => {
-    insertionRange.current = selection;
-    setBibleOpen(true);
-  };
-
-  const insertBible = (passage: BibleInsertion) => {
-    const result = replaceTextSelection(text, insertionRange.current, passage.plainText);
-    if (result.value.length > 1000) {
-      Alert.alert("Comment is too long", "Choose a shorter passage or remove some text before inserting.");
-      return false;
-    }
-    setText(result.value);
-    setSelection(result.selection);
-    requestAnimationFrame(() => inputRef.current?.focus());
-    return true;
-  };
 
   const post = async () => {
     const clean = text.replace(/<[^>]*>/g, "").trim();
     if (!clean || posting) return;
     if (!currentUserId) { Alert.alert("Sign in required", "Sign in to join the conversation."); return; }
     setPosting(true);
-    try { await onPost(clean); setText(""); setSelection({ start: 0, end: 0 }); } catch (error) { Alert.alert("Comment failed", (error as Error)?.message || "Please try again."); } finally { setPosting(false); }
+    try { await onPost(clean); setText(""); setEditorKey((value) => value + 1); } catch (error) { Alert.alert("Comment failed", (error as Error)?.message || "Please try again."); } finally { setPosting(false); }
   };
 
   return <Modal visible={visible} animationType="slide" transparent statusBarTranslucent onRequestClose={onClose}>
@@ -77,13 +45,28 @@ export function CommunityCommentsSheet({ visible, comments, currentUserId, loadi
           ListFooterComponent={loadingMore ? <ActivityIndicator color={colors.tint} /> : null}
         />}
         <View style={[styles.composer, { borderTopColor: colors.border }]}>
-          <Pressable accessibilityLabel="Insert Bible passage" accessibilityHint="Search a Bible version and insert verses at the cursor" onPress={openBible} disabled={!currentUserId || posting} style={[styles.bibleButton, { borderColor: colors.border, opacity: currentUserId && !posting ? 1 : .45 }]}><Ionicons name="book-outline" size={19} color={colors.tint} /></Pressable>
-          <TextInput ref={inputRef} value={text} onChangeText={updateText} onSelectionChange={(event) => setSelection(event.nativeEvent.selection)} selection={selection} maxLength={1000} placeholder={currentUserId ? "Write a comment or type /bible…" : "Sign in to comment"} placeholderTextColor={colors.mutedText} editable={Boolean(currentUserId) && !posting} multiline scrollEnabled textAlignVertical="top" returnKeyType="default" blurOnSubmit={false} style={[styles.input, { color: colors.text, backgroundColor: colors.card, borderColor: colors.border, fontFamily }]} />
-          <Pressable accessibilityLabel="Post comment" onPress={() => void post()} disabled={!text.trim() || posting} style={[styles.send, { backgroundColor: colors.tint, opacity: !text.trim() || posting ? .45 : 1 }]}>{posting ? <ActivityIndicator color="#fff" /> : <Ionicons name="send" size={19} color="#fff" />}</Pressable>
+          <RichTextEditor
+            key={editorKey}
+            initialHtml="<p></p>"
+            onChange={(_, plainText) => setText(plainText.slice(0, 1000))}
+            darkMode={colors.background.toLowerCase() !== "#ffffff"}
+            tint={colors.tint}
+            textColor={colors.text}
+            borderColor={colors.border}
+            cardColor={colors.card}
+            placeholder={currentUserId ? "Write a comment or type /bible…" : "Sign in to comment"}
+            maxLength={1000}
+            minHeight={84}
+            editable={Boolean(currentUserId) && !posting}
+            compact
+          />
+          <View style={styles.composerActions}>
+            <Text style={[styles.counter, { color: colors.mutedText, fontFamily }]}>{text.length}/1000</Text>
+            <Pressable accessibilityLabel="Post comment" onPress={() => void post()} disabled={!text.trim() || posting} style={[styles.send, { backgroundColor: colors.tint, opacity: !text.trim() || posting ? .45 : 1 }]}>{posting ? <ActivityIndicator color="#fff" /> : <><Ionicons name="send" size={18} color="#fff" /><Text style={[styles.sendText, { fontFamily }]}>Post</Text></>}</Pressable>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>
-    <BibleInsertPicker visible={bibleOpen} onClose={() => { setBibleOpen(false); requestAnimationFrame(() => inputRef.current?.focus()); }} onInsert={insertBible} />
   </Modal>;
 }
 
@@ -92,5 +75,5 @@ const styles = StyleSheet.create({
   header: { minHeight: 70, paddingHorizontal: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1 }, title: { fontSize: 19, fontWeight: "900" }, guidelines: { fontSize: 11, fontWeight: "700", marginTop: 3 }, loader: { flex: 1 }, list: { paddingHorizontal: 18 },
   comment: { flexDirection: "row", gap: 10, paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth }, avatar: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center" }, avatarText: { fontSize: 13, fontWeight: "900" }, commentCopy: { flex: 1 }, author: { fontSize: 12, fontWeight: "800" }, body: { fontSize: 14, lineHeight: 20, marginTop: 3 }, date: { fontSize: 10, marginTop: 5 },
   empty: { paddingVertical: 55, alignItems: "center" }, emptyTitle: { fontSize: 15, fontWeight: "900", marginTop: 10 }, emptyCopy: { fontSize: 11, marginTop: 4 },
-  composer: { flexShrink: 0, padding: 12, paddingBottom: Platform.OS === "ios" ? 28 : 12, borderTopWidth: 1, flexDirection: "row", alignItems: "flex-end", gap: 8 }, bibleButton: { width: 42, height: 44, borderWidth: 1, borderRadius: 14, alignItems: "center", justifyContent: "center" }, input: { flex: 1, minHeight: 44, maxHeight: 120, borderWidth: 1, borderRadius: 15, paddingHorizontal: 13, paddingVertical: 10 }, send: { width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center" },
+  composer: { flexShrink: 0, padding: 12, paddingBottom: Platform.OS === "ios" ? 28 : 12, borderTopWidth: 1, gap: 9 }, composerActions: { minHeight: 42, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, counter: { fontSize: 11, fontWeight: "700" }, send: { minWidth: 92, height: 42, paddingHorizontal: 16, borderRadius: 21, flexDirection: "row", gap: 7, alignItems: "center", justifyContent: "center" }, sendText: { color: "#fff", fontSize: 13, fontWeight: "900" },
 });

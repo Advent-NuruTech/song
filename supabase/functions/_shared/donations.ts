@@ -2,7 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.45.4";
 
 export const PAYSTACK_API = "https://api.paystack.co";
 export const DONATION_CURRENCY = "KES";
-export const MIN_DONATION_KES = 20;
+export const MIN_DONATION_KES = 3;
 export const MAX_DONATION_KES = 10_000_000;
 
 export type DonationRow = {

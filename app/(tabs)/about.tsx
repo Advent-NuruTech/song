@@ -360,7 +360,7 @@ export default function AboutScreen() {
               <Ionicons name="heart-outline" size={size(24)} color={colors.tint} />
               <View style={styles.donationButtonTextContainer}>
                 <Text style={[styles.donationButtonTitle, { color: colors.text, fontFamily }]}>Proceed to Support</Text>
-                <Text style={[styles.donationButtonDesc, { color: colors.mutedText, fontFamily }]}>Give any amount from KES 20 through Paystack</Text>
+                <Text style={[styles.donationButtonDesc, { color: colors.mutedText, fontFamily }]}>Give any whole amount from KES 3 through Paystack</Text>
               </View>
               <Ionicons name="chevron-forward" size={size(20)} color={colors.mutedText} />
             </Pressable>

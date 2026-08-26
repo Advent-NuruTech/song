@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
+import { DailyVerseCard } from "@/components/daily-verse-card";
 import { ScriptureShareEditor } from "@/components/scripture-share-editor";
 import { ShareIconButton } from "@/components/share-icon-button";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -17,6 +18,11 @@ import {
   isDailyVerseRead,
   markDailyVerseRead,
 } from "@/src/services/dailyVerseService";
+import {
+  FALLBACK_DAILY_VERSE_TEMPLATE,
+  getDailyVerseTemplate,
+  type DailyVerseTemplate,
+} from "@/src/services/dailyVerseTemplateService";
 import { shareStudyLink } from "@/src/services/shareService";
 import {
   type StudySummary,
@@ -35,6 +41,9 @@ export default function HomeScreen() {
   const [showExploreStudies, setShowExploreStudies] = useState(false);
   const [showExploreVideos, setShowExploreVideos] = useState(false);
   const [dailyVerse, setDailyVerse] = useState<DailyVerse>(() => getDailyVerse());
+  const [dailyVerseTemplate, setDailyVerseTemplate] = useState<DailyVerseTemplate>(
+    FALLBACK_DAILY_VERSE_TEMPLATE
+  );
   const [dailyVerseVisible, setDailyVerseVisible] = useState(false);
   const [verseShareOpen, setVerseShareOpen] = useState(false);
 
@@ -57,6 +66,16 @@ export default function HomeScreen() {
       .catch(() => undefined);
     return () => {
       mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    void getDailyVerseTemplate().then((template) => {
+      if (active) setDailyVerseTemplate(template);
+    });
+    return () => {
+      active = false;
     };
   }, []);
 
@@ -96,28 +115,16 @@ export default function HomeScreen() {
         contentContainerStyle={styles.contentContainer}
       >
         {dailyVerseVisible ? (
-          <View style={styles.dailyVerse}>
-            <View style={styles.verseGlowOne} />
-            <View style={styles.verseGlowTwo} />
-            <View style={styles.verseTopRow}>
-              <View style={styles.verseLabelWrap}>
-                <Ionicons name="sunny-outline" size={17} color="#BFE4FF" />
-                <Text style={[styles.verseLabel, { fontFamily }]}>VERSE OF THE DAY</Text>
-              </View>
-              <Text style={[styles.refreshLabel, { fontFamily }]}>Refreshes daily</Text>
-            </View>
-
-            <Text style={[styles.verseText, { fontFamily, fontSize: size(22), lineHeight: size(32) }]}>
-              “{dailyVerse.text}”
-            </Text>
-            <Text style={[styles.verseReference, { fontFamily, fontSize: size(14) }]}>
-              {dailyVerse.reference}
-            </Text>
-
+          <View style={styles.dailyVerseBlock}>
+            <DailyVerseCard
+              reference={dailyVerse.reference}
+              text={dailyVerse.text}
+              template={dailyVerseTemplate}
+            />
             <View style={styles.verseActions}>
               <Pressable onPress={() => setVerseShareOpen(true)} style={styles.verseActionSecondary}>
                 <Ionicons name="share-social-outline" size={17} color="#FFFFFF" />
-                <Text style={[styles.verseActionText, { fontFamily }]}>Select & share</Text>
+                <Text style={[styles.verseActionText, { fontFamily }]}>Share image</Text>
               </Pressable>
               <Pressable onPress={dismissDailyVerse} style={styles.verseActionPrimary}>
                 <Ionicons name="checkmark" size={18} color="#0B4AA6" />
@@ -132,11 +139,10 @@ export default function HomeScreen() {
             Quick Access
           </Text>
           <View style={styles.grid}>
-            <QuickAction href="/categories" icon="musical-notes" color="#0EA5E9" title="Songs" subtitle="Hymns & Worship" />
-            <QuickAction href="/studies" icon="library" color="#8B5CF6" title="Studies" subtitle="Bible Research" />
-            <QuickAction href="/bible" icon="book" color="#10B981" title="Bible" subtitle="Read Scripture" />
-            <QuickAction href="/notes" icon="document-text" color="#F59E0B" title="My Notes" subtitle="Write & Sync" />
-            <QuickAction href="/playlists" icon="list-circle" color="#EC4899" title="Playlists" subtitle="Singing Orders" />
+            <QuickAction href="/categories" icon="musical-notes" color="#0EA5E9" title="Songs" />
+            <QuickAction href="/studies" icon="library" color="#8B5CF6" title="Studies"  />
+            <QuickAction href="/bible" icon="book" color="#10B981" title="Bible"  />
+            <QuickAction href="/notes" icon="document-text" color="#F59E0B" title="Notes"  />
           </View>
         </View>
 
@@ -209,6 +215,7 @@ export default function HomeScreen() {
         onClose={() => setVerseShareOpen(false)}
         reference={dailyVerse.reference}
         text={dailyVerse.text}
+        template={dailyVerseTemplate}
       />
     </View>
   );
@@ -219,10 +226,10 @@ type QuickActionProps = {
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   title: string;
-  subtitle: string;
+
 };
 
-function QuickAction({ href, icon, color, title, subtitle }: QuickActionProps) {
+function QuickAction({ href, icon, color, title}: QuickActionProps) {
   const { colors, fontFamily } = useAppTheme();
   return (
     <Link href={href} asChild>
@@ -235,7 +242,7 @@ function QuickAction({ href, icon, color, title, subtitle }: QuickActionProps) {
         </View>
         <View style={styles.actionCopy}>
           <Text style={[styles.cardTitle, { color: colors.text, fontFamily }]}>{title}</Text>
-          <Text style={[styles.cardSub, { color: colors.mutedText, fontFamily }]}>{subtitle}</Text>
+          <Text style={[styles.cardSub, { color: colors.mutedText, fontFamily }]}></Text>
         </View>
       </Pressable>
     </Link>
@@ -264,30 +271,11 @@ function ExploreMore({ href, label }: { href: "/media" | "/studies"; label: stri
 const styles = StyleSheet.create({
   container: { flex: 1 },
   contentContainer: { paddingBottom: 44 },
-  dailyVerse: {
-    minHeight: 285,
-    backgroundColor: "#0B4AA6",
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 22,
-    overflow: "hidden",
-    justifyContent: "space-between",
+  dailyVerseBlock: { backgroundColor: "#03245D", overflow: "hidden" },
+  verseActions: {
+    flexDirection: "row", alignItems: "center", gap: 10, paddingHorizontal: 20,
+    paddingTop: 14, paddingBottom: 16,
   },
-  verseGlowOne: {
-    position: "absolute", width: 240, height: 240, borderRadius: 120, top: -110, right: -65,
-    backgroundColor: "rgba(56,189,248,0.18)",
-  },
-  verseGlowTwo: {
-    position: "absolute", width: 180, height: 180, borderRadius: 90, bottom: -120, left: -55,
-    backgroundColor: "rgba(255,255,255,0.08)",
-  },
-  verseTopRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  verseLabelWrap: { flexDirection: "row", alignItems: "center", gap: 7 },
-  verseLabel: { color: "#D9F1FF", fontSize: 11, fontWeight: "900", letterSpacing: 1.25 },
-  refreshLabel: { color: "rgba(255,255,255,0.66)", fontSize: 10, fontWeight: "600" },
-  verseText: { color: "#FFFFFF", fontWeight: "700", letterSpacing: -0.2, marginTop: 24 },
-  verseReference: { color: "#BFE4FF", fontWeight: "800", marginTop: 12 },
-  verseActions: { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 24 },
   verseActionSecondary: {
     flex: 1, minHeight: 44, borderWidth: 1, borderColor: "rgba(255,255,255,0.34)",
     borderRadius: 13, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7,

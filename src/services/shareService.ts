@@ -1,5 +1,6 @@
 import { Share } from "react-native";
 import * as Clipboard from "expo-clipboard";
+import * as Sharing from "expo-sharing";
 
 const APP_NAME = "Advent Pro";
 const DOWNLOAD_URL = "https://play.google.com/store/apps/details?id=com.adventpro";
@@ -46,6 +47,22 @@ export async function copyText(message: string): Promise<boolean> {
     return true;
   } catch (error) {
     console.error("Copy failed:", error);
+    return false;
+  }
+}
+
+/** Share a rendered image file through WhatsApp, Status, Messages, and more. */
+export async function shareImageFile(uri: string, title: string): Promise<boolean> {
+  try {
+    if (!(await Sharing.isAvailableAsync())) return false;
+    await Sharing.shareAsync(uri, {
+      dialogTitle: title,
+      mimeType: "image/jpeg",
+      UTI: "public.jpeg",
+    });
+    return true;
+  } catch (error) {
+    console.error("Image share failed:", error);
     return false;
   }
 }

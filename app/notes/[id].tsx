@@ -1,15 +1,16 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from "react-native";
 
-import RichNoteEditor from "@/components/rich-note-editor";
+import RichTextEditor from "@/components/rich-text-editor";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAuth } from "@/src/auth/AuthContext";
 import { exportNotePdf, getNote, saveNote, syncPersonalContent, type UserNote } from "@/src/features/personal/personalService";
 
 export default function NoteEditorScreen() {
   const router = useRouter();
+  const { height: windowHeight } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const auth = useAuth();
   const { colors, fontFamily, darkMode } = useAppTheme();
@@ -57,7 +58,7 @@ export default function NoteEditorScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <TextInput value={title} onChangeText={updateTitle} placeholder="Note title" placeholderTextColor={colors.subtleText} multiline style={[styles.titleInput, { color: colors.text, fontFamily }]} />
         <Text style={[styles.help, { color: colors.mutedText, fontFamily }]}>Type /bible to insert Scripture at the cursor. Select words before tapping the link button to create named links.</Text>
-        <RichNoteEditor key={note.id} initialHtml={note.contentHtml} onChange={updateBody} darkMode={darkMode} tint={colors.tint} textColor={colors.text} borderColor={colors.border} cardColor={colors.card} />
+        <RichTextEditor key={note.id} initialHtml={note.contentHtml} onChange={updateBody} darkMode={darkMode} tint={colors.tint} textColor={colors.text} borderColor={colors.border} cardColor={colors.background} minHeight={Math.max(420, windowHeight - 300)} seamless />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -65,5 +66,5 @@ export default function NoteEditorScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 }, center: { flex: 1, alignItems: "center", justifyContent: "center" }, header: { minHeight: 58, paddingHorizontal: 12, borderBottomWidth: 1, flexDirection: "row", alignItems: "center" }, iconButton: { width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center" }, saveState: { flex: 1, flexDirection: "row", alignItems: "center", gap: 7, marginLeft: 4 }, stateDot: { width: 7, height: 7, borderRadius: 4 }, stateText: { fontSize: 11, fontWeight: "700" }, pdfButton: { minHeight: 40, borderWidth: 1, borderRadius: 12, paddingHorizontal: 11, flexDirection: "row", gap: 6, alignItems: "center" }, pdfText: { fontSize: 12, fontWeight: "800" },
-  content: { padding: 20, paddingBottom: 50 }, titleInput: { fontSize: 29, lineHeight: 36, fontWeight: "900", padding: 0, marginBottom: 7 }, help: { fontSize: 11, lineHeight: 16, marginBottom: 14 },
+  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 50 }, titleInput: { fontSize: 29, lineHeight: 36, fontWeight: "900", padding: 0, marginBottom: 7 }, help: { fontSize: 11, lineHeight: 16, marginBottom: 14 },
 });

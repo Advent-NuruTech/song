@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
     const contentLength = Number(req.headers.get("content-length") || 0);
     if (contentLength > 8_192) return jsonResponse({ error: "Request is too large." }, 413);
     const body = await req.json().catch(() => null) as { amountKes?: unknown; email?: unknown; appVersion?: unknown } | null;
-    if (!body || !validAmountKes(body.amountKes)) return jsonResponse({ error: "Enter a whole amount from KES 20 to KES 10,000,000." }, 400);
+    if (!body || !validAmountKes(body.amountKes)) return jsonResponse({ error: "Enter a whole amount from KES 3 to KES 10,000,000." }, 400);
 
     const user = await authenticatedUser(req);
     const requestedEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";

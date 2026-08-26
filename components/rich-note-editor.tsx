@@ -1,21 +1,28 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useMemo, useRef, useState } from "react";
-import { Modal, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { BibleInsertPicker, type BibleInsertion } from "./bible-insert-picker";
 import type { RichNoteEditorProps } from "./rich-note-editor.types";
 
-type Tool = { icon: keyof typeof Ionicons.glyphMap; label: string; command: string; value?: string };
+type Tool = { icon?: keyof typeof Ionicons.glyphMap; glyph?: string; label: string; command: string; value?: string; glyphStyle?: "bold" | "italic" | "underline" };
 const TOOLS: Tool[] = [
-  { icon: "text", label: "Paragraph", command: "formatBlock", value: "p" },
-  { icon: "text-outline", label: "Heading", command: "formatBlock", value: "h2" },
-  { icon: "logo-buffer", label: "Bold", command: "bold" },
-  { icon: "at", label: "Italic", command: "italic" },
-  { icon: "remove-outline", label: "Underline", command: "underline" },
+  { glyph: "B", label: "Bold", command: "bold", glyphStyle: "bold" },
+  { glyph: "I", label: "Italic", command: "italic", glyphStyle: "italic" },
+  { glyph: "U", label: "Underline", command: "underline", glyphStyle: "underline" },
+  { glyph: "A", label: "Text color", command: "foreColor", value: "#0F4C81", glyphStyle: "bold" },
+  { icon: "color-fill-outline", label: "Highlight", command: "hiliteColor", value: "#FFF59D" },
   { icon: "list", label: "Bulleted list", command: "insertUnorderedList" },
   { icon: "list-outline", label: "Numbered list", command: "insertOrderedList" },
+  { icon: "reorder-three-outline", label: "Align left", command: "justifyLeft" },
+  { icon: "menu-outline", label: "Align center", command: "justifyCenter" },
+  { icon: "arrow-undo-outline", label: "Undo", command: "undo" },
+  { icon: "arrow-redo-outline", label: "Redo", command: "redo" },
+  { glyph: "P", label: "Paragraph", command: "formatBlock", value: "p" },
+  { glyph: "H", label: "Heading", command: "formatBlock", value: "h2", glyphStyle: "bold" },
+  { glyph: "Tx", label: "Clear formatting", command: "removeFormat" },
 ];
 
 export default function RichNoteEditor(props: RichNoteEditorProps) {
@@ -25,7 +32,17 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   const [linkUrl, setLinkUrl] = useState("https://");
   const [bibleOpen, setBibleOpen] = useState(false);
 
-  const source = useMemo(() => ({ html: editorDocument(props.initialHtml, props.cardColor, props.textColor, props.tint) }), [props.cardColor, props.initialHtml, props.textColor, props.tint]);
+  const source = useMemo(() => ({ html: editorDocument(
+    props.initialHtml,
+    props.cardColor,
+    props.textColor,
+    props.tint,
+    props.placeholder ?? (props.compact ? "Write something…" : "Start writing your note…"),
+    props.maxLength,
+    props.editable !== false,
+    props.compact ? (props.minHeight ?? 96) : (props.minHeight ?? 400),
+    props.seamless === true,
+  ) }), [props.cardColor, props.compact, props.editable, props.initialHtml, props.maxLength, props.minHeight, props.placeholder, props.seamless, props.textColor, props.tint]);
   const send = (command: string, value?: string) => webView.current?.postMessage(JSON.stringify({ command, value }));
 
   const insertImage = async () => {
@@ -53,11 +70,11 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   };
 
   return (
-    <View style={[styles.shell, { borderColor: props.borderColor, backgroundColor: props.cardColor }]}>
-      <View style={[styles.toolbar, { borderBottomColor: props.borderColor }]}>
+    <View style={[styles.shell, props.compact && styles.compactShell, props.seamless && styles.seamlessShell, { borderColor: props.borderColor, backgroundColor: props.cardColor }]}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="always" style={[styles.toolbar, { borderBottomColor: props.borderColor }]} contentContainerStyle={styles.toolbarContent}>
         {TOOLS.map((tool) => (
           <Pressable key={tool.label} accessibilityLabel={tool.label} onPress={() => send(tool.command, tool.value)} style={styles.tool}>
-            <Ionicons name={tool.icon} size={19} color={props.textColor} />
+            {tool.icon ? <Ionicons name={tool.icon} size={19} color={props.textColor} /> : <Text style={[styles.toolGlyph, { color: props.textColor }, tool.glyphStyle === "bold" && styles.boldGlyph, tool.glyphStyle === "italic" && styles.italicGlyph, tool.glyphStyle === "underline" && styles.underlineGlyph]}>{tool.glyph}</Text>}
           </Pressable>
         ))}
         <Pressable accessibilityLabel="Insert a named link" onPress={() => setLinkOpen(true)} style={styles.tool}>
@@ -69,7 +86,7 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
         <Pressable accessibilityLabel="Insert Bible passage" onPress={() => setBibleOpen(true)} style={styles.tool}>
           <Ionicons name="book-outline" size={20} color={props.tint} />
         </Pressable>
-      </View>
+      </ScrollView>
       <WebView
         ref={webView}
         source={source}
@@ -77,7 +94,7 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
         javaScriptEnabled
         domStorageEnabled
         keyboardDisplayRequiresUserAction={false}
-        style={[styles.webview, { backgroundColor: props.cardColor }]}
+        style={[styles.webview, props.compact && { minHeight: props.minHeight ?? 96 }, { backgroundColor: props.cardColor }]}
         onMessage={(event) => {
           try {
             const value = JSON.parse(event.nativeEvent.data) as { type?: string; html?: string; text?: string };
@@ -106,20 +123,21 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   );
 }
 
-function editorDocument(initialHtml: string, cardColor: string, textColor: string, tint: string) {
+function editorDocument(initialHtml: string, cardColor: string, textColor: string, tint: string, placeholder: string, maxLength?: number, editable = true, minHeight = 400, seamless = false) {
   const initial = JSON.stringify(initialHtml || "<p></p>").replace(/</g, "\\u003c");
+  const safePlaceholder = JSON.stringify(placeholder).slice(1, -1).replace(/'/g, "\\'");
   return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><style>
     *{box-sizing:border-box}html,body{margin:0;background:${cardColor};color:${textColor};font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-    #editor{min-height:400px;padding:18px;font-size:17px;line-height:1.65;outline:none}#editor:empty:before{content:'Start writing your note...';color:#94a3b8}
+    #editor{min-height:${minHeight}px;padding:14px ${seamless ? 0 : 18}px 92px;font-size:17px;line-height:1.65;outline:none}#editor:empty:before{content:'${safePlaceholder}';color:#94a3b8}
     h1{font-size:2em}h2{font-size:1.45em;margin-top:1.2em}blockquote{border-left:4px solid ${tint};padding-left:12px;color:#64748b}a{color:${tint};text-decoration:underline;font-weight:600}
     img{display:block;max-width:100%;height:auto;margin:14px auto;border-radius:10px}li{margin:5px 0}
-  </style></head><body><div id="editor" contenteditable="true"></div><script>
+  </style></head><body><div id="editor" contenteditable="${editable ? "true" : "false"}"></div><script>
     const editor=document.getElementById('editor'); editor.innerHTML=${initial}; let savedRange=null;
     function remember(){const s=getSelection();if(s&&s.rangeCount&&editor.contains(s.anchorNode)) savedRange=s.getRangeAt(0).cloneRange()}
     function restore(){if(!savedRange)return;const s=getSelection();s.removeAllRanges();s.addRange(savedRange)}
     function detectBible(){const s=getSelection();if(!s||!s.rangeCount||!s.isCollapsed||!editor.contains(s.anchorNode)||s.anchorNode.nodeType!==3)return;const node=s.anchorNode,offset=s.anchorOffset,before=(node.textContent||'').slice(0,offset),match=before.match(/(?:^|\\s)(\\/bible)$/i);if(!match)return;const r=document.createRange();r.setStart(node,offset-match[1].length);r.setEnd(node,offset);r.deleteContents();r.collapse(true);savedRange=r.cloneRange();s.removeAllRanges();s.addRange(r);window.ReactNativeWebView.postMessage(JSON.stringify({type:'bibleCommand'}))}
     function emit(){remember();window.ReactNativeWebView.postMessage(JSON.stringify({type:'change',html:editor.innerHTML,text:editor.innerText||''}))}
-    document.addEventListener('selectionchange',remember);editor.addEventListener('input',()=>{remember();detectBible();emit()});editor.addEventListener('blur',emit);
+    document.addEventListener('selectionchange',remember);editor.addEventListener('beforeinput',function(event){const limit=${maxLength ?? "null"};if(limit&&event.inputType.indexOf('delete')!==0&&(editor.innerText||'').length>=limit)event.preventDefault()});editor.addEventListener('input',()=>{remember();detectBible();emit()});editor.addEventListener('blur',emit);
     document.addEventListener('message',receive);window.addEventListener('message',receive);
     function receive(event){try{const m=JSON.parse(event.data);editor.focus();restore();
       if(m.command==='insertImage'){document.execCommand('insertHTML',false,'<img src="'+m.value+'" alt="Note image"><p><br></p>')}
@@ -133,8 +151,12 @@ function editorDocument(initialHtml: string, cardColor: string, textColor: strin
 
 const styles = StyleSheet.create({
   shell: { borderWidth: 1, borderRadius: 16, overflow: "hidden", minHeight: 500 },
-  toolbar: { minHeight: 49, borderBottomWidth: 1, flexDirection: "row", flexWrap: "wrap", alignItems: "center", paddingHorizontal: 5 },
+  seamlessShell: { borderWidth: 0, borderRadius: 0, minHeight: 500 },
+  compactShell: { minHeight: 150 },
+  toolbar: { flexGrow: 0, minHeight: 49, borderBottomWidth: 1 },
+  toolbarContent: { minHeight: 49, flexDirection: "row", alignItems: "center", paddingHorizontal: 5 },
   tool: { width: 39, height: 40, alignItems: "center", justifyContent: "center", borderRadius: 9 },
+  toolGlyph: { fontSize: 17, fontWeight: "600" }, boldGlyph: { fontWeight: "900" }, italicGlyph: { fontStyle: "italic" }, underlineGlyph: { textDecorationLine: "underline" },
   webview: { flex: 1, minHeight: 445 },
   backdrop: { flex: 1, justifyContent: "center", padding: 22, backgroundColor: "rgba(2,6,23,.58)" },
   dialog: { borderWidth: 1, borderRadius: 20, padding: 18 }, dialogTitle: { fontSize: 20, fontWeight: "800", marginBottom: 14 },

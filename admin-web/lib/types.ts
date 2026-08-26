@@ -66,6 +66,18 @@ export type Media = {
   updated_at: string;
 };
 
+export type DailyVerseTemplate = {
+  id: string;
+  name: string;
+  image_url: string;
+  image_public_id: string | null;
+  is_active: boolean;
+  is_default: boolean;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type NewSong = Omit<
   Song,
   "deleted" | "published_at" | "created_at" | "updated_at"

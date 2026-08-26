@@ -3,6 +3,12 @@ const path = require("node:path");
 
 const config = getDefaultConfig(__dirname);
 
+// expo-sqlite's web worker ships its database engine as WebAssembly. Metro
+// needs to copy that file as an asset for browser builds.
+if (!config.resolver.assetExts.includes("wasm")) {
+  config.resolver.assetExts.push("wasm");
+}
+
 // Supabase Realtime includes a Node-only WebSocket fallback. React Native has a
 // global WebSocket, so replace only that fallback while preserving Expo's
 // default resolver order for Expo Router and its URL implementation.

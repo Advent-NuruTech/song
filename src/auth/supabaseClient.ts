@@ -9,12 +9,18 @@ const url = (process.env.EXPO_PUBLIC_SUPABASE_URL || extra.supabaseUrl || "").tr
 const key = (process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || extra.supabaseAnonKey || "").trim();
 
 export const authConfigured = Boolean(url && key);
+const isServerRender = Platform.OS === "web" && typeof window === "undefined";
+const serverStorage = {
+  getItem: async (_key: string) => null,
+  setItem: async (_key: string, _value: string) => undefined,
+  removeItem: async (_key: string) => undefined,
+};
 export const supabase = createClient(url || "https://invalid.local", key || "missing", {
   auth: {
-    storage: AsyncStorage,
-    persistSession: true,
+    storage: isServerRender ? serverStorage : AsyncStorage,
+    persistSession: !isServerRender,
     autoRefreshToken: true,
-    detectSessionInUrl: Platform.OS === "web",
+    detectSessionInUrl: Platform.OS === "web" && !isServerRender,
   },
 });
 

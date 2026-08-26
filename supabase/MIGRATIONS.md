@@ -16,6 +16,8 @@ Run migrations in numeric order. For a new project use:
 12. `012_study_collaboration.sql`
 13. `013_voluntary_donations.sql`
 14. `014_senior_admin_donation_reporting.sql`
+15. `015_daily_verse_templates.sql`
+16. `016_donation_minimum_three_kes.sql`
 
 With the Supabase CLI, link the production project once and run `supabase db push`.
 In the SQL Editor, open and run each file in order. Never put a service-role key
