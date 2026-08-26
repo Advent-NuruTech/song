@@ -6,9 +6,11 @@ type RawSong = {
   hymnNumber?: number;
   title?: string;
   language?: string;
+  category?: string;
   author?: string;
   stanzas?: string[][] | string[] | string;
   chorus?: string[] | string | null;
+  serverRevision?: number;
 };
 
 type NormalizedSong = {
@@ -16,6 +18,7 @@ type NormalizedSong = {
   hymnNumber: number;
   title: string;
   language: string;
+  category: string;
   author: string;
   stanzasJson: string;
   chorusJson: string | null;
@@ -27,6 +30,8 @@ type NormalizedSong = {
 const songFiles = require("../../content/bundles/songs.json") as RawSong[];
 
 export type { RawSong };
+
+export type SongCatalogItem = Pick<RawSong, "id" | "hymnNumber" | "title" | "language" | "category" | "author">;
 
 function normalizeStanzas(input: RawSong["stanzas"]): string[][] {
   if (Array.isArray(input)) {
@@ -67,6 +72,7 @@ function normalizeSong(raw: RawSong): NormalizedSong | null {
 
   const title = String(raw.title ?? "").trim() || id;
   const language = String(raw.language ?? "").trim() || "unknown";
+  const category = String(raw.category ?? "").trim() || "hymn";
   const hymnNumber = Number.isFinite(raw.hymnNumber)
     ? Number(raw.hymnNumber)
     : Number.parseInt(String(raw.hymnNumber ?? "0"), 10) || 0;
@@ -84,6 +90,7 @@ function normalizeSong(raw: RawSong): NormalizedSong | null {
       hymnNumber.toString(),
       title,
       language,
+      category,
       author,
       stanzasJson,
       chorusJson ?? "",
@@ -95,6 +102,7 @@ function normalizeSong(raw: RawSong): NormalizedSong | null {
     hymnNumber,
     title,
     language,
+    category,
     author,
     stanzasJson,
     chorusJson,
@@ -133,12 +141,13 @@ async function pruneMissingSongs(keepIds: Set<string>) {
 }
 
 const SONG_UPSERT_SQL = `INSERT INTO songs
-  (id, hymnNumber, title, language, author, stanzas, chorus, contentHash, contentSource, serverRevision, createdAt, updatedAt)
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  (id, hymnNumber, title, language, category, author, stanzas, chorus, contentHash, contentSource, serverRevision, createdAt, updatedAt)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   ON CONFLICT(id) DO UPDATE SET
     hymnNumber = excluded.hymnNumber,
     title = excluded.title,
     language = excluded.language,
+    category = excluded.category,
     author = excluded.author,
     stanzas = excluded.stanzas,
     chorus = excluded.chorus,
@@ -156,6 +165,7 @@ function songParams(song: NormalizedSong, now: number, source: "bundled" | "serv
     song.hymnNumber,
     song.title,
     song.language,
+    song.category,
     song.author,
     song.stanzasJson,
     song.chorusJson,
@@ -171,6 +181,32 @@ function dedupeById(songs: NormalizedSong[]): NormalizedSong[] {
   const byId = new Map<string, NormalizedSong>();
   for (const song of songs) byId.set(song.id, song);
   return Array.from(byId.values());
+}
+
+/** Metadata-only upsert. Never hydrates or overwrites lyrics. */
+export async function upsertSongCatalog(items: SongCatalogItem[], revisions: Record<string, number> = {}) {
+  const now = Date.now();
+  await db.withTransactionAsync(async () => {
+    for (const raw of items) {
+      const id = String(raw.id ?? "").trim();
+      if (!id) continue;
+      const incomingRevision = revisions[id] ?? 0;
+      const existing = await db.getFirstAsync<{ serverRevision: number; contentSource: string }>("SELECT serverRevision,contentSource FROM songs WHERE id=?",[id]);
+      if (existing?.contentSource === "server" && incomingRevision > existing.serverRevision) {
+        await db.runAsync("UPDATE songs SET stanzas='[]',chorus=NULL,contentHash=NULL WHERE id=?",[id]);
+        await db.runAsync("DELETE FROM content_downloads WHERE contentType='song' AND contentId=?",[id]);
+      }
+      await db.runAsync(
+        `INSERT INTO songs(id,hymnNumber,title,language,category,author,stanzas,chorus,contentHash,contentSource,serverRevision,createdAt,updatedAt)
+         VALUES(?,?,?,?,?,?,'[]',NULL,NULL,'server',?,?,?)
+         ON CONFLICT(id) DO UPDATE SET hymnNumber=excluded.hymnNumber,title=excluded.title,
+           language=excluded.language,category=excluded.category,author=excluded.author,
+           contentSource='server',serverRevision=excluded.serverRevision,updatedAt=excluded.updatedAt
+         WHERE excluded.serverRevision >= songs.serverRevision`,
+        [id, Number(raw.hymnNumber ?? 0), String(raw.title ?? id), String(raw.language ?? "unknown"), String(raw.category ?? "hymn"), String(raw.author ?? ""), incomingRevision, now, now]
+      );
+    }
+  });
 }
 
 /**

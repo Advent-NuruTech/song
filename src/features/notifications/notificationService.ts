@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { isRunningInExpoGo } from "expo";
 import * as Application from "expo-application";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
@@ -17,6 +18,10 @@ const PREFERENCES_KEY = "@notifications/preferences/v1";
 const INSTALLATION_KEY = "@notifications/installation/v1";
 const DAILY_NOTIFICATION_KEY = "advent-pro:daily-verse";
 const LAST_UPDATE_PROMPT_KEY = "@notifications/last-update-prompt";
+
+export function isRemotePushSupported() {
+  return Platform.OS !== "web" && !isRunningInExpoGo();
+}
 
 export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   masterEnabled: false,
@@ -186,14 +191,14 @@ async function getInstallationId() {
   return created;
 }
 
-export async function registerPushDevice() {
-  if (Platform.OS === "web" || !Device.isDevice || !authConfigured) return false;
+export async function registerPushDevice(devicePushToken?: Notifications.DevicePushToken) {
+  if (!isRemotePushSupported() || !Device.isDevice || !authConfigured) return false;
   if (await getNotificationPermission() !== "granted") return false;
   const projectId = Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
   if (!projectId) throw new Error("EAS project ID is missing from app configuration.");
-  const [expoToken, nativeToken, installationId] = await Promise.all([
-    Notifications.getExpoPushTokenAsync({ projectId }),
-    Notifications.getDevicePushTokenAsync(),
+  const nativeToken = devicePushToken ?? await Notifications.getDevicePushTokenAsync();
+  const [expoToken, installationId] = await Promise.all([
+    Notifications.getExpoPushTokenAsync({ projectId, devicePushToken: nativeToken }),
     getInstallationId(),
   ]);
   const nativeValue = typeof nativeToken.data === "string"

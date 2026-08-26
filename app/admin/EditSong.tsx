@@ -18,6 +18,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
 import {
   getSongForEdit,
+  listContentCategories,
   songChorusToEditorText,
   songStanzasToEditorText,
   upsertSong,
@@ -34,6 +35,8 @@ export default function EditSong() {
   const [hymnNumber, setHymnNumber] = useState("");
   const [title, setTitle] = useState("");
   const [language, setLanguage] = useState("");
+  const [category, setCategory] = useState("hymn");
+  const [categories, setCategories] = useState<string[]>([]);
   const [author, setAuthor] = useState("");
   const [stanzasText, setStanzasText] = useState("");
   const [chorusText, setChorusText] = useState("");
@@ -44,6 +47,8 @@ export default function EditSong() {
     () => (isCreate ? "Add Song" : "Edit Song"),
     [isCreate]
   );
+
+  useEffect(() => { void listContentCategories("song").then((items) => setCategories(items.map((item) => item.name))); }, []);
 
   useEffect(() => {
     let active = true;
@@ -64,6 +69,7 @@ export default function EditSong() {
         setHymnNumber(String(song.hymnNumber ?? ""));
         setTitle(song.title ?? "");
         setLanguage(song.language ?? "");
+        setCategory(song.category ?? "hymn");
         setAuthor(song.author ?? "");
         setStanzasText(songStanzasToEditorText(song.stanzas));
         setChorusText(songChorusToEditorText(song.chorus));
@@ -88,6 +94,7 @@ export default function EditSong() {
           hymnNumber: Number.parseInt(hymnNumber, 10) || 0,
           title,
           language,
+          category,
           author,
           stanzasText,
           chorusText,
@@ -210,6 +217,16 @@ export default function EditSong() {
           value={language}
           onChangeText={setLanguage}
           placeholder="e.g. swahili / english"
+          colors={colors}
+          size={size}
+          fontFamily={fontFamily}
+        />
+
+        <FormField
+          label="Category"
+          value={category}
+          onChangeText={setCategory}
+          placeholder={categories.length ? `e.g. ${categories[0]}` : "e.g. hymn"}
           colors={colors}
           size={size}
           fontFamily={fontFamily}

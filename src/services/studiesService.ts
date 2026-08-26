@@ -3,6 +3,7 @@ import { db } from "@/src/db/database";
 export interface Study {
   id: string;
   category: string;
+  categoryLabel?: string;
   title: string;
   subtitle: string;
   content: string;
@@ -16,6 +17,7 @@ export interface Study {
 export interface StudySummary {
   id: string;
   category: string;
+  categoryLabel?: string;
   title: string;
   subtitle: string;
   excerpt: string;
@@ -61,14 +63,14 @@ export async function getAllCategories(): Promise<string[]> {
 }
 
 // Get categories with study counts
-export async function getCategoriesWithCounts(): Promise<{ category: string; count: number }[]> {
+export async function getCategoriesWithCounts(): Promise<{ category: string; displayName: string; count: number }[]> {
   const result = await db.getAllAsync(
-    `SELECT category, COUNT(*) as count 
-     FROM studies 
-     GROUP BY category 
-     ORDER BY count DESC, category COLLATE NOCASE ASC`
+    `SELECT s.category, COALESCE(c.displayName,s.category) AS displayName, COUNT(*) as count
+     FROM studies s LEFT JOIN content_categories c ON c.contentType='study' AND c.name=s.category
+     GROUP BY s.category
+     ORDER BY count DESC, displayName COLLATE NOCASE ASC`
   );
-  return result as { category: string; count: number }[];
+  return result as { category: string; displayName: string; count: number }[];
 }
 
 // Get all studies with filtering
@@ -130,9 +132,10 @@ export async function getStudies(options: {
 // Get study by ID
 export async function getStudyById(id: string): Promise<Study | null> {
   const result = await db.getFirstAsync(
-    `SELECT id, category, title, subtitle, content, author, 
-            wordCount, isFeatured, createdAt, updatedAt
-     FROM studies WHERE id = ?`,
+    `SELECT s.id, s.category, COALESCE(c.displayName,s.category) AS categoryLabel,
+            s.title, s.subtitle, s.content, s.author,s.wordCount,s.isFeatured,s.createdAt,s.updatedAt
+     FROM studies s LEFT JOIN content_categories c ON c.contentType='study' AND c.name=s.category
+     WHERE s.id = ?`,
     [id]
   );
   
@@ -161,10 +164,10 @@ export async function getStudySummaries(options: {
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
   
   let query = `
-    SELECT id, category, title, subtitle, 
+    SELECT s.id, s.category, COALESCE(c.displayName,s.category) AS categoryLabel, s.title, s.subtitle,
            substr(content, 1, 300) as excerpt,
            author, wordCount, isFeatured
-    FROM studies
+    FROM studies s LEFT JOIN content_categories c ON c.contentType='study' AND c.name=s.category
     ${whereClause}
     ORDER BY isFeatured DESC, createdAt DESC
   `;

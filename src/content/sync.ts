@@ -1,6 +1,6 @@
 import { db } from "@/src/db/database";
-import { type RawSong, upsertSongs } from "@/src/db/seedSongs";
-import { type RawStudy, upsertStudies } from "@/src/db/seedStudies";
+import { type RawSong, upsertSongCatalog } from "@/src/db/seedSongs";
+import { type RawStudy, upsertStudyCatalog } from "@/src/db/seedStudies";
 
 import { ContentConfig, manifestUrl, shardUrl } from "./config";
 import { fetchJson } from "./net";
@@ -44,11 +44,11 @@ async function syncCollection(col: ManifestCollection): Promise<boolean> {
   if (col.key === "songs") {
     const data = await fetchJson<RawSong[]>(url);
     if (!data || !Array.isArray(data)) return false;
-    await upsertSongs(data);
+    await upsertSongCatalog(data, Object.fromEntries(data.map((item) => [String(item.id ?? ""), item.serverRevision ?? 0])));
   } else {
     const data = await fetchJson<RawStudy[]>(url);
     if (!data || !Array.isArray(data)) return false;
-    await upsertStudies(data);
+    await upsertStudyCatalog(data, Object.fromEntries(data.map((item) => [String(item.id ?? ""), item.serverRevision ?? 0])));
   }
 
   await recordVersion(col.key, col.version);

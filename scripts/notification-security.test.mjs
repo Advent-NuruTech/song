@@ -36,6 +36,19 @@ test("daily verse uses one repeating local-time schedule at 6 AM", () => {
   assert.match(client, /notificationKey:\s*DAILY_NOTIFICATION_KEY/);
 });
 
+test("Expo Go keeps local notifications without entering the unsupported remote-push path", () => {
+  assert.match(client, /isRunningInExpoGo/);
+  assert.match(client, /if \(!isRemotePushSupported\(\) \|\| !Device\.isDevice/);
+  assert.match(context, /isRemotePushSupported\(\)[\s\S]*Notifications\.addPushTokenListener/);
+});
+
+test("native token refresh reuses the callback token without retriggering the listener", () => {
+  assert.match(context, /addPushTokenListener\(\(devicePushToken\)/);
+  assert.match(context, /registerPushDevice\(devicePushToken\)\.catch/);
+  assert.match(client, /devicePushToken \?\? await Notifications\.getDevicePushTokenAsync\(\)/);
+  assert.match(client, /getExpoPushTokenAsync\(\{ projectId, devicePushToken: nativeToken \}\)/);
+});
+
 test("new content and engagement are idempotently limited to one event per day", () => {
   assert.match(migration, /'new-content:'\s*\|\|\s*to_char/g);
   assert.match(read("supabase/functions/dispatch-notifications/index.ts"), /new-content:\$\{new Date\(\)\.toISOString\(\)\.slice\(0, 10\)\}/);

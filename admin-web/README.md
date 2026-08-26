@@ -92,6 +92,17 @@ Use the Privacy Policy URL in the Google Play privacy-policy field and the
 account-deletion URL in the Data safety account-deletion field. Keep these pages
 public; they do not require sign-in.
 
+## Category and lightweight-content contract
+
+The Categories screen manages both song and study categories. Keys are stable data
+identifiers; labels, colors, icons, descriptions, and ordering are editable. A category
+assigned to live content cannot be deleted. Creating categories or publishing content
+never requires a mobile code change or store release.
+
+Mobile synchronization pulls category and catalog metadata, not the full corpus. Song
+lyrics and study bodies are fetched per item only after the user explicitly downloads
+them. This behavior depends on migration `019_dynamic_content_categories.sql`.
+
 ## Security notes
 
 - The **service_role** key bypasses RLS — never expose it in the browser, the

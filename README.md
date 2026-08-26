@@ -1,80 +1,49 @@
 # Advent Pro
 
-A cross-platform hymn and Bible study app built with Expo Router, SQLite, and React Native.
+A lightweight, offline-capable worship and study platform built with Expo Router, SQLite, Supabase, and a Next.js admin dashboard.
 
-## Overview
+## Capabilities
 
-This app delivers:
+- Admin-published songs, studies, and unlimited data-driven song/study categories.
+- Fast metadata catalogs with explicit per-item offline downloads.
+- Searchable songs, studies, Bible versions, and media.
+- Accounts, personal notes/playlists, study collaboration, engagement/discovery, notifications, and voluntary donations.
+- Bounded local SQLite cache with WAL and FTS5; network content never blocks startup.
 
-- offline hymn/song access by language
-- searchable hymn lyrics and Bible study topics
-- custom bottom navigation with a floating footer
-- local SQLite persistence for songs and studies
-- dark mode and font size settings
+## Structure
 
-## Project structure
+- `app/` — Expo Router mobile/web screens.
+- `src/` — database, content sync, services, authentication, and feature modules.
+- `content/` — deliberately small offline starter content and manifest examples.
+- `admin-web/` — production content and operations dashboard.
+- `supabase/` — ordered database migrations and Edge Functions.
+- `PROJECT.md` — current architecture and non-negotiable scale contract.
+- `PROJECT_MEMORY.md` — durable history of major engineering changes.
 
-- `app/` — Expo Router entry points and screen layouts
-- `app/(tabs)/` — main tab screens, including home, search, settings, and about
-- `app/song/[id].tsx` — song detail and pager experience
-- `app/studies/` — study listing and detail screens
-- `components/` — reusable UI and navigation components
-- `src/` — application services, database helpers, context providers, and models
-- `content/` — static song and study JSON data used to seed the local database
-
-## Setup
-
-Install dependencies:
+## Development
 
 ```bash
 npm install
+npm start
 ```
 
-Start the Expo development server:
+Useful checks:
 
 ```bash
-npx expo start
+npm run lint
+npx tsc --noEmit
+npm run validate:content
+npm run test:media
+npm run test:scripture
+npm run test:donations
+npm run test:notifications
+npm run test:content-platform
 ```
 
-Then choose one of the available targets:
+Build the admin dashboard separately with `npm run build` inside `admin-web/`.
 
-- Android emulator or device
-- iOS simulator or device
-- Web preview
+## Content and database operations
 
-## Useful scripts
+Apply Supabase migrations in numeric order as documented in `supabase/MIGRATIONS.md`. Production categories and content are created in Admin and synchronize without a store release. Full song/study bodies load only after the user chooses Download and can be removed without losing their catalog entries.
 
-- `npm start` — launch Expo dev tools
-- `npm run android` — build and run on Android
-- `npm run ios` — build and run on iOS
-- `npm run web` — run in web browser
-- `npm run lint` — run Expo linting
-- `npm run reset-project` — reinitialize the project structure
-
-## App-specific notes
-
-- The app uses `expo-router` file-based routing with a custom footer navigation component.
-- `app/_layout.tsx` initializes the SQLite database and wraps the app in settings and footer providers.
-- Default Expo Router headers are hidden in content screens and replaced with custom UI.
-- `react-native-reanimated` is configured via `babel.config.js`.
-
-## Android release preparation
-
-Ensure the following are configured before publishing:
-
-- `app.json` contains a unique Android package id
-- app icon and adaptive icon assets are set
-- splash screen settings are configured
-- Reanimated plugin is enabled in `babel.config.js`
-
-## Contributing
-
-1. Fork the repo
-2. Install dependencies
-3. Create a feature branch
-4. Open a pull request with a clear description
-
-## License
-
-This repository does not include a license file. Add one if you intend to publish or share this codebase publicly.
-
+Read `AGENTS.md`, `PROJECT.md`, and `PROJECT_MEMORY.md` before significant work. Major changes are incomplete until project memory and roadmap documentation are updated.

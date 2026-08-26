@@ -10,7 +10,7 @@ import {
   parseStanzas,
   stanzasToText,
 } from "@/lib/ids";
-import type { Song } from "@/lib/types";
+import type { Category, Song } from "@/lib/types";
 
 export default function SongEditor() {
   const router = useRouter();
@@ -25,13 +25,16 @@ export default function SongEditor() {
   const [hymnNumber, setHymnNumber] = useState(0);
   const [title, setTitle] = useState("");
   const [language, setLanguage] = useState("");
+  const [category, setCategory] = useState("hymn");
   const [author, setAuthor] = useState("");
   const [stanzasText, setStanzasText] = useState("");
   const [chorusText, setChorusText] = useState("");
   const [isPublished, setIsPublished] = useState(false);
   const [existingLanguages, setExistingLanguages] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
+    void (async () => { const all: Category[] = []; for (let from=0;;from+=1000) { const { data } = await getSupabase().from("content_categories").select("*").eq("content_type", "song").order("sort_order").range(from,from+999); const page=(data as Category[]) ?? []; all.push(...page); if(page.length<1000) break; } setCategories(all); })();
     getSupabase()
       .from("songs")
       .select("language")
@@ -59,6 +62,7 @@ export default function SongEditor() {
           setHymnNumber(s.hymn_number);
           setTitle(s.title);
           setLanguage(s.language);
+          setCategory(s.category || "hymn");
           setAuthor(s.author);
           setStanzasText(stanzasToText(s.stanzas));
           setChorusText(chorusToText(s.chorus));
@@ -84,6 +88,7 @@ export default function SongEditor() {
         hymn_number: Number(hymnNumber) || 0,
         title: title.trim(),
         language: language.trim().toLowerCase(),
+        category,
         author: author.trim(),
         stanzas,
         chorus: parseChorus(chorusText),
@@ -173,6 +178,13 @@ export default function SongEditor() {
 
         <label>Title</label>
         <input value={title} onChange={(e) => setTitle(e.target.value)} />
+
+        <label>Category</label>
+        <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+          <option value="" disabled>Select a category</option>
+          {categories.map((item) => <option key={item.name} value={item.name}>{item.display_name}</option>)}
+        </select>
+        {!categories.length && <div className="error">Create a song category before publishing.</div>}
 
         <label>Author (optional)</label>
         <input value={author} onChange={(e) => setAuthor(e.target.value)} />

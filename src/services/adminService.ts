@@ -18,6 +18,7 @@ export type SongAdminRow = {
   hymnNumber: number;
   title: string;
   language: string;
+  category: string;
   stanzas: string;
   chorus: string | null;
   author: string | null;
@@ -49,11 +50,14 @@ export type StudyCategoryRow = {
   usageCount: number;
 };
 
+export type ContentCategoryAdminRow = StudyCategoryRow & { contentType: "song" | "study" };
+
 export type SongUpsertInput = {
   id: string;
   hymnNumber: number;
   title: string;
   language: string;
+  category: string;
   stanzasText: string;
   chorusText: string;
   author: string;
@@ -126,10 +130,20 @@ async function getCount(query: string, params: any[] = []): Promise<number> {
   return row?.total ?? 0;
 }
 
+async function markAdminContentDownloaded(type: "song" | "study", id: string) {
+  const now = Date.now();
+  await db.runAsync(
+    `INSERT INTO content_downloads(contentType,contentId,downloadedAt,lastAccessedAt)
+     VALUES(?,?,?,?) ON CONFLICT(contentType,contentId) DO UPDATE SET lastAccessedAt=excluded.lastAccessedAt`,
+    [type,id,now,now]
+  );
+}
+
 function normalizeSongValidation(input: SongUpsertInput): SongUpsertInput {
   const id = input.id.trim();
   const title = input.title.trim();
   const language = input.language.trim();
+  const category = input.category.trim();
   const author = input.author.trim();
   const hymnNumber = Number.isFinite(input.hymnNumber)
     ? Math.max(0, Math.trunc(input.hymnNumber))
@@ -138,12 +152,14 @@ function normalizeSongValidation(input: SongUpsertInput): SongUpsertInput {
   if (!id) throw new Error("Song ID is required.");
   if (!title) throw new Error("Song title is required.");
   if (!language) throw new Error("Language is required.");
+  if (!category) throw new Error("Song category is required.");
 
   return {
     ...input,
     id,
     title,
     language,
+    category,
     author,
     hymnNumber,
     stanzasText: input.stanzasText,
@@ -246,7 +262,7 @@ export async function getAdminDashboardSummary() {
   const [songs, studies, categories] = await Promise.all([
     getCount("SELECT COUNT(*) AS total FROM songs"),
     getCount("SELECT COUNT(*) AS total FROM studies"),
-    getCount("SELECT COUNT(*) AS total FROM study_categories"),
+    getCount("SELECT COUNT(*) AS total FROM content_categories"),
   ]);
 
   return { songs, studies, categories };
@@ -283,7 +299,7 @@ export async function listSongsPaged(options: {
 
   const items = await db.getAllAsync<SongAdminRow>(
     `
-      SELECT id, hymnNumber, title, language, stanzas, chorus, author, createdAt, updatedAt
+      SELECT id, hymnNumber, title, language, category, stanzas, chorus, author, createdAt, updatedAt
       FROM songs
       ${whereClause}
       ORDER BY hymnNumber ASC, title COLLATE NOCASE ASC
@@ -316,7 +332,7 @@ export async function getSongLanguages(): Promise<string[]> {
 export async function getSongForEdit(id: string): Promise<SongAdminRow | null> {
   return db.getFirstAsync<SongAdminRow>(
     `
-      SELECT id, hymnNumber, title, language, stanzas, chorus, author, createdAt, updatedAt
+      SELECT id, hymnNumber, title, language, category, stanzas, chorus, author, createdAt, updatedAt
       FROM songs
       WHERE id = ?
       LIMIT 1
@@ -335,6 +351,7 @@ export async function upsertSong(
   const now = Date.now();
   const stanzasJson = normalizeSongStanzasForDb(normalized.stanzasText);
   const chorusJson = normalizeLinesForDb(normalized.chorusText);
+  await ensureContentCategoryExists("song", normalized.category);
 
   if (existingId) {
     if (normalized.id !== existingId) {
@@ -353,13 +370,14 @@ export async function upsertSong(
     await db.runAsync(
       `
         UPDATE songs
-        SET hymnNumber = ?, title = ?, language = ?, stanzas = ?, chorus = ?, author = ?, updatedAt = ?
+        SET hymnNumber = ?, title = ?, language = ?, category = ?, stanzas = ?, chorus = ?, author = ?, updatedAt = ?
         WHERE id = ?
       `,
       [
         normalized.hymnNumber,
         normalized.title,
         normalized.language,
+        normalized.category,
         stanzasJson,
         chorusJson,
         normalized.author || null,
@@ -368,21 +386,24 @@ export async function upsertSong(
       ]
     );
 
+    await markAdminContentDownloaded("song", existingId);
+
     return;
   }
 
   await db.runAsync(
     `
       INSERT INTO songs (
-        id, hymnNumber, title, language, stanzas, chorus, author, contentHash, createdAt, updatedAt
+        id, hymnNumber, title, language, category, stanzas, chorus, author, contentHash, createdAt, updatedAt
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, ?, ?)
     `,
     [
       normalized.id,
       normalized.hymnNumber,
       normalized.title,
       normalized.language,
+      normalized.category,
       stanzasJson,
       chorusJson,
       normalized.author || null,
@@ -390,11 +411,12 @@ export async function upsertSong(
       now,
     ]
   );
+  await markAdminContentDownloaded("song", normalized.id);
 }
 
 export async function deleteSong(id: string): Promise<void> {
   await ensureAdminModeEnabled();
-  await db.runAsync("DELETE FROM songs WHERE id = ?", [id]);
+  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM content_downloads WHERE contentType='song' AND contentId=?",[id]); await db.runAsync("DELETE FROM songs WHERE id = ?", [id]); });
 }
 
 export async function listStudiesPaged(options: {
@@ -468,7 +490,8 @@ export async function getCategoryNames(): Promise<string[]> {
   const rows = await db.getAllAsync<{ name: string }>(
     `
       SELECT name
-      FROM study_categories
+      FROM content_categories
+      WHERE contentType='study'
       ORDER BY sortOrder ASC, displayName COLLATE NOCASE ASC
     `
   );
@@ -486,6 +509,49 @@ async function ensureCategoryExists(categoryName: string) {
     `,
     [categoryName, categoryName, now]
   );
+  await ensureContentCategoryExists("study", categoryName);
+}
+
+async function ensureContentCategoryExists(type: "song" | "study", name: string) {
+  await db.runAsync(
+    `INSERT OR IGNORE INTO content_categories
+     (contentType,name,displayName,color,icon,description,sortOrder,serverRevision,updatedAt)
+     VALUES(?,?,?,'#2563EB',?,'',100,0,?)`,
+    [type, name, name, type === "song" ? "musical-notes-outline" : "book-outline", Date.now()]
+  );
+}
+
+export async function listContentCategories(type: "song" | "study"): Promise<ContentCategoryAdminRow[]> {
+  const table = type === "song" ? "songs" : "studies";
+  return db.getAllAsync<ContentCategoryAdminRow>(
+    `SELECT c.contentType,c.name,c.displayName,c.color,c.icon,c.description,c.sortOrder,
+            c.updatedAt AS createdAt,COUNT(x.id) AS usageCount
+     FROM content_categories c LEFT JOIN ${table} x ON x.category=c.name
+     WHERE c.contentType=? GROUP BY c.contentType,c.name
+     ORDER BY c.sortOrder,c.displayName COLLATE NOCASE`,
+    [type]
+  );
+}
+
+export async function upsertContentCategory(type: "song" | "study", input: CategoryUpsertInput, previousName?: string) {
+  await ensureAdminModeEnabled();
+  const item = normalizeCategoryValidation(input);
+  if (previousName && previousName !== item.name) throw new Error("Category keys are stable. Create a new category and reassign content instead.");
+  await db.runAsync(
+    `INSERT INTO content_categories(contentType,name,displayName,color,icon,description,sortOrder,serverRevision,updatedAt)
+     VALUES(?,?,?,?,?,?,?,0,?) ON CONFLICT(contentType,name) DO UPDATE SET
+     displayName=excluded.displayName,color=excluded.color,icon=excluded.icon,
+     description=excluded.description,sortOrder=excluded.sortOrder,updatedAt=excluded.updatedAt`,
+    [type,item.name,item.displayName,item.color,item.icon,item.description,item.sortOrder,Date.now()]
+  );
+}
+
+export async function deleteContentCategory(type: "song" | "study", name: string) {
+  await ensureAdminModeEnabled();
+  const table = type === "song" ? "songs" : "studies";
+  const usage = await getCount(`SELECT COUNT(*) AS total FROM ${table} WHERE category=?`,[name]);
+  if (usage) throw new Error(`Cannot delete category because it is used by ${usage} ${type}s.`);
+  await db.runAsync("DELETE FROM content_categories WHERE contentType=? AND name=?",[type,name]);
 }
 
 export async function getStudyForEdit(id: string): Promise<StudyAdminRow | null> {
@@ -546,6 +612,8 @@ export async function upsertStudy(
       ]
     );
 
+    await markAdminContentDownloaded("study", existingId);
+
     return;
   }
 
@@ -569,11 +637,12 @@ export async function upsertStudy(
       now,
     ]
   );
+  await markAdminContentDownloaded("study", normalized.id);
 }
 
 export async function deleteStudy(id: string): Promise<void> {
   await ensureAdminModeEnabled();
-  await db.runAsync("DELETE FROM studies WHERE id = ?", [id]);
+  await db.withTransactionAsync(async () => { await db.runAsync("DELETE FROM content_downloads WHERE contentType='study' AND contentId=?",[id]); await db.runAsync("DELETE FROM studies WHERE id = ?", [id]); });
 }
 
 export async function listStudyCategories(): Promise<StudyCategoryRow[]> {

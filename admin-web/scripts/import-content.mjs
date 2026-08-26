@@ -107,12 +107,12 @@ function normalizeContent(input) {
   return "";
 }
 
-async function upsertChunked(table, rows) {
+async function upsertChunked(table, rows, onConflict = "id") {
   if (DRY) return;
   const size = 200;
   for (let i = 0; i < rows.length; i += size) {
     const chunk = rows.slice(i, i + size);
-    const { error } = await supabase.from(table).upsert(chunk, { onConflict: "id" });
+    const { error } = await supabase.from(table).upsert(chunk, { onConflict });
     if (error) {
       console.error(`  upsert ${table} failed:`, error.message);
       process.exit(1);
@@ -122,20 +122,29 @@ async function upsertChunked(table, rows) {
   process.stdout.write("\n");
 }
 
+function categoryKey(value, fallback) {
+  const normalized = String(value ?? "").toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "_").replace(/^[_-]+|[_-]+$/g, "").slice(0, 80);
+  return normalized || fallback;
+}
+
 // ---- songs -----------------------------------------------------------------
 async function importSongs() {
   const files = walkJson(join(repoRoot, "content", "songs"));
   const rows = [];
+  const categories = new Map();
   for (const f of files) {
     try {
       const raw = readJson(f);
       const id = String(raw.id ?? "").trim();
       if (!id) continue;
+      const category = categoryKey(raw.category, "hymn");
+      categories.set(category, { content_type: "song", name: category, display_name: category === "hymn" ? "Hymns" : String(raw.category ?? category).trim(), color: "#0B4AA6", icon: "musical-notes-outline", sort_order: 100 });
       rows.push({
         id,
         hymn_number: Number(raw.hymnNumber) || 0,
         title: String(raw.title ?? "").trim() || id,
         language: String(raw.language ?? "unknown").trim().toLowerCase(),
+        category,
         author: String(raw.author ?? "").trim(),
         stanzas: normalizeStanzas(raw.stanzas),
         chorus: normalizeChorus(raw.chorus),
@@ -148,6 +157,7 @@ async function importSongs() {
     }
   }
   console.log(`Songs: ${rows.length} parsed from ${files.length} files`);
+  await upsertChunked("content_categories", [...categories.values()], "content_type,name");
   await upsertChunked("songs", rows);
 }
 
@@ -155,14 +165,17 @@ async function importSongs() {
 async function importStudies() {
   const files = walkJson(join(repoRoot, "content", "studies"));
   const rows = [];
+  const categories = new Map();
   for (const f of files) {
     try {
       const raw = readJson(f);
       const id = String(raw.id ?? "").trim();
       if (!id) continue;
+      const category = categoryKey(raw.category, "study");
+      categories.set(category, { content_type: "study", name: category, display_name: String(raw.category ?? category).trim() || category, color: "#2563EB", icon: "book-outline", sort_order: 100 });
       rows.push({
         id,
-        category: String(raw.category ?? "").trim(),
+        category,
         title: String(raw.title ?? "").trim() || id,
         subtitle: String(raw.subtitle ?? "").trim(),
         content: normalizeContent(raw.content),
@@ -177,6 +190,7 @@ async function importStudies() {
     }
   }
   console.log(`Studies: ${rows.length} parsed from ${files.length} files`);
+  await upsertChunked("content_categories", [...categories.values()], "content_type,name");
   await upsertChunked("studies", rows);
 }
 

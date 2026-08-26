@@ -1,8 +1,8 @@
 import Constants from "expo-constants";
 
 import { db } from "@/src/db/database";
-import { type RawSong, upsertSongs } from "@/src/db/seedSongs";
-import { type RawStudy, upsertStudies } from "@/src/db/seedStudies";
+import { type RawSong, upsertSongCatalog } from "@/src/db/seedSongs";
+import { type RawStudy, upsertStudyCatalog } from "@/src/db/seedStudies";
 
 /**
  * Supabase content sync (device-as-cache hydration).
@@ -54,6 +54,7 @@ type SongRow = {
   hymn_number: number | null;
   title: string | null;
   language: string | null;
+  category: string | null;
   author: string | null;
   stanzas: unknown;
   chorus: unknown;
@@ -71,11 +72,14 @@ type StudyRow = {
   content: string | null;
   author: string | null;
   is_featured: boolean;
+  word_count: number;
   is_published: boolean;
   deleted: boolean;
   updated_at: string;
   revision: number;
 };
+
+type CategoryRow = { content_type: "song" | "study"; name: string; display_name: string; color: string; icon: string; description: string; sort_order: number; revision: number; updated_at: string };
 
 /** GET a page from PostgREST with the anon key. Returns null on any failure. */
 async function restGet<T>(
@@ -130,6 +134,7 @@ async function deleteByIds(table: "songs" | "studies", ids: string[]) {
   for (let i = 0; i < ids.length; i += chunkSize) {
     const chunk = ids.slice(i, i + chunkSize);
     const placeholders = chunk.map(() => "?").join(",");
+    await db.runAsync(`DELETE FROM content_downloads WHERE contentType = ? AND contentId IN (${placeholders})`, [table === "songs" ? "song" : "study", ...chunk]);
     await db.runAsync(`DELETE FROM ${table} WHERE id IN (${placeholders})`, chunk);
   }
 }
@@ -162,9 +167,11 @@ function toRawSong(row: SongRow): RawSong {
     hymnNumber: row.hymn_number ?? 0,
     title: row.title ?? "",
     language: row.language ?? "unknown",
+    category: row.category ?? "hymn",
     author: row.author ?? "",
     stanzas: (row.stanzas as RawSong["stanzas"]) ?? [],
     chorus: (row.chorus as RawSong["chorus"]) ?? null,
+    serverRevision: row.revision,
   };
 }
 
@@ -177,6 +184,7 @@ function toRawStudy(row: StudyRow): RawStudy {
     content: row.content ?? "",
     author: row.author ?? "",
     isFeatured: !!row.is_featured,
+    serverRevision: row.revision,
   };
 }
 
@@ -185,16 +193,16 @@ async function syncSongs(): Promise<void> {
   const rows = await fetchChanged<SongRow>(
     "songs",
     since,
-    "id,hymn_number,title,language,author,stanzas,chorus,is_published,deleted,updated_at,revision"
+    "id,hymn_number,title,language,category,author,is_published,deleted,updated_at,revision"
   );
   if (!rows || !rows.length) return;
 
   const tombstones = rows.filter((r) => r.deleted).map((r) => r.id);
-  const live = rows.filter((r) => !r.deleted).map(toRawSong);
+  const live = rows.filter((r) => !r.deleted).map((row) => ({ id: row.id, hymnNumber: row.hymn_number ?? 0, title: row.title ?? "", language: row.language ?? "unknown", category: row.category ?? "hymn", author: row.author ?? "" }));
 
   if (live.length) {
     const revisions = Object.fromEntries(rows.filter((r) => !r.deleted).map((r) => [r.id, r.revision]));
-    await upsertSongs(live, { source: "server", revisions });
+    await upsertSongCatalog(live, revisions);
   }
   await deleteByIds("songs", tombstones);
 
@@ -206,20 +214,56 @@ async function syncStudies(): Promise<void> {
   const rows = await fetchChanged<StudyRow>(
     "studies",
     since,
-    "id,category,title,subtitle,content,author,is_featured,is_published,deleted,updated_at,revision"
+    "id,category,title,subtitle,author,word_count,is_featured,is_published,deleted,updated_at,revision"
   );
   if (!rows || !rows.length) return;
 
   const tombstones = rows.filter((r) => r.deleted).map((r) => r.id);
-  const live = rows.filter((r) => !r.deleted).map(toRawStudy);
+  const live = rows.filter((r) => !r.deleted).map((row) => ({ id: row.id, category: row.category ?? "", title: row.title ?? "", subtitle: row.subtitle ?? "", author: row.author ?? "", wordCount: row.word_count ?? 0, isFeatured: row.is_featured }));
 
   if (live.length) {
     const revisions = Object.fromEntries(rows.filter((r) => !r.deleted).map((r) => [r.id, r.revision]));
-    await upsertStudies(live, { source: "server", revisions });
+    await upsertStudyCatalog(live, revisions);
   }
   await deleteByIds("studies", tombstones);
 
   await recordSync("studies", rows[rows.length - 1].revision);
+}
+
+async function syncCategories() {
+  const rows: CategoryRow[] = [];
+  for (let offset = 0; ; offset += SupabaseConfig.pageSize) {
+    const page = await restGet<CategoryRow>("content_categories", `select=content_type,name,display_name,color,icon,description,sort_order,revision,updated_at&order=content_type.asc,sort_order.asc&limit=${SupabaseConfig.pageSize}&offset=${offset}`);
+    if (!page) return;
+    rows.push(...page);
+    if (page.length < SupabaseConfig.pageSize) break;
+  }
+  await db.withTransactionAsync(async () => {
+    for (const row of rows) {
+      await db.runAsync(
+        `INSERT INTO content_categories(contentType,name,displayName,color,icon,description,sortOrder,serverRevision,updatedAt)
+         VALUES(?,?,?,?,?,?,?,?,?) ON CONFLICT(contentType,name) DO UPDATE SET
+         displayName=excluded.displayName,color=excluded.color,icon=excluded.icon,
+         description=excluded.description,sortOrder=excluded.sortOrder,
+         serverRevision=excluded.serverRevision,updatedAt=excluded.updatedAt`,
+        [row.content_type,row.name,row.display_name,row.color,row.icon,row.description ?? "",row.sort_order,row.revision,Date.parse(row.updated_at) || Date.now()]
+      );
+    }
+    const keys = new Set(rows.map((row) => `${row.content_type}:${row.name}`));
+    const existing = await db.getAllAsync<{ contentType: string; name: string }>("SELECT contentType,name FROM content_categories WHERE serverRevision > 0");
+    for (const item of existing) if (!keys.has(`${item.contentType}:${item.name}`)) await db.runAsync("DELETE FROM content_categories WHERE contentType=? AND name=?",[item.contentType,item.name]);
+  });
+}
+
+export async function fetchPublishedContentItem(type: "song" | "study", id: string): Promise<RawSong | RawStudy | null> {
+  const table = type === "song" ? "songs" : "studies";
+  const columns = type === "song"
+    ? "id,hymn_number,title,language,category,author,stanzas,chorus,is_published,deleted,updated_at,revision"
+    : "id,category,title,subtitle,content,author,word_count,is_featured,is_published,deleted,updated_at,revision";
+  const rows = await restGet<SongRow | StudyRow>(table, `select=${columns}&id=eq.${encodeURIComponent(id)}&is_published=eq.true&deleted=eq.false&limit=1`);
+  const row = rows?.[0];
+  if (!row) return null;
+  return type === "song" ? toRawSong(row as SongRow) : toRawStudy(row as StudyRow);
 }
 
 /**
@@ -229,6 +273,11 @@ async function syncStudies(): Promise<void> {
  */
 export async function syncSupabaseContent(): Promise<void> {
   if (!SupabaseConfig.enabled) return;
+  try {
+    await syncCategories();
+  } catch (e) {
+    console.warn("Supabase categories sync failed:", e);
+  }
   try {
     await syncSongs();
   } catch (e) {

@@ -3,6 +3,7 @@ export type Song = {
   hymn_number: number;
   title: string;
   language: string;
+  category: string;
   author: string;
   stanzas: string[][];
   chorus: string[] | null;
@@ -29,6 +30,7 @@ export type Study = {
 };
 
 export type Category = {
+  content_type: "song" | "study";
   name: string;
   display_name: string;
   color: string;

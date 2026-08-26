@@ -1,0 +1,5 @@
+-- Intentionally not a deployment source.
+-- The production schema is defined by the ordered, immutable files in
+-- supabase/migrations/001_*.sql through 019_dynamic_content_categories.sql.
+-- Generate a fresh snapshot from the linked staging database when a schema dump is
+-- required; never hand-maintain a second combined schema or run this placeholder.

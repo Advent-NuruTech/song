@@ -13,6 +13,7 @@ import {
   getAvailableAppRelease,
   getNotificationPermission,
   getUnreadNotificationCount,
+  isRemotePushSupported,
   loadLocalNotificationPreferences,
   loadRemoteNotificationPreferences,
   markNotificationRead,
@@ -118,10 +119,16 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
       }
     });
     const received = Notifications.addNotificationReceivedListener(() => void refreshUnreadCount());
-    const tokenChanged = Notifications.addPushTokenListener(() => {
-      if (userId && preferences.masterEnabled) void registerPushDevice();
-    });
-    return () => { opened.remove(); received.remove(); tokenChanged.remove(); };
+    const tokenChanged = isRemotePushSupported()
+      ? Notifications.addPushTokenListener((devicePushToken) => {
+        if (userId && preferences.masterEnabled) {
+          void registerPushDevice(devicePushToken).catch((error) => {
+            console.warn("Unable to refresh push registration", error);
+          });
+        }
+      })
+      : null;
+    return () => { opened.remove(); received.remove(); tokenChanged?.remove(); };
   }, [userId, preferences.masterEnabled, refreshUnreadCount]);
 
   useEffect(() => {

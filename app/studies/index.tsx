@@ -14,7 +14,7 @@ export default function StudiesScreen() {
   const [allStudies, setAllStudies] = useState<StudySummary[]>([]);
   const [forYou, setForYou] = useState<StudySummary[]>([]);
   const [popular, setPopular] = useState<StudySummary[]>([]);
-  const [categories, setCategories] = useState<{ category: string; count: number }[]>([]);
+  const [categories, setCategories] = useState<{ category: string; displayName: string; count: number }[]>([]);
   const [category, setCategory] = useState<string | null>(null);
   const [categoryPickerOpen, setCategoryPickerOpen] = useState(false);
   const [categoryQuery, setCategoryQuery] = useState("");
@@ -50,7 +50,7 @@ export default function StudiesScreen() {
   const visible = useMemo(() => category ? allStudies.filter((study) => study.category === category) : allStudies, [allStudies, category]);
   const filteredCategories = useMemo(() => {
     const clean = categoryQuery.trim().toLocaleLowerCase();
-    return clean ? categories.filter((item) => item.category.toLocaleLowerCase().includes(clean)) : categories;
+    return clean ? categories.filter((item) => item.displayName.toLocaleLowerCase().includes(clean)) : categories;
   }, [categories, categoryQuery]);
   const totalStudyCount = useMemo(() => categories.reduce((total, item) => total + item.count, 0), [categories]);
   const clearSearch = () => { setQuery(""); setCategory(null); void getStudySummaries({ limit: 200 }).then(setAllStudies); };
@@ -76,7 +76,7 @@ export default function StudiesScreen() {
           style={({ pressed }) => [styles.categorySelect, { backgroundColor: colors.card, borderColor: colors.border }, pressed && { opacity: .72 }]}
         >
           <View style={[styles.categorySelectIcon, { backgroundColor: `${colors.tint}14` }]}><Ionicons name="list" size={18} color={colors.tint} /></View>
-          <Text numberOfLines={1} style={[styles.categorySelectText, { color: colors.text, fontFamily }]}>{category ?? "All categories"}</Text>
+          <Text numberOfLines={1} style={[styles.categorySelectText, { color: colors.text, fontFamily }]}>{categories.find((item) => item.category === category)?.displayName ?? "All categories"}</Text>
           <Ionicons name="chevron-down" size={19} color={colors.mutedText} />
         </Pressable>
       </View>
@@ -101,7 +101,7 @@ export default function StudiesScreen() {
               showsVerticalScrollIndicator
               contentContainerStyle={styles.categoryList}
               ListHeaderComponent={!categoryQuery.trim() ? <CategoryOption label="All categories" count={totalStudyCount} active={!category} onPress={() => chooseCategory(null)} /> : null}
-              renderItem={({ item }) => <CategoryOption label={item.category} count={item.count} active={category === item.category} onPress={() => chooseCategory(item.category)} />}
+              renderItem={({ item }) => <CategoryOption label={item.displayName} count={item.count} active={category === item.category} onPress={() => chooseCategory(item.category)} />}
               ListEmptyComponent={<View style={styles.noCategories}><Ionicons name="search-outline" size={28} color={colors.mutedText} /><Text style={[styles.noCategoriesText, { color: colors.mutedText, fontFamily }]}>No matching categories</Text></View>}
             />
           </View>
@@ -116,7 +116,7 @@ export default function StudiesScreen() {
             <DiscoverySection title="For you" subtitle="Recommended from your interests" icon="sparkles" studies={forYou} />
             <DiscoverySection title="Most popular" subtitle="What readers are exploring" icon="trending-up" studies={popular} />
             <Text style={[styles.allTitle, { color: colors.text, fontFamily }]}>All studies</Text>
-          </View> : <Text style={[styles.resultsTitle, { color: colors.text, fontFamily }]}>{query ? `Results for “${query}”` : category}</Text>}
+          </View> : <Text style={[styles.resultsTitle, { color: colors.text, fontFamily }]}>{query ? `Results for “${query}”` : categories.find((item) => item.category === category)?.displayName ?? category}</Text>}
           ListEmptyComponent={<View style={[styles.empty, { backgroundColor: colors.card, borderColor: colors.border }]}><Ionicons name="document-text-outline" size={42} color={colors.mutedText} /><Text style={[styles.emptyTitle, { color: colors.text, fontFamily }]}>No studies found</Text><Text style={[styles.emptyCopy, { color: colors.mutedText, fontFamily }]}>Try another topic or search phrase.</Text></View>}
         />
       )}
@@ -137,7 +137,7 @@ export default function StudiesScreen() {
     return <View style={[compact ? styles.discoveryCardWrap : styles.cardWrap, compact && { width: 260 }]}>
       <Link href={{ pathname: "/studies/[id]", params: { id: study.id } }} asChild>
         <Pressable style={({ pressed }) => [styles.card, compact && styles.discoveryCard, { backgroundColor: colors.card, borderColor: colors.border, shadowColor: darkMode ? "#000" : "#0F172A" }, pressed && { opacity: .72 }]}>
-          <View style={styles.categoryRow}><View style={[styles.dot, { backgroundColor: accent }]} /><Text numberOfLines={1} style={[styles.category, { color: colors.mutedText, fontFamily }]}>{study.category}</Text></View>
+          <View style={styles.categoryRow}><View style={[styles.dot, { backgroundColor: accent }]} /><Text numberOfLines={1} style={[styles.category, { color: colors.mutedText, fontFamily }]}>{study.categoryLabel ?? study.category}</Text></View>
           <Text numberOfLines={compact ? 3 : 2} style={[styles.cardTitle, { color: colors.text, fontFamily, fontSize: size(compact ? 15 : 17) }]}>{study.title}</Text>
           {!compact && excerpt ? <Text numberOfLines={2} style={[styles.excerpt, { color: colors.mutedText, fontFamily }]}>{excerpt}</Text> : null}
           <View style={styles.cardMeta}><Text numberOfLines={1} style={[styles.author, { color: colors.mutedText, fontFamily }]}>{study.author ? `By ${study.author}` : "Advent Pro"}</Text>{study.wordCount ? <Text style={[styles.readTime, { color: colors.mutedText, fontFamily }]}>{Math.max(1, Math.ceil(study.wordCount / 250))} min</Text> : null}</View>

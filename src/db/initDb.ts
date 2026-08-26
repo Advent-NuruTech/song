@@ -98,6 +98,7 @@ export async function seedContent() {
   await seedSongs({ prune: true });
   await seedStudies({ prune: true });
   await syncLanguagesFromSongs();
+  await syncCategoriesFromContent();
   try {
     // Refresh the Bible catalog with any remote (CDN) versions, then sync content.
     await registerBibleVersions({ includeRemote: true });
@@ -136,6 +137,7 @@ async function createCoreTables() {
       hymnNumber INTEGER,
       title TEXT,
       language TEXT,
+      category TEXT NOT NULL DEFAULT 'hymn',
       author TEXT,
       stanzas TEXT,
       chorus TEXT,
@@ -172,6 +174,19 @@ async function createCoreTables() {
       createdAt INTEGER
     );
 
+    CREATE TABLE IF NOT EXISTS content_categories (
+      contentType TEXT NOT NULL CHECK (contentType IN ('song', 'study')),
+      name TEXT NOT NULL,
+      displayName TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT '#0B4AA6',
+      icon TEXT NOT NULL DEFAULT 'folder-outline',
+      description TEXT NOT NULL DEFAULT '',
+      sortOrder INTEGER NOT NULL DEFAULT 100,
+      serverRevision INTEGER NOT NULL DEFAULT 0,
+      updatedAt INTEGER NOT NULL,
+      PRIMARY KEY (contentType, name)
+    );
+
     CREATE TABLE IF NOT EXISTS languages (
       id TEXT PRIMARY KEY,
       code TEXT UNIQUE,
@@ -183,6 +198,17 @@ async function createCoreTables() {
       hash TEXT,
       updatedAt INTEGER
     );
+
+    CREATE TABLE IF NOT EXISTS content_downloads (
+      contentType TEXT NOT NULL CHECK (contentType IN ('song', 'study')),
+      contentId TEXT NOT NULL,
+      downloadedAt INTEGER NOT NULL,
+      lastAccessedAt INTEGER NOT NULL,
+      PRIMARY KEY (contentType, contentId)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_content_downloads_lru
+      ON content_downloads(lastAccessedAt ASC);
   `);
 }
 
@@ -195,6 +221,8 @@ async function createIndexes() {
     CREATE INDEX IF NOT EXISTS idx_songs_language ON songs(language);
     CREATE INDEX IF NOT EXISTS idx_songs_hymnNumber ON songs(hymnNumber);
     CREATE INDEX IF NOT EXISTS idx_songs_language_hymn ON songs(language, hymnNumber);
+    CREATE INDEX IF NOT EXISTS idx_songs_category ON songs(category);
+    CREATE INDEX IF NOT EXISTS idx_content_categories_order ON content_categories(contentType, sortOrder, displayName);
     CREATE INDEX IF NOT EXISTS idx_songs_title_nocase ON songs(title COLLATE NOCASE);
   `);
 }
@@ -210,6 +238,9 @@ async function ensureSongsSchema() {
 
   if (!columnNames.has("author")) {
     await db.execAsync(`ALTER TABLE songs ADD COLUMN author TEXT`);
+  }
+  if (!columnNames.has("category")) {
+    await db.execAsync(`ALTER TABLE songs ADD COLUMN category TEXT NOT NULL DEFAULT 'hymn'`);
   }
 
   if (!columnNames.has("contentHash")) {
@@ -466,6 +497,19 @@ async function syncLanguagesFromSongs() {
       );
     }
   });
+}
+
+async function syncCategoriesFromContent() {
+  const now = Date.now();
+  await db.execAsync(`
+    INSERT OR IGNORE INTO content_categories(contentType,name,displayName,color,icon,description,sortOrder,serverRevision,updatedAt)
+      SELECT 'song', COALESCE(NULLIF(trim(category),''),'hymn'),
+             CASE WHEN COALESCE(NULLIF(trim(category),''),'hymn')='hymn' THEN 'Hymns' ELSE COALESCE(NULLIF(trim(category),''),'hymn') END,
+             '#0B4AA6','musical-notes-outline','',100,0,${now} FROM songs GROUP BY COALESCE(NULLIF(trim(category),''),'hymn');
+    INSERT OR IGNORE INTO content_categories(contentType,name,displayName,color,icon,description,sortOrder,serverRevision,updatedAt)
+      SELECT 'study', trim(category), trim(category),'#2563EB','book-outline','',100,0,${now}
+      FROM studies WHERE trim(category)<>'' GROUP BY trim(category);
+  `);
 }
 
 /**

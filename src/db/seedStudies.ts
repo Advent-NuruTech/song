@@ -9,6 +9,7 @@ type RawStudy = {
   content?: string | string[];
   author?: string;
   isFeatured?: boolean;
+  serverRevision?: number;
 };
 
 type NormalizedStudy = {
@@ -26,6 +27,8 @@ type NormalizedStudy = {
 const studies = require("../../content/bundles/studies.json") as RawStudy[];
 
 export type { RawStudy };
+
+export type StudyCatalogItem = Pick<RawStudy, "id" | "category" | "title" | "subtitle" | "author" | "isFeatured"> & { wordCount?: number };
 
 function normalizeContent(input: RawStudy["content"]): string {
   if (Array.isArray(input)) {
@@ -147,6 +150,32 @@ function dedupeStudiesById(items: NormalizedStudy[]): NormalizedStudy[] {
   const byId = new Map<string, NormalizedStudy>();
   for (const study of items) byId.set(study.id, study);
   return Array.from(byId.values());
+}
+
+/** Metadata-only upsert. Never hydrates or overwrites the study body. */
+export async function upsertStudyCatalog(items: StudyCatalogItem[], revisions: Record<string, number> = {}) {
+  const now = Date.now();
+  await db.withTransactionAsync(async () => {
+    for (const raw of items) {
+      const id = String(raw.id ?? "").trim();
+      if (!id) continue;
+      const incomingRevision = revisions[id] ?? 0;
+      const existing = await db.getFirstAsync<{ serverRevision: number; contentSource: string }>("SELECT serverRevision,contentSource FROM studies WHERE id=?",[id]);
+      if (existing?.contentSource === "server" && incomingRevision > existing.serverRevision) {
+        await db.runAsync("UPDATE studies SET content='',contentHash=NULL WHERE id=?",[id]);
+        await db.runAsync("DELETE FROM content_downloads WHERE contentType='study' AND contentId=?",[id]);
+      }
+      await db.runAsync(
+        `INSERT INTO studies(id,category,title,subtitle,content,author,wordCount,isFeatured,contentHash,contentSource,serverRevision,createdAt,updatedAt)
+         VALUES(?,?,?,?,'',?,?,?,NULL,'server',?,?,?)
+         ON CONFLICT(id) DO UPDATE SET category=excluded.category,title=excluded.title,
+           subtitle=excluded.subtitle,author=excluded.author,wordCount=excluded.wordCount,
+           isFeatured=excluded.isFeatured,contentSource='server',serverRevision=excluded.serverRevision,
+           updatedAt=excluded.updatedAt WHERE excluded.serverRevision >= studies.serverRevision`,
+        [id, String(raw.category ?? ""), String(raw.title ?? id), String(raw.subtitle ?? ""), String(raw.author ?? ""), Number(raw.wordCount ?? 0), raw.isFeatured ? 1 : 0, incomingRevision, now, now]
+      );
+    }
+  });
 }
 
 /** Upsert raw studies from ANY source (bundled or remote shard). */

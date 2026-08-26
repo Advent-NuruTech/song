@@ -21,6 +21,7 @@ Release testing and store text should cover the features that are actually in th
 - Videos and Shorts through the embedded YouTube player
 - Media and study views, likes, comments, sharing, reports, moderation, and discovery rankings
 - Email/password accounts, display names, role-based administration, and account-deletion requests
+- A local 6:00 AM Bible reminder plus signed-in remote alerts for new resources, replies, donation receipts, and verified app updates
 - Light/dark themes, responsive Android layouts, and offline cached content
 
 Suggested release-note summary:
@@ -46,6 +47,16 @@ Suggested release-note summary:
 
 4. Let EAS manage the Android signing keystore. Keep the same application ID, Expo project, upload key, and Play App Signing setup for every update.
 
+### One-time Android push setup
+
+Remote push notifications cannot be tested in Expo Go. Expo Go can still test the local 6:00 AM reminder; use this project's preview APK or a development/release build for server-sent notifications.
+
+1. In Firebase, use the same Android app/package (`com.adventpro`) represented by the checked-in `google-services.json`.
+2. Generate a Firebase service-account private key, then run `npx eas-cli@latest credentials --platform android` and upload it under **Google Service Account > Push Notifications (FCM V1)**. Never commit that private key. The checked-in `google-services.json` is public client configuration and is not the server credential.
+3. In Expo/EAS, enable enhanced push security and copy its access token into the deployed Supabase secret `EXPO_ACCESS_TOKEN`.
+4. Set a separate high-entropy `NOTIFICATION_CRON_SECRET`, deploy the notification functions, and schedule the authenticated `dispatch-notifications` request as documented in `supabase/functions/README.md`.
+5. Build and install the preview APK with `npm run build:android:test`, sign in, enable notifications in Advent Pro settings, and allow Android's notification permission. Confirm a row is registered in `push_devices`, then test a real remote notification and its delivery receipt before production.
+
 ## 3. Pre-build release checks
 
 Run these from the repository root:
@@ -53,6 +64,7 @@ Run these from the repository root:
 ```powershell
 npm run validate:content
 npm run test:media
+npm run test:notifications
 npm run lint
 npx tsc --noEmit
 npx expo-doctor
@@ -65,7 +77,7 @@ Also verify the following manually:
 
 1. `package.json`, `app.json`, the About screen, and `android/app/build.gradle` all show public version `1.2.0`.
 2. `app.json` and the Android native project resolve to package `com.adventpro` and target API 36.
-3. The production Supabase database has every migration in `supabase/MIGRATIONS.md`, currently through `009_study_discovery.sql`.
+3. The production Supabase database has every migration in `supabase/MIGRATIONS.md`, currently through `019_dynamic_content_categories.sql`. Migration `017_production_notifications.sql` is required before any remote notification test.
 4. The public site is deployed with working, no-login pages:
    - `https://YOUR_DOMAIN/privacy`
    - `https://YOUR_DOMAIN/terms`
@@ -100,6 +112,7 @@ When the build completes, download the `.apk` from its EAS build page and name i
 - Signed-out and signed-in view counting, duplicate-view protection, likes, comments, deletion, reporting, moderation, shares, and updated counters
 - For-you and popular studies, study engagement, and behavior when discovery services are unavailable
 - Account creation, email confirmation, sign-in/out, display-name and email updates, password update, roles, and expired sessions
+- Notification permission, the local daily reminder, signed-in push-device registration, foreground/background/terminated delivery, deep links, read state, preference opt-outs, and invalid-token cleanup
 - In-app Terms acceptance before the first comment or other user-generated submission
 - In-app reporting and user/content blocking flows required for publicly accessible user-generated content
 - Account-deletion request, sign-out after the request, administrator processing, and verification that associated personal data is removed
@@ -166,7 +179,7 @@ Do not submit to production until all of these are true:
 
 - The exact production candidate passed the checklist on at least one real Android device, with another Android version or screen size tested where possible.
 - The AAB targets API 36, has package `com.adventpro`, public version `1.2.0`, and a unique `versionCode`.
-- Every database migration through 009 is deployed and the app behaves safely if network-backed features fail.
+- Every database migration through 019 is deployed and the app behaves safely if network-backed features fail.
 - Public privacy, terms, and account-deletion pages work without login and match actual app behavior.
 - Data Safety answers include current account, community, activity, session, third-party SDK, and deletion behavior.
 - Terms acceptance, objectionable-content rules, in-app reporting/blocking, and operational moderation satisfy the UGC policy before comments are enabled in production.

@@ -54,15 +54,12 @@ export default function StudyEditor() {
   const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
-    getSupabase()
-      .from("study_categories")
-      .select("*")
-      .order("sort_order")
-      .then(({ data }) => {
-        const cats = (data as Category[]) ?? [];
-        setCategories(cats);
-        if (isNew && cats[0]) setCategory((c) => c || cats[0].display_name);
-      });
+    void (async () => {
+      const cats: Category[] = [];
+      for (let from=0;;from+=1000) { const { data } = await getSupabase().from("content_categories").select("*").eq("content_type","study").order("sort_order").range(from,from+999); const page=(data as Category[]) ?? []; cats.push(...page); if(page.length<1000) break; }
+      setCategories(cats);
+      if (isNew && cats[0]) setCategory((c) => c || cats[0].name);
+    })();
   }, [isNew]);
 
   useEffect(() => {
@@ -166,17 +163,12 @@ export default function StudyEditor() {
         <div className="field-row">
           <div>
             <label>Category</label>
-            <input
-              list="category-list"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="e.g. Bible Study"
-            />
-            <datalist id="category-list">
+            <select value={category} onChange={(e) => setCategory(e.target.value)} required>
+              <option value="" disabled>Select a category</option>
               {categories.map((c) => (
-                <option key={c.name} value={c.display_name} />
+                <option key={c.name} value={c.name}>{c.display_name}</option>
               ))}
-            </datalist>
+            </select>
           </div>
           {isNew && (
             <div>

@@ -1,5 +1,5 @@
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { Search } from "@/components/icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, {
   memo,
   useCallback,
@@ -34,28 +34,10 @@ type Song = {
   hymnNumber: number;
   title: string;
   language: string;
-  searchableLyrics: string;
-  stanzaCount: number;
+  downloaded: boolean;
 };
 
 const CARD_HEIGHT = 92;
-
-function preprocessLyrics(stanzas: string) {
-  try {
-    const parsed = JSON.parse(stanzas) as string[][];
-    return parsed.flat().join(" ").toLowerCase();
-  } catch {
-    return String(stanzas).toLowerCase();
-  }
-}
-
-function getStanzaCount(stanzas: string) {
-  try {
-    return (JSON.parse(stanzas) as string[][]).length;
-  } catch {
-    return 0;
-  }
-}
 
 type SongCardProps = {
   item: Song;
@@ -134,19 +116,6 @@ const SongCard = memo(
                 {item.title}
               </Text>
 
-              <Text
-                style={[
-                  styles.stanzaCount,
-                  {
-                    color: colors.subtleText,
-                    fontSize: size(13),
-                    fontFamily,
-                  },
-                ]}
-              >
-                {item.stanzaCount}{" "}
-                {item.stanzaCount === 1 ? "stanza" : "stanzas"}
-              </Text>
             </View>
           </View>
         </Pressable>
@@ -160,8 +129,9 @@ SongCard.displayName = "SongCard";
 export default function SongsScreen() {
   const router = useRouter();
 
-  const { lang } = useLocalSearchParams<{
+  const { lang, category } = useLocalSearchParams<{
     lang?: string;
+    category?: string;
   }>();
 
   const language =
@@ -194,14 +164,30 @@ export default function SongsScreen() {
 
     const loadSongs = async () => {
       try {
+        const search = deferredQuery.trim();
+        const conditions: string[] = [];
+        const params: string[] = [];
+        if (language) { conditions.push("s.language = ?"); params.push(language); }
+        if (category) { conditions.push("s.category = ?"); params.push(category); }
+        if (search) {
+          const ftsSearch = search.replace(/[^\p{L}\p{N}\s]/gu, " ").trim();
+          conditions.push(ftsSearch
+            ? "(s.title LIKE ? OR CAST(s.hymnNumber AS TEXT) LIKE ? OR s.rowid IN (SELECT rowid FROM songs_fts WHERE songs_fts MATCH ?))"
+            : "(s.title LIKE ? OR CAST(s.hymnNumber AS TEXT) LIKE ?)");
+          params.push(`%${search}%`, `%${search}%`);
+          if (ftsSearch) params.push(`${ftsSearch}*`);
+        }
         const result = await runQuery(
           `
-          SELECT id, hymnNumber, title, language, stanzas
-          FROM songs
-          ${language ? "WHERE language = ?" : ""}
-          ORDER BY hymnNumber ASC
+          SELECT s.id, s.hymnNumber, s.title, s.language,
+                 CASE WHEN d.contentId IS NULL THEN 0 ELSE 1 END AS downloaded
+          FROM songs s
+          LEFT JOIN content_downloads d ON d.contentType = 'song' AND d.contentId = s.id
+          ${conditions.length ? `WHERE ${conditions.join(" AND ")}` : ""}
+          ORDER BY s.hymnNumber ASC
+          LIMIT 200
           `,
-          language ? [language] : []
+          params
         );
 
         if (!mounted) return;
@@ -212,8 +198,7 @@ export default function SongsScreen() {
             hymnNumber: song.hymnNumber,
             title: song.title,
             language: song.language,
-            searchableLyrics: preprocessLyrics(song.stanzas),
-            stanzaCount: getStanzaCount(song.stanzas),
+            downloaded: !!song.downloaded,
           }));
 
         setSongs(processedSongs);
@@ -231,28 +216,9 @@ export default function SongsScreen() {
     return () => {
       mounted = false;
     };
-  }, [language]);
+  }, [category, deferredQuery, language]);
 
-  const filteredSongs = useMemo(() => {
-    const trimmed =
-      deferredQuery.trim().toLowerCase();
-
-    if (!trimmed) {
-      return songs;
-    }
-
-    return songs.filter((song) => {
-      return (
-        song.title
-          .toLowerCase()
-          .includes(trimmed) ||
-        song.hymnNumber
-          .toString()
-          .includes(trimmed) ||
-        song.searchableLyrics.includes(trimmed)
-      );
-    });
-  }, [songs, deferredQuery]);
+  const filteredSongs = songs;
 
   const placeholder = useMemo(() => {
     return language

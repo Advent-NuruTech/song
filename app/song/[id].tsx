@@ -45,6 +45,7 @@ import {
   shareStanza,
 } from "@/src/services/shareService";
 import { getPlaylistNeighbors } from "@/src/features/personal/personalService";
+import { downloadContent, isContentDownloaded, removeDownloadedContent, touchDownloadedContent } from "@/src/services/contentDownloadService";
 
 type ParsedSong = {
   id: string;
@@ -260,6 +261,8 @@ export default function SongScreen() {
 
   const [song, setSong] =
     useState<ParsedSong | null>(null);
+  const [downloaded, setDownloaded] = useState(false);
+  const [downloadBusy, setDownloadBusy] = useState(false);
 
   const [prevSongId, setPrevSongId] =
     useState<string | null>(null);
@@ -323,6 +326,11 @@ export default function SongScreen() {
 
         const raw =
           result.rows.item(0);
+
+        const isDownloaded = await isContentDownloaded("song", songId);
+        if (!mountedRef.current) return;
+        setDownloaded(isDownloaded);
+        if (isDownloaded) void touchDownloadedContent("song", songId);
 
         const parsedSong: ParsedSong =
           {
@@ -467,6 +475,32 @@ export default function SongScreen() {
       },
       [playlist, router]
     );
+
+  const handleDownload = useCallback(async () => {
+    if (!song || downloadBusy) return;
+    setDownloadBusy(true);
+    try {
+      await downloadContent("song", song.id);
+      setDownloaded(true);
+      await loadSong(song.id, typeof playlist === "string" ? playlist : undefined);
+    } catch (error) {
+      setToast((error as Error).message);
+    } finally {
+      setDownloadBusy(false);
+    }
+  }, [downloadBusy, loadSong, playlist, song]);
+
+  const handleRemoveDownload = useCallback(async () => {
+    if (!song || downloadBusy) return;
+    setDownloadBusy(true);
+    try {
+      await removeDownloadedContent("song", song.id);
+      setDownloaded(false);
+      setToast("Download removed. The hymn stays in your catalog.");
+    } finally {
+      setDownloadBusy(false);
+    }
+  }, [downloadBusy, song]);
 
   if (loading) {
     return (
@@ -663,6 +697,14 @@ export default function SongScreen() {
               <Ionicons name="list-circle-outline" size={20} color={primaryColor} />
             </Pressable>
 
+            <Pressable
+              accessibilityLabel={downloaded ? "Remove song download" : "Download song"}
+              onPress={downloaded ? handleRemoveDownload : handleDownload}
+              style={[styles.headerAction, { borderColor: colors.border, backgroundColor: colors.card }]}
+            >
+              <Ionicons name={downloaded ? "trash-outline" : "download-outline"} size={20} color={primaryColor} />
+            </Pressable>
+
             <ShareIconButton
               color={primaryColor}
               borderColor={
@@ -776,7 +818,7 @@ export default function SongScreen() {
 
         {/* CONTENT */}
 
-        <SongContent
+        {downloaded ? <SongContent
           song={song}
           colors={colors}
           size={size}
@@ -785,7 +827,15 @@ export default function SongScreen() {
           primaryColor={
             primaryColor
           }
-        />
+        /> : <View style={styles.downloadGate}>
+          <Ionicons name="cloud-download-outline" size={46} color={primaryColor} />
+          <Text style={[styles.downloadTitle, { color: colors.text, fontFamily }]}>Download this hymn?</Text>
+          <Text style={[styles.downloadCopy, { color: colors.mutedText, fontFamily }]}>The hymn remains visible in the catalog. Lyrics load only when you choose, keeping startup and browsing fast.</Text>
+          <Pressable disabled={downloadBusy} onPress={handleDownload} style={[styles.downloadButton, { backgroundColor: primaryColor }, downloadBusy && { opacity: .55 }]}>
+            {downloadBusy ? <ActivityIndicator color="#fff" /> : <Ionicons name="download-outline" size={19} color="#fff" />}
+            <Text style={styles.downloadButtonText}>{downloadBusy ? "Downloading..." : "Download hymn"}</Text>
+          </Pressable>
+        </View>}
       </View>
 
       <ShareSheet
@@ -969,6 +1019,12 @@ const styles = StyleSheet.create({
   scroll: {
     flex: 1,
   },
+
+  downloadGate: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 34 },
+  downloadTitle: { marginTop: 16, fontSize: 21, fontWeight: "800" },
+  downloadCopy: { marginTop: 8, maxWidth: 420, textAlign: "center", fontSize: 14, lineHeight: 21 },
+  downloadButton: { marginTop: 22, minHeight: 48, borderRadius: 14, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 },
+  downloadButtonText: { color: "#fff", fontSize: 14, fontWeight: "800" },
 
   scrollContent: {
     paddingTop: 26,

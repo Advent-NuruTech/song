@@ -26,7 +26,7 @@ export default function DashboardHome() {
       supabase.from("songs").select("*", head).eq("deleted", false).eq("is_published", true),
       supabase.from("studies").select("*", head).eq("deleted", false),
       supabase.from("studies").select("*", head).eq("deleted", false).eq("is_published", true),
-      supabase.from("study_categories").select("*", head),
+      supabase.from("content_categories").select("*", head),
       supabase.from("media").select("*", head).eq("deleted", false),
     ])
       .then((res) => {

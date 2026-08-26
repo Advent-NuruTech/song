@@ -20,10 +20,10 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useAdminMode } from "@/src/admin/adminAccess";
 import {
   CategoryUpsertInput,
-  StudyCategoryRow,
-  deleteStudyCategory,
-  listStudyCategories,
-  upsertStudyCategory,
+  ContentCategoryAdminRow,
+  deleteContentCategory,
+  listContentCategories,
+  upsertContentCategory,
 } from "@/src/services/adminService";
 
 const EMPTY_FORM: CategoryUpsertInput = {
@@ -39,7 +39,8 @@ export default function CategoriesManager() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const { enabled, loading, refresh } = useAdminMode();
 
-  const [categories, setCategories] = useState<StudyCategoryRow[]>([]);
+  const [contentType, setContentType] = useState<"song" | "study">("study");
+  const [categories, setCategories] = useState<ContentCategoryAdminRow[]>([]);
   const [form, setForm] = useState<CategoryUpsertInput>(EMPTY_FORM);
   const [editingName, setEditingName] = useState<string | null>(null);
   const [screenLoading, setScreenLoading] = useState(false);
@@ -48,7 +49,7 @@ export default function CategoriesManager() {
   const loadCategories = useCallback(async () => {
     setScreenLoading(true);
     try {
-      const rows = await listStudyCategories();
+      const rows = await listContentCategories(contentType);
       setCategories(rows);
     } catch (error) {
       Alert.alert(
@@ -58,7 +59,7 @@ export default function CategoriesManager() {
     } finally {
       setScreenLoading(false);
     }
-  }, []);
+  }, [contentType]);
 
   useFocusEffect(
     useCallback(() => {
@@ -72,7 +73,7 @@ export default function CategoriesManager() {
     setEditingName(null);
   };
 
-  const handleEdit = (item: StudyCategoryRow) => {
+  const handleEdit = (item: ContentCategoryAdminRow) => {
     setEditingName(item.name);
     setForm({
       name: item.name,
@@ -87,7 +88,7 @@ export default function CategoriesManager() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await upsertStudyCategory(form, editingName ?? undefined);
+      await upsertContentCategory(contentType, form, editingName ?? undefined);
       resetForm();
       await loadCategories();
     } catch (error) {
@@ -97,11 +98,11 @@ export default function CategoriesManager() {
     }
   };
 
-  const handleDelete = (item: StudyCategoryRow) => {
+  const handleDelete = (item: ContentCategoryAdminRow) => {
     Alert.alert(
       "Delete category",
       item.usageCount > 0
-        ? `Cannot delete "${item.name}" because it has ${item.usageCount} studies.`
+        ? `Cannot delete "${item.name}" because it has ${item.usageCount} ${contentType}s.`
         : `Delete "${item.name}" category?`,
       item.usageCount > 0
         ? [{ text: "OK" }]
@@ -113,7 +114,7 @@ export default function CategoriesManager() {
               onPress: () => {
                 void (async () => {
                   try {
-                    await deleteStudyCategory(item.name);
+                    await deleteContentCategory(contentType, item.name);
                     await loadCategories();
                   } catch (error) {
                     Alert.alert(
@@ -189,6 +190,9 @@ export default function CategoriesManager() {
         contentContainerStyle={styles.formContent}
         keyboardShouldPersistTaps="handled"
       >
+        <View style={styles.actionRow}>
+          {(["study", "song"] as const).map((type) => <Pressable key={type} onPress={() => { setContentType(type); resetForm(); }} style={[styles.secondaryButton, { borderColor: type === contentType ? colors.tint : colors.border, backgroundColor: type === contentType ? `${colors.tint}18` : colors.card }]}><Text style={[styles.secondaryButtonText, { color: type === contentType ? colors.tint : colors.text, fontFamily }]}>{type === "study" ? "Study categories" : "Song categories"}</Text></Pressable>)}
+        </View>
         <Text
           style={[
             styles.sectionTitle,
@@ -372,7 +376,7 @@ export default function CategoriesManager() {
                       { color: colors.mutedText, fontSize: size(11), fontFamily },
                     ]}
                   >
-                    {item.usageCount} studies
+                    {item.usageCount} {contentType}s
                   </Text>
                 </View>
               </View>

@@ -1,4 +1,5 @@
 import { Link, Stack } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   FlatList,
@@ -17,10 +18,13 @@ import {
   getLanguagesWithCounts,
   type LanguageSummary,
 } from "@/src/services/languageService";
+import { getContentCategories, type ContentCategory } from "@/src/services/contentCategoryService";
 
 export default function CategoriesScreen() {
   const { colors, size, fontFamily, darkMode } = useAppTheme();
   const [languages, setLanguages] = useState<LanguageSummary[]>([]);
+  const [songCategories, setSongCategories] = useState<ContentCategory[]>([]);
+  const [mode, setMode] = useState<"category" | "language">("category");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,10 +32,11 @@ export default function CategoriesScreen() {
 
     const loadLanguages = async () => {
       try {
-        const items = await getLanguagesWithCounts();
+        const [items, categories] = await Promise.all([getLanguagesWithCounts(), getContentCategories("song")]);
         
         if (!isMounted) return;
         setLanguages(items);
+        setSongCategories(categories);
       } catch (error) {
         console.error("Failed to load language counts:", error);
       } finally {
@@ -170,6 +175,17 @@ export default function CategoriesScreen() {
     );
   };
 
+  const renderCategoryItem = ({ item }: { item: ContentCategory }) => (
+    <Link href={{ pathname: "/songs", params: { category: item.name } }} asChild>
+      <Pressable style={[styles.card, { borderColor: colors.border, backgroundColor: colors.card, shadowColor: darkMode ? "rgba(0,0,0,0.4)" : "rgba(0,0,0,0.08)" }]}>
+        <View style={styles.cardInner}>
+          <View style={[styles.labelCircle, { backgroundColor: `${item.color}${darkMode ? "30" : "20"}`, borderColor: item.color }]}><Ionicons name={(item.icon || "musical-notes-outline") as keyof typeof Ionicons.glyphMap} size={27} color={item.color} /></View>
+          <View style={styles.contentContainer}><View style={styles.titleRow}><Text numberOfLines={1} style={[styles.title, { color: colors.text, fontSize: size(18), fontFamily }]}>{item.displayName}</Text><View style={[styles.countBadge, { backgroundColor: `${item.color}${darkMode ? "40" : "15"}` }]}><Text style={[styles.countText, { color: item.color, fontSize: size(14), fontFamily }]}>{item.usageCount}</Text></View></View><Text numberOfLines={2} style={[styles.description, { color: colors.mutedText, fontSize: size(14), fontFamily, lineHeight: size(20) }]}>{item.description || `Explore ${item.usageCount} songs in ${item.displayName}`}</Text></View>
+        </View>
+      </Pressable>
+    </Link>
+  );
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}> 
       <Stack.Screen options={{ headerShown: false, title: "" }} />
@@ -200,13 +216,16 @@ export default function CategoriesScreen() {
               }
             ]}
           >
-            Select a language to explore songs
+            Browse songs without loading their lyrics
           </Text>
+        </View>
+        <View style={[styles.segment, { borderColor: colors.border, backgroundColor: colors.background }]}>
+          {(["category", "language"] as const).map((item) => <Pressable key={item} onPress={() => setMode(item)} style={[styles.segmentButton, mode === item && { backgroundColor: colors.tint }]}><Text style={[styles.segmentText, { color: mode === item ? colors.onPrimary : colors.mutedText, fontFamily }]}>{item === "category" ? "Categories" : "Languages"}</Text></Pressable>)}
         </View>
       </View>
 
       {/* Language Cards List */}
-      <FlatList
+      {mode === "language" ? <FlatList
         data={languages}
         keyExtractor={(item) => item.value}
         renderItem={renderLanguageItem}
@@ -241,7 +260,14 @@ export default function CategoriesScreen() {
             </View>
           ) : null
         }
-      />
+      /> : <FlatList
+        data={songCategories}
+        keyExtractor={(item) => item.name}
+        renderItem={renderCategoryItem}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={!loading ? <View style={styles.emptyContainer}><View style={[styles.emptyCard, { borderColor: colors.border, backgroundColor: colors.card }]}><Text style={[styles.emptyText, { color: colors.mutedText, fontSize: size(16), fontFamily }]}>No song categories yet. Add one in Admin, then assign songs to it.</Text></View></View> : null}
+      />}
     </View>
   );
 }
@@ -273,6 +299,9 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 22,
   },
+  segment: { marginTop: 18, padding: 4, borderWidth: 1, borderRadius: 14, flexDirection: "row" },
+  segmentButton: { minWidth: 112, minHeight: 36, borderRadius: 10, alignItems: "center", justifyContent: "center" },
+  segmentText: { fontSize: 13, fontWeight: "800" },
   listContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,

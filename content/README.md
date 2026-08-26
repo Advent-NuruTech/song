@@ -1,37 +1,39 @@
-# Content authoring — the "no rewrite" contract
+# Content operations — no-code publishing contract
 
-Content scales by **adding data**, never by editing app code. Three collections,
-three drop-in rules:
+Production content is created in `admin-web`, stored in Supabase, and synchronized to the app without an app release. Administrators can add unlimited song/study categories and content records.
 
-## Songs
-Drop a JSON file under `content/songs/<language>/NNN.json`:
+## Normal operation
+
+1. In Admin > Categories, create a `Song` or `Study` category. Its stable key is used in data; its display name, color, icon, description, and order can be edited later.
+2. In Songs or Studies, create the content and select a category.
+3. Save as draft for review or publish. Published metadata appears after mobile background sync.
+4. The reader explicitly downloads the full body. Removing the download keeps the catalog item.
+5. Unpublish/delete creates a tombstone; mobile sync removes the local item and download record.
+
+Category deletion is rejected while any live content uses it. Reassign that content first. Do not rename stable keys; change the display name instead.
+
+## Bundled starter content
+
+Files under `content/songs/` and `content/studies/` are only the offline starter set. Do not place the growing production corpus here. Run `npm run content:bundle` after deliberate starter-set edits and `npm run validate:content` before release.
+
+Song JSON supports an optional category key:
+
 ```json
-{ "id": "EN_696", "hymnNumber": 696, "title": "...", "language": "english",
-  "author": "...", "stanzas": [["line", "line"]], "chorus": ["line"] }
+{"id":"EN_001","hymnNumber":1,"title":"Example","language":"english","category":"hymn","author":"","stanzas":[["Line"]],"chorus":null}
 ```
-It is auto-discovered (`require.context`) and seeded on next launch. A new `<language>`
-folder appears as a new language automatically.
 
-## Studies
-Drop a JSON file under `content/studies/`:
+Study JSON uses the same stable category key:
+
 ```json
-{ "id": "study-001", "category": "Prophecy", "title": "...", "subtitle": "...",
-  "content": "markdown or paragraphs", "author": "...", "isFeatured": true }
+{"id":"study_001","category":"doctrine","title":"Example","subtitle":"","content":"...","author":"","isFeatured":false}
 ```
 
-## Bible versions (any number, any language)
-Drop a translation file under `content/bible/versions/<id>.json`:
-```json
-{ "Genesis": { "1": { "1": "In the beginning...", "2": "..." } } }
-```
-Optionally describe it in `content/bible/index.json` (name, abbreviation, language).
-If you omit it, the file still works — the name is derived from the filename.
-The version installs into the shared `bible_*` tables on demand; **no code changes.**
+## Edge delivery contract
 
-## Going remote (CDN) — same files, served from the edge
-When `extra.contentBaseUrl` (app.json) or `EXPO_PUBLIC_CONTENT_URL` is set, the app
-reads a manifest and hydrates the local SQLite cache from a CDN. See
-`manifest.example.json` for the format. Bible versions can be remote too — list them in
-`{baseUrl}/bible/index.json` with a `remotePath`, and they appear as downloadable
-versions with zero client changes. This is how the corpus grows past what can ship in
-the binary while the app stays lightweight (device caches only what is opened).
+At scale, publish compact catalogs separately from immutable bodies:
+
+- `items/songs/{id}.json`
+- `items/studies/{id}.json`
+- `/manifest/{channel}.json` for versioned catalogs
+
+The configured CDN is tried first; Supabase published-item retrieval is the fallback. Adding content, languages, categories, or Bible versions must remain a data/publishing operation and must not require client code.

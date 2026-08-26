@@ -26,7 +26,8 @@
     "test:media": "node --experimental-strip-types ./scripts/validate-media.mjs",
     "test:scripture": "node --test --experimental-strip-types ./scripts/scripture-formatting.test.mjs",
     "test:donations": "node --test --experimental-strip-types ./scripts/donation-security.test.mjs",
-    "test:notifications": "node --test ./scripts/notification-security.test.mjs"
+    "test:notifications": "node --test ./scripts/notification-security.test.mjs",
+    "test:content-platform": "node --test ./scripts/content-platform.test.mjs"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { ChevronLeft, Copy, Heart, MessageCircle, Send, Share2 } from "@/components/icons";
 import { useCallback, useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   Linking,
   Platform,
@@ -39,6 +40,7 @@ import {
 } from "@/src/services/studyEngagementService";
 import { recordStudyView } from "@/src/services/studyDiscoveryService";
 import { saveStudyToLibrary } from "@/src/features/collaboration/studyCollaborationService";
+import { downloadContent, isContentDownloaded, removeDownloadedContent, touchDownloadedContent } from "@/src/services/contentDownloadService";
 
 const EMPTY_ENGAGEMENT: StudyEngagement = {
   likeCount: 0,
@@ -322,6 +324,8 @@ export default function StudyDetailScreen() {
   const [engagement, setEngagement] = useState<StudyEngagement>(EMPTY_ENGAGEMENT);
   const [engagementBusy, setEngagementBusy] = useState(false);
   const [savingToLibrary, setSavingToLibrary] = useState(false);
+  const [downloaded, setDownloaded] = useState(false);
+  const [downloadBusy, setDownloadBusy] = useState(false);
 
   const loadEngagement = useCallback(async () => {
     if (!id) return;
@@ -348,6 +352,10 @@ export default function StudyDetailScreen() {
         const data = await getStudyById(id);
         if (isMounted) {
           setStudy(data);
+          const ready = await isContentDownloaded("study", id);
+          if (!isMounted) return;
+          setDownloaded(ready);
+          if (ready) void touchDownloadedContent("study", id);
           if (data) void recordStudyView(data.id).catch(() => undefined);
         }
       } catch (error) {
@@ -425,6 +433,34 @@ export default function StudyDetailScreen() {
       Alert.alert("Couldn’t save this study", (error as Error).message);
     } finally {
       setSavingToLibrary(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    if (!study || downloadBusy) return;
+    setDownloadBusy(true);
+    try {
+      await downloadContent("study", study.id);
+      const refreshed = await getStudyById(study.id);
+      if (refreshed) setStudy(refreshed);
+      setDownloaded(true);
+    } catch (error) {
+      setToast((error as Error).message);
+    } finally {
+      setDownloadBusy(false);
+    }
+  };
+
+  const handleRemoveDownload = async () => {
+    if (!study || downloadBusy) return;
+    setDownloadBusy(true);
+    try {
+      await removeDownloadedContent("study", study.id);
+      setDownloaded(false);
+      setStudy((current) => current ? { ...current, content: "" } : current);
+      setToast("Download removed. The study stays in your catalog.");
+    } finally {
+      setDownloadBusy(false);
     }
   };
 
@@ -532,7 +568,7 @@ export default function StudyDetailScreen() {
 
         <View style={styles.headerContent}>
           <Text style={[styles.studyTitle, { color: colors.text, fontSize: size(15), fontFamily }]} numberOfLines={1}>{study.title}</Text>
-          <View style={styles.categoryRow}><View style={[styles.categoryDot, { backgroundColor: color }]} /><Text style={[styles.categoryText, { color: colors.mutedText, fontSize: size(10), fontFamily }]} numberOfLines={1}>{study.category}</Text></View>
+          <View style={styles.categoryRow}><View style={[styles.categoryDot, { backgroundColor: color }]} /><Text style={[styles.categoryText, { color: colors.mutedText, fontSize: size(10), fontFamily }]} numberOfLines={1}>{study.categoryLabel ?? study.category}</Text></View>
         </View>
       </View>
 
@@ -542,6 +578,15 @@ export default function StudyDetailScreen() {
         contentContainerStyle={styles.contentContainer}
       >
         <View style={styles.content}>
+          {!downloaded ? <View style={styles.downloadGate}>
+            <Ionicons name="cloud-download-outline" size={48} color={colors.tint} />
+            <Text style={[styles.downloadTitle, { color: colors.text, fontFamily }]}>Download this study?</Text>
+            <Text style={[styles.downloadCopy, { color: colors.mutedText, fontFamily }]}>Only the catalog entry loads automatically. Download the full study when you want to read it offline.</Text>
+            <Pressable disabled={downloadBusy} onPress={() => void handleDownload()} style={[styles.downloadButton, { backgroundColor: colors.tint }, downloadBusy && { opacity: .55 }]}>
+              {downloadBusy ? <ActivityIndicator color={colors.onPrimary} /> : <Ionicons name="download-outline" size={19} color={colors.onPrimary} />}
+              <Text style={[styles.downloadButtonText, { color: colors.onPrimary }]}>{downloadBusy ? "Downloading..." : "Download study"}</Text>
+            </Pressable>
+          </View> : <>
           {isRichStudyHtml(study.content) ? (
             <StudyRichContent
               html={study.content}
@@ -649,6 +694,11 @@ export default function StudyDetailScreen() {
               Last updated: {new Date(study.updatedAt || study.createdAt).toLocaleDateString()}
             </Text>
           </View>
+          <Pressable disabled={downloadBusy} onPress={() => void handleRemoveDownload()} style={[styles.removeDownload, { borderColor: colors.border }]}>
+            <Ionicons name="trash-outline" size={17} color={colors.mutedText} />
+            <Text style={[styles.removeDownloadText, { color: colors.mutedText, fontFamily }]}>Remove download</Text>
+          </Pressable>
+          </>}
         </View>
       </ScrollView>
 
@@ -925,6 +975,13 @@ const styles = StyleSheet.create({
   footerText: {
     fontWeight: "500",
   },
+  downloadGate: { minHeight: 430, alignItems: "center", justifyContent: "center", paddingHorizontal: 20 },
+  downloadTitle: { marginTop: 17, fontSize: 22, fontWeight: "900" },
+  downloadCopy: { marginTop: 8, maxWidth: 430, textAlign: "center", fontSize: 14, lineHeight: 21 },
+  downloadButton: { marginTop: 23, minHeight: 49, borderRadius: 14, paddingHorizontal: 22, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9 },
+  downloadButtonText: { fontSize: 14, fontWeight: "900" },
+  removeDownload: { alignSelf: "center", marginTop: 22, minHeight: 42, borderWidth: 1, borderRadius: 13, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", gap: 8 },
+  removeDownloadText: { fontSize: 12, fontWeight: "700" },
   floatingBackButton: {
     position: "absolute",
     top: Platform.OS === "ios" ? 50 : 30,
