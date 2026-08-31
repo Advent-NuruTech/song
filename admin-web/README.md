@@ -82,11 +82,11 @@ Deploy `admin-web/` to [Vercel](https://vercel.com):
   `SUPABASE_SERVICE_ROLE_KEY`, and `ADMIN_SIGNUP_CODE` in the Vercel dashboard.
 - `npm run build` is the build command (default).
 
-After deployment, replace `YOUR_DOMAIN` with the domain Vercel gives you:
+The current production legal pages are:
 
-- Privacy Policy: `https://YOUR_DOMAIN/privacy`
-- Terms of Service: `https://YOUR_DOMAIN/terms`
-- Account deletion: `https://YOUR_DOMAIN/account-deletion`
+- Privacy Policy: `https://song-pied-eight.vercel.app/privacy`
+- Terms of Service: `https://song-pied-eight.vercel.app/terms`
+- Account deletion: `https://song-pied-eight.vercel.app/account-deletion`
 
 Use the Privacy Policy URL in the Google Play privacy-policy field and the
 account-deletion URL in the Data safety account-deletion field. Keep these pages
@@ -121,7 +121,7 @@ them. This behavior depends on migration `019_dynamic_content_categories.sql`.
 ## Google Play account deletion
 
 Deploy this dashboard and give Play Console the public URL
-`https://YOUR_DOMAIN/account-deletion`. The mobile account screen also
+`https://song-pied-eight.vercel.app/account-deletion`. The mobile account screen also
 contains **Request account deletion**. A trusted administrator or server job must
 process pending rows in `account_deletion_requests` and remove the corresponding
 Supabase Auth user and associated personal data.

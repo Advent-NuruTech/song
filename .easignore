@@ -10,6 +10,7 @@ ios/
 dist/
 dist-verify/
 web-build/
+artifacts/
 
 # The separate admin website is not part of the mobile binary.
 admin-web/

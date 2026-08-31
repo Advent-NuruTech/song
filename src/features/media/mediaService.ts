@@ -1,12 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { authConfigured, supabase } from "@/src/auth/supabaseClient";
-import type { CommentCursor, MediaComment, MediaCursor, MediaItem, MediaType, Page } from "./types";
+import type { CommentCursor, MediaComment, MediaCursor, MediaFeedType, MediaItem, MediaType, Page } from "./types";
 import { stripUnsafeComment } from "./utils";
 
 const PAGE_SIZE = 24;
 const CACHE_PREFIX = "advent-pro:media-cache:v1:";
 const SESSION_KEY = "advent-pro:media-session:v1";
+const SONG_CATEGORY = "Songs";
 
 type MediaRow = {
   id: string; source_type: "youtube" | "hosted"; youtube_video_id: string; youtube_url: string;
@@ -32,10 +33,16 @@ function mapMedia(row: MediaRow): MediaItem {
   };
 }
 
-export async function listMediaPage(type: MediaType, cursor: MediaCursor | null = null): Promise<Page<MediaItem, MediaCursor>> {
+function feedQuery(type: MediaFeedType): { mediaType: MediaType; category: string | null } {
+  return type === "song" ? { mediaType: "video", category: SONG_CATEGORY } : { mediaType: type, category: null };
+}
+
+export async function listMediaPage(type: MediaFeedType, cursor: MediaCursor | null = null): Promise<Page<MediaItem, MediaCursor>> {
   if (!authConfigured) return { items: [], nextCursor: null };
+  const query = feedQuery(type);
   const { data, error } = await supabase.rpc("get_media_feed", {
-    p_media_type: type,
+    p_media_type: query.mediaType,
+    p_category: query.category,
     p_before_featured: cursor?.featured ?? null,
     p_before_sort: cursor?.sortOrder ?? null,
     p_before_published: cursor?.publishedAt ?? null,
@@ -49,12 +56,14 @@ export async function listMediaPage(type: MediaType, cursor: MediaCursor | null 
   return { items, nextCursor: items.length === PAGE_SIZE && last ? { featured: last.isFeatured, sortOrder: last.sortOrder, publishedAt: last.publishedAt, id: last.id } : null };
 }
 
-export async function searchMedia(type: MediaType, query: string): Promise<MediaItem[]> {
+export async function searchMedia(type: MediaFeedType, query: string): Promise<MediaItem[]> {
   if (!authConfigured) return [];
   const term = query.trim();
   if (!term) return [];
+  const feed = feedQuery(type);
   const { data, error } = await supabase.rpc("search_media", {
-    p_media_type: type,
+    p_media_type: feed.mediaType,
+    p_category: feed.category,
     p_query: term,
     p_limit: 50,
   });
@@ -62,7 +71,7 @@ export async function searchMedia(type: MediaType, query: string): Promise<Media
   return ((data ?? []) as MediaRow[]).map(mapMedia);
 }
 
-export async function getCachedMedia(type: MediaType): Promise<MediaItem[]> {
+export async function getCachedMedia(type: MediaFeedType): Promise<MediaItem[]> {
   try {
     const raw = await AsyncStorage.getItem(`${CACHE_PREFIX}${type}`);
     return raw ? (JSON.parse(raw) as MediaItem[]) : [];
@@ -74,7 +83,7 @@ export async function getCachedMedia(type: MediaType): Promise<MediaItem[]> {
 export async function getMedia(id: string): Promise<MediaItem> {
   const { data, error } = await supabase.from("media").select("*").eq("id", id).single();
   if (!error) return mapMedia(data as MediaRow);
-  const cached = [...await getCachedMedia("video"), ...await getCachedMedia("short")].find((item) => item.id === id);
+  const cached = [...await getCachedMedia("video"), ...await getCachedMedia("short"), ...await getCachedMedia("song")].find((item) => item.id === id);
   if (cached) return { ...cached, offlineCached: true };
   throw error;
 }

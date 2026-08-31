@@ -11,7 +11,7 @@ These functions keep all privileged Paystack operations outside the Expo app:
 Apply migrations `013_voluntary_donations.sql` and `014_senior_admin_donation_reporting.sql`, then set server-side secrets and deploy:
 
 ```sh
-supabase secrets set PAYSTACK_SECRET_KEY=... DONATION_CALLBACK_URL=https://adventnurutech.xyz/payments/paystack/callback
+supabase secrets set PAYSTACK_SECRET_KEY=... DONATION_CALLBACK_URL=https://song-pied-eight.vercel.app/payments/paystack/callback
 supabase functions deploy initialize-donation
 supabase functions deploy verify-donation
 supabase functions deploy paystack-webhook --no-verify-jwt

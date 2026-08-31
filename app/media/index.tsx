@@ -11,7 +11,7 @@ import { EmbeddedYouTubePlayer } from "@/src/features/media/components/EmbeddedY
 import { MediaActions } from "@/src/features/media/components/MediaActions";
 import { MediaCard } from "@/src/features/media/components/MediaCard";
 import { MediaSkeleton } from "@/src/features/media/components/MediaSkeleton";
-import type { MediaItem, MediaType } from "@/src/features/media/types";
+import type { MediaFeedType, MediaItem } from "@/src/features/media/types";
 import { useMediaFeed } from "@/src/features/media/useMediaFeed";
 import { formatMediaCount, getMediaLayout, mediaDescriptionToPlainText } from "@/src/features/media/utils";
 
@@ -19,19 +19,20 @@ const TAB_KEY = "advent-pro:media-tab:v1";
 
 export default function MediaScreen() {
   const { colors, fontFamily } = useAppTheme();
-  const [tab, setTab] = useState<MediaType>("video");
+  const [tab, setTab] = useState<MediaFeedType>("video");
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
 
-  useEffect(() => { void AsyncStorage.getItem(TAB_KEY).then((value) => { if (value === "short") setTab("short"); }); }, []);
+  useEffect(() => { void AsyncStorage.getItem(TAB_KEY).then((value) => { if (value === "short" || value === "song") setTab(value); }); }, []);
   useEffect(() => { const timer = setTimeout(() => setSearchQuery(searchInput.trim()), 300); return () => clearTimeout(timer); }, [searchInput]);
-  const choose = (value: MediaType) => { setTab(value); void AsyncStorage.setItem(TAB_KEY, value); };
+  const choose = (value: MediaFeedType) => { setTab(value); void AsyncStorage.setItem(TAB_KEY, value); };
 
   return <View style={[styles.screen, { backgroundColor: colors.background }]}>
     <Stack.Screen options={{ headerShown: false }} />
     <View accessibilityRole="tablist" style={[styles.tabs, { borderBottomColor: colors.border }]}>
       <Tab label="Videos" active={tab === "video"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("video")} />
       <Tab label="Shorts" active={tab === "short"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("short")} />
+      <Tab label="Songs" active={tab === "song"} color={colors.tint} textColor={colors.text} fontFamily={fontFamily} onPress={() => choose("song")} />
     </View>
     <View style={[styles.searchWrap, { backgroundColor: colors.background }]}>
       <View style={[styles.searchBox, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -39,7 +40,7 @@ export default function MediaScreen() {
         <TextInput
           value={searchInput}
           onChangeText={setSearchInput}
-          placeholder={`Search ${tab === "video" ? "videos" : "Shorts"}`}
+          placeholder={`Search ${tab === "video" ? "videos" : tab === "short" ? "Shorts" : "songs"}`}
           placeholderTextColor={colors.mutedText}
           returnKeyType="search"
           autoCapitalize="none"
@@ -50,7 +51,7 @@ export default function MediaScreen() {
         {!!searchInput && <Pressable accessibilityLabel="Clear search" hitSlop={8} onPress={() => setSearchInput("")}><Ionicons name="close-circle" size={20} color={colors.mutedText} /></Pressable>}
       </View>
     </View>
-    {tab === "video" ? <VideosFeed searchQuery={searchQuery} /> : <ShortsFeed searchQuery={searchQuery} />}
+    {tab === "short" ? <ShortsFeed searchQuery={searchQuery} /> : <VideosFeed type={tab} searchQuery={searchQuery} />}
   </View>;
 }
 
@@ -61,10 +62,10 @@ function Tab({ label, active, color, textColor, fontFamily, onPress }: { label: 
   </Pressable>;
 }
 
-function VideosFeed({ searchQuery }: { searchQuery: string }) {
+function VideosFeed({ type, searchQuery }: { type: "video" | "song"; searchQuery: string }) {
   const { colors, fontFamily } = useAppTheme();
   const router = useRouter();
-  const feed = useMediaFeed("video", searchQuery);
+  const feed = useMediaFeed(type, searchQuery);
   if (feed.loading) return <MediaSkeleton />;
   return <View style={styles.flex}>
     {(feed.error || feed.offlineCache) && <StatusBanner cached={feed.offlineCache} onRetry={() => void feed.refresh()} />}
@@ -78,7 +79,7 @@ function VideosFeed({ searchQuery }: { searchQuery: string }) {
       onEndReached={() => void feed.loadMore()}
       onEndReachedThreshold={0.5}
       renderItem={({ item, index }) => <MediaCard item={item} layout={getMediaLayout(index)} onPress={() => router.push({ pathname: "/media/[id]", params: { id: item.id } })} />}
-      ListEmptyComponent={<EmptyState icon={searchQuery ? "search-outline" : "videocam-off-outline"} title={searchQuery ? "No matching videos" : "No videos available yet"} body={searchQuery ? "Try another title, category, or word." : "Check back soon."} />}
+      ListEmptyComponent={<EmptyState icon={searchQuery ? "search-outline" : "videocam-off-outline"} title={searchQuery ? `No matching ${type === "song" ? "songs" : "videos"}` : `No ${type === "song" ? "song videos" : "videos"} available yet`} body={searchQuery ? "Try another title, category, or word." : "Check back soon."} />}
       ListFooterComponent={feed.loadingMore ? <ActivityIndicator color={colors.tint} style={styles.footerLoader} /> : <Text style={[styles.bottomSpace, { color: colors.mutedText, fontFamily }]}>{feed.items.length ? "You're all caught up" : ""}</Text>}
     />
   </View>;

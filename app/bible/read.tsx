@@ -251,11 +251,11 @@ export default function BibleReader() {
               onPress={openSelectionEditor}
               style={[styles.selBtn, styles.selBtnPrimary, { backgroundColor: colors.tint }]}
             >
-              <Share2 size={16} color={darkMode ? "#0B1220" : "#fff"} />
+              <Share2 size={16} color={colors.onPrimary} />
               <Text
                 style={[
                   styles.selBtnText,
-                  { color: darkMode ? "#0B1220" : "#fff", fontFamily },
+                  { color: colors.onPrimary, fontFamily },
                 ]}
               >
                 Select text

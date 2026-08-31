@@ -116,7 +116,7 @@ export async function paystackRequest(path: string, init: RequestInit = {}) {
 }
 
 export function safeCallbackUrl() {
-  const configured = Deno.env.get("DONATION_CALLBACK_URL")?.trim() || "https://adventnurutech.xyz/payments/paystack/callback";
+  const configured = Deno.env.get("DONATION_CALLBACK_URL")?.trim() || "https://song-pied-eight.vercel.app/payments/paystack/callback";
   const url = new URL(configured);
   if (url.protocol !== "https:") throw new Error("DONATION_CALLBACK_URL must use HTTPS.");
   return url.toString();

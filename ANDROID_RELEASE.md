@@ -1,17 +1,21 @@
-# Advent Pro Android release guide (version 1.2.0)
+# Advent Pro Android release guide (version 2.0.0)
 
-Last verified: August 24, 2026.
+Last verified: August 27, 2026.
 
 This project produces two Android artifacts:
 
 - The `preview` profile creates an installable **APK** for direct testing.
 - The `production` profile creates an **AAB** for Google Play. An AAB is not installed directly on a phone.
 
-The application ID is `com.adventpro`; never change it after the first Play release. The public version is `1.2.0`. EAS stores the Android `versionCode` remotely and increments it for production builds because `eas.json` uses `appVersionSource: "remote"` and `autoIncrement: true`.
+The application ID is `com.adventpro`; never change it after the first Play release. The public version is `2.0.0`. EAS stores the Android `versionCode` remotely and increments it for production builds because `eas.json` uses `appVersionSource: "remote"` and `autoIncrement: true`. The production cloud build uses the supported Node 22 runtime pinned in `eas.json`.
 
 The app currently uses Expo SDK 54 and React Native 0.81. SDK 54 compiles and targets Android 16/API 36, which meets Google Play's API 36 requirement that applies to new mobile-app submissions and updates from August 31, 2026. Do not override the target SDK below 36.
 
-## 1. Release scope for 1.2.0
+Prepared 2.0.0 candidate: EAS build `0bd02ad7-ed14-4d29-bc3e-a0389c3185e1`, Android `versionCode` 6, local artifact `artifacts/Advent-Pro-2.0.0-build-6.aab`, SHA-256 `5CD28773EF42C3A0368B0AF8AE367A3CCCC86349F86B01D30B1F1A269062FF74`.
+
+This replacement candidate keeps camera capture available while declaring physical camera hardware optional. It supersedes version code 5, which Play reported as unnecessarily excluding 402 camera-less device models.
+
+## 1. Release scope for 2.0.0
 
 Release testing and store text should cover the features that are actually in this build:
 
@@ -26,7 +30,7 @@ Release testing and store text should cover the features that are actually in th
 
 Suggested release-note summary:
 
-> Adds videos and Shorts, richer study discovery and community interactions, improved sharing and Bible navigation, refreshed account controls, and updated privacy and release information.
+> Adds on-demand song and study downloads, administrator-managed categories, videos and Shorts, richer study discovery and community interactions, improved sharing and Bible navigation, refreshed account controls, and updated privacy and release information.
 
 ## 2. One-time setup
 
@@ -75,13 +79,14 @@ All commands must finish without errors. Review warnings before proceeding.
 
 Also verify the following manually:
 
-1. `package.json`, `app.json`, the About screen, and `android/app/build.gradle` all show public version `1.2.0`.
+1. `package.json`, `app.json`, the About screen, and `android/app/build.gradle` all show public version `2.0.0`.
 2. `app.json` and the Android native project resolve to package `com.adventpro` and target API 36.
 3. The production Supabase database has every migration in `supabase/MIGRATIONS.md`, currently through `019_dynamic_content_categories.sql`. Migration `017_production_notifications.sql` is required before any remote notification test.
 4. The public site is deployed with working, no-login pages:
-   - `https://YOUR_DOMAIN/privacy`
-   - `https://YOUR_DOMAIN/terms`
-   - `https://YOUR_DOMAIN/account-deletion`
+   - `https://song-pied-eight.vercel.app/privacy`
+   - `https://song-pied-eight.vercel.app/terms`
+   - `https://song-pied-eight.vercel.app/account-deletion`
+   Redeploy `admin-web` after legal-link changes and confirm the rendered pages contain no links or copy pointing to the expired `adventnurutech.xyz` domain.
 5. The privacy policy and Play Data Safety answers match the shipping binary, including Supabase authentication, email/display name, comments and reports, likes, media/study view activity, session identifiers, watch duration, embedded YouTube playback, and account deletion.
 6. The account-deletion page provides an actual way to submit a request without reinstalling the app, and a trusted administrator or server process can complete the pending database request by deleting the Supabase Auth account and associated personal data.
 
@@ -93,7 +98,7 @@ Build the direct-install test file:
 npm run build:android:test
 ```
 
-When the build completes, download the `.apk` from its EAS build page and name it clearly, for example `Advent-Pro-1.2.0-preview.apk`. Send it as a document or share the EAS download link.
+When the build completes, download the `.apk` from its EAS build page and name it clearly, for example `Advent-Pro-2.0.0-preview.apk`. Send it as a document or share the EAS download link.
 
 ### Tester installation
 
@@ -166,7 +171,7 @@ Enter the greatest `versionCode` already uploaded to Play; the next production b
 ## 7. Upload, test, and release through Google Play
 
 1. Open **Test and release → Testing → Internal testing**, create a release, and upload the AAB. Play Console labels can change; use its dashboard tasks if the exact navigation differs.
-2. Add version 1.2.0 release notes, save, review, and roll out to internal testing.
+2. Add version 2.0.0 release notes, save, review, and roll out to internal testing.
 3. Add tester emails or a Google Group and share the opt-in link. Test the Play-installed build even if the direct APK passed because Play signing and delivery are different.
 4. Resolve every Play Console error. Review warnings, pre-launch reports, accessibility findings, Android vitals, and policy messages.
 5. If the account is subject to the new-personal-account rule, complete the qualifying closed test and production-access application.
@@ -178,7 +183,7 @@ Enter the greatest `versionCode` already uploaded to Play; the next production b
 Do not submit to production until all of these are true:
 
 - The exact production candidate passed the checklist on at least one real Android device, with another Android version or screen size tested where possible.
-- The AAB targets API 36, has package `com.adventpro`, public version `1.2.0`, and a unique `versionCode`.
+- The AAB targets API 36, has package `com.adventpro`, public version `2.0.0`, and a unique `versionCode`.
 - Every database migration through 019 is deployed and the app behaves safely if network-backed features fail.
 - Public privacy, terms, and account-deletion pages work without login and match actual app behavior.
 - Data Safety answers include current account, community, activity, session, third-party SDK, and deletion behavior.

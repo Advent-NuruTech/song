@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { getCachedMedia, listMediaPage, searchMedia } from "./mediaService";
-import type { MediaCursor, MediaItem, MediaType } from "./types";
+import type { MediaCursor, MediaFeedType, MediaItem } from "./types";
 import { rankMediaForViewer } from "./recommendations";
 import { mediaDescriptionToPlainText } from "./utils";
 
-export function useMediaFeed(type: MediaType, searchQuery = "") {
+export function useMediaFeed(type: MediaFeedType, searchQuery = "") {
   const [items, setItems] = useState<MediaItem[]>([]);
   const [cursor, setCursor] = useState<MediaCursor | null>(null);
   const [loading, setLoading] = useState(true);

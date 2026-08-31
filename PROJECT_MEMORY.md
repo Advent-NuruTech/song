@@ -1,6 +1,43 @@
 # Advent Pro project memory
 
+## 2026-08-31 - Dedicated Song-video media feed
+
+Outcome: Media now has a Songs tab beside Videos and Shorts. It presents regular videos assigned the normalized `Songs` media category, using the same card view, search, pagination, engagement, and offline-cache behavior as the Videos tab.
+
+- Added the `song` client feed type, which maps to `media_type = video` and category `Songs`; it does not introduce a third playback format or duplicate stored media.
+- Migration `021_media_song_video_feed.sql` extends the public feed and search RPCs with an optional category predicate and a matching bounded-feed index. Existing Video and Shorts RPC calls continue to work through default parameters.
+- Media authors should select **Video** as the media type and **Songs** as the category for an item to appear in the Songs tab.
+
+Important files: `app/media/index.tsx`, `src/features/media/types.ts`, `src/features/media/mediaService.ts`, `src/features/media/useMediaFeed.ts`, `supabase/migrations/021_media_song_video_feed.sql`, `PROJECT.md`.
+
+Verification: `npx tsc --noEmit`, `npm run test:media`, and `npm run lint` pass. The migration still needs to be applied to Supabase staging and production before the Songs feed is live for remotely served media.
+
+## 2026-08-31 — Offline identity, About page ownership, and collaboration publishing repair
+
+Outcome: a previously signed-in reader now remains recognised while the device is offline, the About page is Byron Onyango-owned and locally editable, and collaboration publishing no longer fails when an accepted revision carries a display-name category such as `State of the Dead`.
+
+- Auth caches the most recent valid Supabase session, profile, roles, and permissions locally. Connection errors preserve that confirmed identity instead of rendering the user as logged out; a deliberate sign-out clears both caches. Network-only actions still require a connection.
+- Replaced the About page's Advent Nurutech/external-link branding with `Built by Byron Onyango`, the supplied bundled Byron portrait, and the supplied Advent Pro story. The image uses `contain`, so it is displayed whole without cropping.
+- Added a local SQLite-backed About-page editor to mobile Admin Mode. Administrators can change the story and add/remove an unlimited horizontal gallery of photos; selected files are copied to app-local storage for offline use. The bundled Byron image remains the first default image.
+- Migration `020_publish_collaboration_categories.sql` normalizes a collaboration revision's category to the canonical category key and creates the category if necessary before the published-study insert. This fixes the reported `Unknown study category: State of the Dead` error.
+
+Important files: `src/auth/AuthContext.tsx`, `src/db/initDb.ts`, `src/services/aboutPageService.ts`, `app/(tabs)/about.tsx`, `app/admin/AboutManager.tsx`, `app/admin/AdminDashboard.tsx`, `assets/images/byron-onyango.png`, `supabase/migrations/020_publish_collaboration_categories.sql`, `PROJECT.md`.
+
+Verification: `npx tsc --noEmit`, `npm run lint`, and `npm run test:content-platform` all pass. The migration still needs to be applied to Supabase staging and production before the collaboration publishing fix is live for remote projects.
+
 This is the durable engineering record for major changes. Contributors and coding agents must read it before significant work and append an entry after every major feature, architecture, schema, dependency, release, or performance upgrade.
+
+## 2026-08-31 — Dark-mode primary button contrast safeguard
+
+Outcome: dark-mode primary actions now stay readable instead of inheriting a white accent that made labels disappear on white-backed buttons. The dark theme tint was changed from pure white to a real accent blue, and the few dark-mode special cases that had been compensating with dark text were updated to use the shared `onPrimary` foreground so button labels and icons remain visible.
+
+- Updated the dark theme accent token to `#2563EB` so dark-mode primary buttons and selected accents no longer render as white-on-white.
+- Normalized dark-mode button foregrounds in the account, Bible share, and scripture share flows to use `colors.onPrimary`.
+- This fix also protects the study download and collaboration buttons that use the shared tint token for their backgrounds.
+
+Important files: `constants/theme.ts`, `app/account.tsx`, `app/bible/read.tsx`, `components/scripture-share-editor.tsx`, `app/studies/[id].tsx`, `app/collaboration/[id].tsx`, `PROJECT.md`.
+
+Verification: targeted source review after the theme and foreground updates.
 
 ## 2026-08-26 — Explicit on-demand songs and studies
 

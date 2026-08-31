@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 import { parseDonationAmount } from "../src/services/donations/validation.ts";
-import { isSupportPromptContentRoute, supportMonthKey } from "../src/services/donations/supportPromptPolicy.ts";
+import {
+  isSupportPromptContentRoute,
+  isSupportPromptIntroComplete,
+  SUPPORT_PROMPT_INTRO_DELAY_DAYS,
+  supportMonthKey,
+} from "../src/services/donations/supportPromptPolicy.ts";
 import { isDonationCallbackUrl, isTrustedPaystackCheckoutUrl, isValidDonationReference } from "../src/services/donations/paystackService.ts";
 
 test("donation amount accepts whole KES values within policy", () => {
@@ -33,13 +38,21 @@ test("monthly prompt policy is calendar based and content-only", () => {
   assert.equal(isSupportPromptContentRoute("/account"), false);
 });
 
+test("first support invitation waits at least three weeks", () => {
+  const firstUse = new Date(2026, 7, 1).getTime().toString();
+  assert.equal(SUPPORT_PROMPT_INTRO_DELAY_DAYS, 21);
+  assert.equal(isSupportPromptIntroComplete(firstUse, new Date(2026, 7, 21, 23, 59, 59)), false);
+  assert.equal(isSupportPromptIntroComplete(firstUse, new Date(2026, 7, 22)), true);
+  assert.equal(isSupportPromptIntroComplete("not-a-timestamp", new Date(2026, 7, 22)), false);
+});
+
 test("checkout and callback URL validation rejects lookalike origins", () => {
   assert.equal(isTrustedPaystackCheckoutUrl("https://checkout.paystack.com/abc"), true);
   assert.equal(isTrustedPaystackCheckoutUrl("https://checkout.paystack.com.evil.test/abc"), false);
   assert.equal(isTrustedPaystackCheckoutUrl("http://checkout.paystack.com/abc"), false);
-  assert.equal(isDonationCallbackUrl("https://adventnurutech.xyz/payments/paystack/callback?reference=x", "https://adventnurutech.xyz/payments/paystack/callback"), true);
-  assert.equal(isDonationCallbackUrl("https://adventnurutech.xyz/payments/paystack/callback/", "https://adventnurutech.xyz/payments/paystack/callback"), true);
-  assert.equal(isDonationCallbackUrl("https://evil.test/payments/paystack/callback", "https://adventnurutech.xyz/payments/paystack/callback"), false);
+  assert.equal(isDonationCallbackUrl("https://song-pied-eight.vercel.app/payments/paystack/callback?reference=x", "https://song-pied-eight.vercel.app/payments/paystack/callback"), true);
+  assert.equal(isDonationCallbackUrl("https://song-pied-eight.vercel.app/payments/paystack/callback/", "https://song-pied-eight.vercel.app/payments/paystack/callback"), true);
+  assert.equal(isDonationCallbackUrl("https://evil.test/payments/paystack/callback", "https://song-pied-eight.vercel.app/payments/paystack/callback"), false);
 });
 
 test("references are tightly scoped", () => {

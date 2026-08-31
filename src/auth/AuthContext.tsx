@@ -1,4 +1,5 @@
 import type { Session, User } from "@supabase/supabase-js";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { authConfigured, supabase } from "./supabaseClient";
 import { disableCurrentPushDevice } from "@/src/features/notifications/notificationService";
@@ -16,6 +17,24 @@ type AuthValue = {
 };
 
 const AuthContext = createContext<AuthValue | null>(null);
+const OFFLINE_SESSION_KEY = "@auth/offline_session";
+const OFFLINE_ACCESS_KEY = "@auth/offline_access";
+
+type OfflineAccess = { profile: Profile | null; roles: string[]; permissions: string[] };
+
+function parseStored<T>(value: string | null): T | null {
+  if (!value) return null;
+  try { return JSON.parse(value) as T; } catch { return null; }
+}
+
+async function cacheSession(next: Session | null) {
+  if (next) await AsyncStorage.setItem(OFFLINE_SESSION_KEY, JSON.stringify(next));
+  else await AsyncStorage.removeItem(OFFLINE_SESSION_KEY);
+}
+
+async function cacheAccess(next: OfflineAccess) {
+  await AsyncStorage.setItem(OFFLINE_ACCESS_KEY, JSON.stringify(next));
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
@@ -27,20 +46,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshAccess = useCallback(async () => {
     const userId = session?.user.id;
     if (!userId) { setProfile(null); setRoles([]); setPermissions([]); return; }
-    const [{ data: p }, { data: assigned }] = await Promise.all([
+    const [{ data: p, error: profileError }, { data: assigned, error: rolesError }] = await Promise.all([
       supabase.from("profiles").select("id,email,display_name").eq("id", userId).maybeSingle(),
       supabase.from("app_user_roles").select("role_name,app_roles(app_role_permissions(permission_name))").eq("user_id", userId),
     ]);
-    setProfile((p as Profile | null) ?? null);
+    // A connection failure must not turn a signed-in person into a guest. Keep
+    // the last confirmed local identity and access while Supabase is unreachable.
+    if (profileError || rolesError) return;
+    const nextProfile = (p as Profile | null) ?? {
+      id: userId,
+      email: session?.user.email ?? "",
+      display_name: String(session?.user.user_metadata?.display_name ?? ""),
+    };
     const rows = (assigned ?? []) as unknown as { role_name: string; app_roles: { app_role_permissions: { permission_name: string }[] } | null }[];
-    setRoles(rows.map((r) => r.role_name));
-    setPermissions([...new Set(rows.flatMap((r) => r.app_roles?.app_role_permissions?.map((x) => x.permission_name) ?? []))]);
-  }, [session?.user.id]);
+    const nextRoles = rows.map((r) => r.role_name);
+    const nextPermissions = [...new Set(rows.flatMap((r) => r.app_roles?.app_role_permissions?.map((x) => x.permission_name) ?? []))];
+    setProfile(nextProfile); setRoles(nextRoles); setPermissions(nextPermissions);
+    await cacheAccess({ profile: nextProfile, roles: nextRoles, permissions: nextPermissions });
+  }, [session?.user.id, session?.user.email, session?.user.user_metadata?.display_name]);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false); });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => { setSession(next); setLoading(false); });
-    return () => data.subscription.unsubscribe();
+    let active = true;
+    void (async () => {
+      const [storedSession, storedAccess] = await Promise.all([
+        AsyncStorage.getItem(OFFLINE_SESSION_KEY),
+        AsyncStorage.getItem(OFFLINE_ACCESS_KEY),
+      ]);
+      if (!active) return;
+      const cachedSession = parseStored<Session>(storedSession);
+      const cachedAccess = parseStored<OfflineAccess>(storedAccess);
+      if (cachedSession) setSession(cachedSession);
+      if (cachedAccess) {
+        setProfile(cachedAccess.profile);
+        setRoles(cachedAccess.roles);
+        setPermissions(cachedAccess.permissions);
+      }
+      // getSession reads the persisted Supabase session locally. If it cannot
+      // restore one (for example during an offline token-refresh failure), keep
+      // the explicit offline cache instead of showing a logged-out account.
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (data.session && !error) {
+          setSession(data.session);
+          await cacheSession(data.session);
+        } else if (!cachedSession) {
+          setSession(null);
+        }
+      } catch {
+        if (!cachedSession) setSession(null);
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    const { data } = supabase.auth.onAuthStateChange((event, next) => {
+      if (event === "SIGNED_OUT") {
+        setSession(null); setProfile(null); setRoles([]); setPermissions([]);
+        void cacheSession(null); void AsyncStorage.removeItem(OFFLINE_ACCESS_KEY);
+      } else if (next) {
+        setSession(next); void cacheSession(next);
+      }
+      setLoading(false);
+    });
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
   useEffect(() => { void refreshAccess(); }, [refreshAccess]);
 
@@ -76,6 +143,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       catch (error) { console.warn("Unable to disable this device before sign out", error); }
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      // Supabase emits SIGNED_OUT, but clear immediately as well so deliberate
+      // sign-out never falls back to an old offline identity.
+      setSession(null); setProfile(null); setRoles([]); setPermissions([]);
+      await cacheSession(null); await AsyncStorage.removeItem(OFFLINE_ACCESS_KEY);
     },
     refreshAccess,
   }), [loading, session, profile, roles, permissions, refreshAccess]);

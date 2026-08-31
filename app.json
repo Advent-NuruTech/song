@@ -2,7 +2,7 @@
   "expo": {
     "name": "Advent Pro",
     "slug": "advent-pro",
-    "version": "1.2.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "adventpro",
@@ -53,9 +53,11 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow Advent Pro to add images to your notes.",
+          "cameraPermission": "Allow Advent Pro to take photos for your notes.",
           "microphonePermission": false
         }
-      ]
+      ],
+      "./plugins/with-optional-camera"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -16,6 +16,23 @@ test("migration 019 owns the unified guarded taxonomy", async () => {
   assert.match(sql, /content_categories_admin_all/i);
 });
 
+test("collaboration publishing converts display labels into registered category keys", async () => {
+  const sql = await read("supabase/migrations/020_publish_collaboration_categories.sql");
+  assert.match(sql, /create or replace function public\.publish_study_project/i);
+  assert.match(sql, /normalize_content_category_key\(category_label\)/i);
+  assert.match(sql, /insert into public\.content_categories/i);
+  assert.match(sql, /values\(study_id,category_key,r\.title/i);
+});
+
+test("authenticated identity has an offline cache fallback", async () => {
+  const auth = await read("src/auth/AuthContext.tsx");
+  assert.match(auth, /OFFLINE_SESSION_KEY/);
+  assert.match(auth, /OFFLINE_ACCESS_KEY/);
+  assert.match(auth, /if \(profileError \|\| rolesError\) return/);
+  assert.match(auth, /if \(cachedSession\) setSession\(cachedSession\)/);
+  assert.match(auth, /event === "SIGNED_OUT"/);
+});
+
 test("remote collection sync writes metadata, not full bodies", async () => {
   const source = await read("src/content/sync.ts");
   assert.match(source, /upsertSongCatalog\(data/);

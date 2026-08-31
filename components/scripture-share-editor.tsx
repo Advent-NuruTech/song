@@ -40,7 +40,7 @@ export function ScriptureShareEditor({
   template,
   onCopied,
 }: ScriptureShareEditorProps) {
-  const { colors, size, fontFamily, darkMode } = useAppTheme();
+  const { colors, size, fontFamily } = useAppTheme();
   const inputRef = useRef<TextInput>(null);
   const shotRef = useRef<ViewShot>(null);
   const [draft, setDraft] = useState(text);
@@ -196,11 +196,11 @@ export function ScriptureShareEditor({
                 { backgroundColor: colors.tint, opacity: excerpt && !sharing ? 1 : 0.45 },
               ]}
             >
-              <Share2 size={18} color={darkMode ? "#0B1220" : "#FFFFFF"} />
+              <Share2 size={18} color={colors.onPrimary} />
               <Text
                 style={[
                   styles.actionText,
-                  { color: darkMode ? "#0B1220" : "#FFFFFF", fontFamily },
+                  { color: colors.onPrimary, fontFamily },
                 ]}
               >
                 {sharing ? "Preparing image…" : template ? "Share image" : hasHighlight ? "Share selected" : "Share all"}

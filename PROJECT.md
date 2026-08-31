@@ -1,6 +1,6 @@
 # Advent Pro — architecture and operating contract
 
-Last reconciled: 2026-08-26
+Last reconciled: 2026-08-31
 
 ## Product contract
 
@@ -13,6 +13,8 @@ Non-negotiable rules:
 3. Startup waits only for local schema readiness. Seeding and every network sync run in the background.
 4. Categories are data. Administrators may create any number of song or study categories, assign content, and publish without an app-code change or store release.
 5. Significant features, schema changes, upgrades, releases, and performance changes must be recorded in `PROJECT_MEMORY.md` in the same change.
+6. Theme tokens must preserve readable button labels in both light and dark mode. If an accent background changes, the matching foreground color must be checked for contrast before release.
+7. A previously authenticated user remains signed in while offline. Local identity and last-confirmed access are a fallback only; network-only actions still wait for a connection.
 
 ## Current architecture
 
@@ -64,17 +66,30 @@ Published edits, tombstones, categories, and assignments reconcile through the s
 - [x] Unified unlimited song/study categories managed from web and local admin.
 - [x] Lazy Bible-version installation/removal with shared version-agnostic schema.
 - [x] Accounts/roles, personal notes/playlists, study collaboration, media, engagement/discovery, notifications, and voluntary donations.
+- [x] Media Songs tab, with bounded song-video category feeds, search, pagination, and offline cache support.
+- [x] Offline-resilient authenticated identity plus a locally admin-editable About story and horizontally scrollable image gallery.
 
 ## Infrastructure follow-up
 
 These are deployment/operations tasks, not content-model rewrites:
 
-- [ ] Apply migration `019_dynamic_content_categories.sql` to staging and production.
+- [ ] Apply migration `019_dynamic_content_categories.sql` to staging.
+- [x] Apply migration `019_dynamic_content_categories.sql` to production (API-verified 2026-08-27).
+- [ ] Apply migration `020_publish_collaboration_categories.sql` to staging and production.
 - [ ] Publish immutable per-item song/study JSON to object storage and place a CDN in front.
 - [ ] Emit compact, paginated catalog manifests/deltas from the publish pipeline.
 - [ ] Add hosted full-corpus search and merge it with local results.
 - [ ] Define storage limits and implement eviction only for non-pinned cache entries.
 - [ ] Add CDN/search observability, rate limits, cost alerts, backups, and disaster-recovery drills.
+
+## Current Android release candidate
+
+- Advent Pro `2.0.0` / Android `versionCode` 6 was built successfully with the EAS production profile on 2026-08-27.
+- Upload artifact: `artifacts/Advent-Pro-2.0.0-build-6.aab`.
+- EAS build: `0bd02ad7-ed14-4d29-bc3e-a0389c3185e1`.
+- SHA-256: `5CD28773EF42C3A0368B0AF8AE367A3CCCC86349F86B01D30B1F1A269062FF74`.
+- Camera capture remains available, but physical camera hardware is optional so camera-less devices are not filtered by Play.
+- Production rollout remains gated on Play internal-track/device testing and the manual policy/infrastructure confirmations in `ANDROID_RELEASE.md`.
 
 ## Change procedure
 

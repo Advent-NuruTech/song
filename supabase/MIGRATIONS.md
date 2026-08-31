@@ -21,6 +21,8 @@ Run migrations in numeric order. For a new project use:
 17. `017_production_notifications.sql`
 18. `018_fix_donation_daily_totals_decrement.sql`
 19. `019_dynamic_content_categories.sql`
+20. `020_publish_collaboration_categories.sql`
+21. `021_media_song_video_feed.sql`
 
 With the Supabase CLI, link the production project once and run `supabase db push`.
 In the SQL Editor, open and run each file in order. Never put a service-role key

@@ -1,4 +1,6 @@
 export type MediaType = "video" | "short";
+/** A Media screen feed. Song videos are regular videos filed under the Songs category. */
+export type MediaFeedType = MediaType | "song";
 export type MediaLayout = "compact" | "full";
 
 export type MediaItem = {

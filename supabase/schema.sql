@@ -16,6 +16,7 @@
 --   007_song_catalog_privileges.sql
 --   008_media_module.sql through 018_fix_donation_daily_totals_decrement.sql
 --   019_dynamic_content_categories.sql
+--   020_publish_collaboration_categories.sql
 --
 -- See `supabase/MIGRATIONS.md`. Future changes must use the next number.
 -- Do not edit a migration after it has been deployed.

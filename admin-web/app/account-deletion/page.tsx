@@ -14,6 +14,6 @@ export default function AccountDeletionPage() {
     <h2>What may be retained</h2><p>Limited security, audit, fraud-prevention, dispute, or legally required records may be retained where necessary. Backup copies are removed through normal backup-expiry cycles.</p>
     <h2>Cannot access the app?</h2><p>You do not need to reinstall Advent Pro. Email <a href="mailto:adventnurutech@gmail.com?subject=Advent%20Pro%20account%20deletion%20request">adventnurutech@gmail.com</a> or <a href="https://wa.me/254142225233?text=I%20want%20to%20request%20deletion%20of%20my%20Advent%20Pro%20account">send Advent Nuru Tech a WhatsApp deletion request</a>. Include the email address connected to your account. We may request verification before processing.</p>
     <p>Last updated: August 24, 2026.</p>
-    <nav className="legal-links" aria-label="Advent Pro legal resources"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="https://adventnurutech.xyz">Advent Nuru Tech</a></nav>
+    <nav className="legal-links" aria-label="Advent Pro legal resources"><a href="/privacy">Privacy Policy</a><a href="/terms">Terms of Service</a><a href="https://song-pied-eight.vercel.app">Advent Pro</a></nav>
   </main>;
 }

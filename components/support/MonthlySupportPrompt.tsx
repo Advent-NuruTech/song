@@ -27,7 +27,7 @@ export function MonthlySupportPrompt({ visible, onProceed, onDismiss }: Props) {
             <Text style={[styles.copy, { color: colors.text, fontFamily, fontSize: size(14) }]}>Advent Pro is freely available to everyone.</Text>
             <Text style={[styles.copy, { color: colors.text, fontFamily, fontSize: size(14) }]}>If this app has been a blessing to you, kindly consider supporting its continued development with whatever amount you are able to give.</Text>
             <Text style={[styles.copy, { color: colors.text, fontFamily, fontSize: size(14) }]}>Your voluntary support helps us meet server costs, maintain the app, preserve and make Present Truth resources accessible, and continue improving Advent Pro.</Text>
-            <Text style={[styles.notice, { color: colors.mutedText, borderColor: colors.border, fontFamily, fontSize: size(13) }]}>You will receive this support invitation no more than <Text style={{ fontWeight: "800" }}>once</Text> each month. Your support is completely voluntary. Giving or not giving does not affect your access to any feature or content.</Text>
+            <Text style={[styles.notice, { color: colors.mutedText, borderColor: colors.border, fontFamily, fontSize: size(13) }]}>This invitation first appears after you have had Advent Pro for at least three weeks, then no more than <Text style={{ fontWeight: "800" }}>once</Text> each month. Your support is completely voluntary. Giving or not giving does not affect your access to any feature or content.</Text>
             <Pressable onPress={onProceed} style={[styles.primaryButton, { backgroundColor: colors.primary }]}>
               <Text style={[styles.primaryText, { color: colors.onPrimary, fontFamily }]}>Proceed to Support</Text>
             </Pressable>

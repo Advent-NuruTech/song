@@ -207,6 +207,14 @@ async function createCoreTables() {
       PRIMARY KEY (contentType, contentId)
     );
 
+    -- This is deliberately device-local: the About page and its gallery must
+    -- still be available and editable when the device has no network.
+    CREATE TABLE IF NOT EXISTS app_page_content (
+      pageKey TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updatedAt INTEGER NOT NULL
+    );
+
     CREATE INDEX IF NOT EXISTS idx_content_downloads_lru
       ON content_downloads(lastAccessedAt ASC);
   `);

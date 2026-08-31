@@ -1,13 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
+import { File } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import { useMemo, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { WebView } from "react-native-webview";
 
 import { BibleInsertPicker, type BibleInsertion } from "./bible-insert-picker";
 import type { RichNoteEditorProps } from "./rich-note-editor.types";
 
 type Tool = { icon?: keyof typeof Ionicons.glyphMap; glyph?: string; label: string; command: string; value?: string; glyphStyle?: "bold" | "italic" | "underline" };
+const MAX_IMAGE_FILE_BYTES = 8 * 1024 * 1024;
+
 const TOOLS: Tool[] = [
   { glyph: "B", label: "Bold", command: "bold", glyphStyle: "bold" },
   { glyph: "I", label: "Italic", command: "italic", glyphStyle: "italic" },
@@ -31,6 +35,7 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   const [linkText, setLinkText] = useState("");
   const [linkUrl, setLinkUrl] = useState("https://");
   const [bibleOpen, setBibleOpen] = useState(false);
+  const [imageSourceOpen, setImageSourceOpen] = useState(false);
 
   const source = useMemo(() => ({ html: editorDocument(
     props.initialHtml,
@@ -45,15 +50,55 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
   ) }), [props.cardColor, props.compact, props.editable, props.initialHtml, props.maxLength, props.minHeight, props.placeholder, props.seamless, props.textColor, props.tint]);
   const send = (command: string, value?: string) => webView.current?.postMessage(JSON.stringify({ command, value }));
 
-  const insertImage = async () => {
+  const insertImageAsset = (base64: string, mimeType?: string | null) => {
+    send("insertImage", `data:${mimeType || "image/jpeg"};base64,${base64}`);
+  };
+
+  const chooseFromLibrary = async () => {
+    setImageSourceOpen(false);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) return;
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"], allowsEditing: false, quality: 0.72, base64: true,
-    });
+    if (!permission.granted) {
+      Alert.alert("Photo access needed", "Allow photo access to choose an image for your note.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: false, quality: 0.72, base64: true });
     const asset = result.assets?.[0];
     if (result.canceled || !asset?.base64) return;
-    send("insertImage", `data:${asset.mimeType || "image/jpeg"};base64,${asset.base64}`);
+    insertImageAsset(asset.base64, asset.mimeType);
+  };
+
+  const takePhoto = async () => {
+    setImageSourceOpen(false);
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert("Camera access needed", "Allow camera access to take a photo for your note.");
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], allowsEditing: false, quality: 0.72, base64: true });
+      const asset = result.assets?.[0];
+      if (result.canceled || !asset?.base64) return;
+      insertImageAsset(asset.base64, asset.mimeType);
+    } catch {
+      Alert.alert("Camera unavailable", "This device does not have an available camera. You can choose an image instead.");
+    }
+  };
+
+  const chooseImageFile = async () => {
+    setImageSourceOpen(false);
+    try {
+      const result = await DocumentPicker.getDocumentAsync({ type: "image/*", copyToCacheDirectory: true, multiple: false });
+      const asset = result.assets?.[0];
+      if (result.canceled || !asset) return;
+      if (asset.size && asset.size > MAX_IMAGE_FILE_BYTES) {
+        Alert.alert("Image is too large", "Choose an image smaller than 8 MB so the note remains fast and reliable.");
+        return;
+      }
+      const base64 = await new File(asset.uri).base64();
+      insertImageAsset(base64, asset.mimeType);
+    } catch {
+      Alert.alert("Could not open image", "Please try another image file.");
+    }
   };
 
   const insertLink = () => {
@@ -80,13 +125,35 @@ export default function RichNoteEditor(props: RichNoteEditorProps) {
         <Pressable accessibilityLabel="Insert a named link" onPress={() => setLinkOpen(true)} style={styles.tool}>
           <Ionicons name="link" size={20} color={props.tint} />
         </Pressable>
-        <Pressable accessibilityLabel="Insert an image" onPress={() => void insertImage()} style={styles.tool}>
+        <Pressable accessibilityLabel="Insert an image" onPress={() => setImageSourceOpen(true)} style={styles.tool}>
           <Ionicons name="image-outline" size={20} color={props.tint} />
         </Pressable>
         <Pressable accessibilityLabel="Insert Bible passage" onPress={() => setBibleOpen(true)} style={styles.tool}>
           <Ionicons name="book-outline" size={20} color={props.tint} />
         </Pressable>
       </ScrollView>
+      <Modal visible={imageSourceOpen} transparent animationType="fade" onRequestClose={() => setImageSourceOpen(false)}>
+        <Pressable style={styles.backdrop} onPress={() => setImageSourceOpen(false)}>
+          <Pressable style={[styles.dialog, { backgroundColor: props.cardColor, borderColor: props.borderColor }]} onPress={(event) => event.stopPropagation()}>
+            <Text style={[styles.dialogTitle, { color: props.textColor }]}>Add an image</Text>
+            <Pressable accessibilityLabel="Take a photo" onPress={() => void takePhoto()} style={[styles.imageSource, { borderColor: props.borderColor }]}>
+              <Ionicons name="camera-outline" size={22} color={props.tint} />
+              <Text style={[styles.imageSourceText, { color: props.textColor }]}>Take a photo</Text>
+            </Pressable>
+            <Pressable accessibilityLabel="Choose from photo library" onPress={() => void chooseFromLibrary()} style={[styles.imageSource, { borderColor: props.borderColor }]}>
+              <Ionicons name="images-outline" size={22} color={props.tint} />
+              <Text style={[styles.imageSourceText, { color: props.textColor }]}>Choose from photo library</Text>
+            </Pressable>
+            <Pressable accessibilityLabel="Choose an image file" onPress={() => void chooseImageFile()} style={[styles.imageSource, { borderColor: props.borderColor }]}>
+              <Ionicons name="folder-open-outline" size={22} color={props.tint} />
+              <Text style={[styles.imageSourceText, { color: props.textColor }]}>Choose an image file</Text>
+            </Pressable>
+            <View style={styles.actions}>
+              <Pressable onPress={() => setImageSourceOpen(false)} style={styles.action}><Text style={{ color: props.textColor }}>Cancel</Text></Pressable>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
       <WebView
         ref={webView}
         source={source}
@@ -162,4 +229,6 @@ const styles = StyleSheet.create({
   dialog: { borderWidth: 1, borderRadius: 20, padding: 18 }, dialogTitle: { fontSize: 20, fontWeight: "800", marginBottom: 14 },
   label: { fontSize: 12, fontWeight: "700", marginTop: 9, marginBottom: 6 }, input: { borderWidth: 1, borderRadius: 11, paddingHorizontal: 12, minHeight: 46 },
   actions: { flexDirection: "row", justifyContent: "flex-end", gap: 9, marginTop: 18 }, action: { minHeight: 42, paddingHorizontal: 16, borderRadius: 11, alignItems: "center", justifyContent: "center" }, primaryText: { color: "#fff", fontWeight: "800" },
+  imageSource: { minHeight: 52, borderWidth: 1, borderRadius: 12, paddingHorizontal: 14, marginTop: 10, flexDirection: "row", alignItems: "center", gap: 12 },
+  imageSourceText: { fontSize: 15, fontWeight: "700" },
 });

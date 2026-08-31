@@ -344,8 +344,21 @@ export default function AdminDashboard() {
           />
         </Animated.View>
 
+        <Animated.View entering={FadeInDown.delay(210).springify().damping(16)}>
+          <DashboardItem
+            title="Manage About Page"
+            subtitle="Edit Byron’s story and its offline photo gallery."
+            icon="information-circle-outline"
+            tint={colors.tint}
+            colors={colors}
+            size={size}
+            fontFamily={fontFamily}
+            onPress={() => router.push("/admin/AboutManager" as never)}
+          />
+        </Animated.View>
+
         <Animated.View
-          entering={FadeInDown.delay(230).springify().damping(16)}
+          entering={FadeInDown.delay(250).springify().damping(16)}
           style={[
             styles.backupCard,
             {
