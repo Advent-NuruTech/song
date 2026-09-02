@@ -64,7 +64,7 @@ Published edits, tombstones, categories, and assignments reconcile through the s
 - [x] Metadata-only remote catalog sync.
 - [x] Bounded song/study catalog queries and virtualized lists.
 - [x] Unified unlimited song/study categories managed from web and local admin.
-- [x] Lazy Bible-version installation/removal with shared version-agnostic schema.
+- [x] Lazy Bible-version installation/removal with shared version-agnostic schema and per-version book, reference, and verse search.
 - [x] Accounts/roles, personal notes/playlists, study collaboration, media, engagement/discovery, notifications, and voluntary donations.
 - [x] Media Songs tab, with bounded song-video category feeds, search, pagination, and offline cache support.
 - [x] Offline-resilient authenticated identity plus a locally admin-editable About story and horizontally scrollable image gallery.

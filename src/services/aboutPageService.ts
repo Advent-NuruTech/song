@@ -1,8 +1,8 @@
-import * as ImagePicker from "expo-image-picker";
 import { Directory, File, Paths } from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
 
-import { db } from "@/src/db/database";
 import { ensureAdminModeEnabled } from "@/src/admin/adminAccess";
+import { db } from "@/src/db/database";
 
 const ABOUT_PAGE_KEY = "about-page-v1";
 const DEFAULT_IMAGE_ID = "bundled-byron";
@@ -18,7 +18,7 @@ export type AboutPageContent = {
   gallery: AboutGalleryImage[];
 };
 
-export const DEFAULT_ABOUT_STORY = `Created by Byron Onyango — a Present Truth believer.
+export const DEFAULT_ABOUT_STORY = `
 
 Advent Pro was born from a problem I personally experienced.
 

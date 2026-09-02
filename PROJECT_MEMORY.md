@@ -1,5 +1,13 @@
 # Advent Pro project memory
 
+## 2026-09-02 - Per-version Bible navigation search
+
+Outcome: the Bible home screen now has a search bar for the currently selected installed translation. It filters matching books, searches that translation's local verse index only, and recognizes direct references such as `John 3:16` for one-tap navigation. Changing translations clears the search, preventing results from one version being mistaken for another.
+
+Important files: `app/bible/index.tsx`, `PROJECT.md`.
+
+Verification: TypeScript type-check and Expo lint.
+
 ## 2026-08-31 - Dedicated Song-video media feed
 
 Outcome: Media now has a Songs tab beside Videos and Shorts. It presents regular videos assigned the normalized `Songs` media category, using the same card view, search, pagination, engagement, and offline-cache behavior as the Videos tab.

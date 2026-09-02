@@ -220,7 +220,7 @@ export default function CategoriesScreen() {
           </Text>
         </View>
         <View style={[styles.segment, { borderColor: colors.border, backgroundColor: colors.background }]}>
-          {(["category", "language"] as const).map((item) => <Pressable key={item} onPress={() => setMode(item)} style={[styles.segmentButton, mode === item && { backgroundColor: colors.tint }]}><Text style={[styles.segmentText, { color: mode === item ? colors.onPrimary : colors.mutedText, fontFamily }]}>{item === "category" ? "Categories" : "Languages"}</Text></Pressable>)}
+          {(["language"] as const).map((item) => <Pressable key={item} onPress={() => setMode(item)} style={[styles.segmentButton, mode === item && { backgroundColor: colors.tint }]}><Text style={[styles.segmentText, { color: mode === item ? colors.onPrimary : colors.mutedText, fontFamily }]}>{item === "category" ?  "Languages"}</Text></Pressable>)}
         </View>
       </View>
 

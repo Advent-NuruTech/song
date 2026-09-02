@@ -64,9 +64,7 @@ export default function AboutScreen() {
       </View>
 
       <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.border }]}>
-        <View style={styles.cardTitleRow}><Ionicons name="images-outline" size={size(23)} color={colors.tint} /><Text style={[styles.cardTitle, { color: colors.text, fontSize: size(19), fontFamily }]}>Built by Byron Onyango</Text></View>
-        <Text style={[styles.cardIntro, { color: colors.mutedText, fontSize: size(13), fontFamily }]}>The whole image is shown without cropping. Swipe to see every photo added by the admin.</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.gallery}>
           {gallery.map((image) => <View key={image.id} style={[styles.imageFrame, { borderColor: colors.border, backgroundColor: darkMode ? "#111827" : "#F8FAFC" }]}>
             <Image source={image.id === BUNDLED_BYRON_IMAGE ? require("@/assets/images/byron-onyango.png") : { uri: image.uri }} style={styles.profileImage} resizeMode="contain" accessibilityLabel="Byron Onyango and Advent Pro gallery" />
           </View>)}
